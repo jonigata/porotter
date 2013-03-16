@@ -1,0 +1,10 @@
+.box {
+  padding: 10px;
+  margin: 10px;
+  -moz-border-radius-bottomleft:5px;
+  -moz-border-radius-bottomright:5px;
+  -moz-border-radius-topleft:5px;
+  -moz-border-radius-topright:5px;
+  background: #EEE;
+}
+
