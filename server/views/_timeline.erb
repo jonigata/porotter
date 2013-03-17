@@ -1,0 +1,36 @@
+<section class="posts">
+  <% timeline.fetch_all.each do |post| %>
+  <article class="post">
+    <div class="avatar">
+      <div class="icon">
+      </div>
+    </div>
+    <div class="entry">
+      <div class="author">
+        <span class="label">
+          <%= post.store.author.store.username %>
+        </span>
+        <span class="username">
+          @<%= post.store.author.store.username %>
+        </span>
+      </div>
+      <div class="content">
+        <%= post.store.content %>
+      </div>
+      <div class="operation">
+        <% if comment == :enabled %>
+        <a href="#" onclick="openComment(this);">コメント</a>
+        <% end %>
+      </div>
+
+      <% if post.store.comments %>
+      <%= erb :_timeline, :locals => { :timeline => post.store.comments, :comment => :disabled } %>
+      <% end %>
+
+      <div class="comment-form">
+        <%= erb :_newcomment, :locals => { :parent_id => post.store.id } %>
+      </div>
+    </div>
+  </article>
+  <% end %>
+</section>

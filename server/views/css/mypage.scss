@@ -1,0 +1,60 @@
+.posts {
+    margin: 10px;
+    padding: 10px;
+
+    .post {
+        border-top: 1px dashed #DDD;
+        padding-top: 5px;
+        padding-bottom: 5px;
+
+        .avatar {
+            clear: left;
+            width: 48px;
+            height: 40px;
+            float: left;
+
+            .icon {
+                width: 40px;
+                height: 40px;
+                border: solid 1px #BBB;
+            }
+        }
+
+        .entry {
+            margin-left: 48px;
+
+            .author {
+                .label {
+                    font-weight: bold;
+                }
+
+                .username {
+                    color: #999;
+                }
+
+            }
+
+            .content {
+                margin-top: 6px;
+
+                margin-bottom: 8px;
+            }
+
+            .operation {
+                font-size: 85%;
+                :link {
+                    color: #999;
+                    text-decoration: none;
+                }
+                :hover {
+                    color: #22F;
+                    text-decoration: underline;
+                }
+            }
+
+            .comment-form {
+                display: none;
+            }
+        }
+    }
+}

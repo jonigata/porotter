@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <title>ぽろったー</title>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>    
+    <script src="<%= static_url("js/mypage.js") %>"></script>
+    <link rel="stylesheet" href="<%= static_url("css/mypage.css") %>">
+  </head>
+
+  <body>
+    <header>
+      <h1>ぽろったー</h1>
+      <p class="subtitle">ぽろったーは、リアルタイムに配信される情報にコメントを付けながら交流できるシステムです。</p>
+    </header>
+
+    <%= erb :_newpost %>
+
+    <%= erb :_timeline, :locals => { :timeline => user.store.primary_timeline, :comment => :enabled } %>
+    
+  </body>
+</html>
