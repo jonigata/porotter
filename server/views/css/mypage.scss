@@ -1,7 +1,11 @@
-.posts {
+body {
     margin: 10px;
     padding: 10px;
 
+    
+}
+
+.posts {
     .post {
         border-top: 1px dashed #DDD;
         padding-top: 5px;
@@ -29,9 +33,23 @@
                 }
 
                 .username {
+                    font-size: 85%;
                     color: #999;
                 }
 
+                .favorite {
+                    margin-left: 8px;
+                    font-size: 70%;
+                    color: #999;
+                    a {
+                        color: #77d;
+                        text-decoration: none;
+                    }
+                    :hover {
+                        color: #22F;
+                        text-decoration: underline;
+                    }
+                }
             }
 
             .content {
@@ -42,8 +60,8 @@
 
             .operation {
                 font-size: 85%;
-                :link {
-                    color: #999;
+                a {
+                    color: #77d;
                     text-decoration: none;
                 }
                 :hover {

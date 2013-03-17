@@ -13,6 +13,12 @@ class Object
   end
 end
 
+class Time
+  def to_redis
+    to_i
+  end
+end
+
 module RedisMapper
 
   class Model

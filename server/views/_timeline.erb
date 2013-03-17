@@ -13,20 +13,25 @@
         <span class="username">
           @<%= post.store.author.store.username %>
         </span>
+        <span class="favorite">
+          <a href="">
+            お気に入りに登録
+          </a>
+        </span>
       </div>
       <div class="content">
         <%= post.store.content %>
-      </div>
-      <div class="operation">
-        <% if comment == :enabled %>
-        <a href="#" onclick="openComment(this);">コメント</a>
-        <% end %>
       </div>
 
       <% if post.store.comments %>
       <%= erb :_timeline, :locals => { :timeline => post.store.comments, :comment => :disabled } %>
       <% end %>
 
+      <div class="operation">
+        <% if comment == :enabled %>
+        <a href="#" onclick="openComment(this);">コメントする</a>
+        <% end %>
+      </div>
       <div class="comment-form">
         <%= erb :_newcomment, :locals => { :parent_id => post.store.id } %>
       </div>

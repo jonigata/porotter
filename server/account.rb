@@ -10,29 +10,9 @@ class Account < Sinatra::Base
   enable :sessions
   set :session_secret, 'porotter secret'
   
-  helpers do
-    def local_url(action)
-      action.gsub!(/^\//, '')
-      "#{URL_PREFIX}/account/#{action}"
-    end
+  include WebServerHelper
+  def here; "/account"; end
 
-    def parent_url(action)
-      action.gsub!(/^\//, '')
-      "#{URL_PREFIX}/#{action}"
-    end
-
-    def href(action)
-      "href=\"#{local_url(action)}\""
-    end
-
-    def render_login_page(login_error, signup_error)
-      erb :login, :locals => {
-        :login_error => login_error,
-        :signup_error => signup_error
-      };
-    end
-  end
-  
   get '' do
     "ROOT"
   end
@@ -57,6 +37,12 @@ class Account < Sinatra::Base
   end
   
   post '/login' do
+    if user = User.auth(*params.values_at(:username, :password))
+      session["user_id"] = user.store.id
+      redirect parent_url("/")
+    else
+      render_login_page("bad username or password", nil)
+    end
   end
 
 end

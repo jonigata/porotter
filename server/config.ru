@@ -7,9 +7,13 @@ Encoding.default_internal = "UTF-8"
 
 require './redis_mapper.rb'
 require './models/user.rb'
+require './models/users.rb'
+require './models/post.rb'
+require './models/timeline.rb'
 
 URL_PREFIX='/foo'
 
+require './web_server_helper'
 require './app'
 require './account'
 

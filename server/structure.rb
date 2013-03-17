@@ -10,6 +10,11 @@ class Object
 end
 class Integer; def self.from_s(s) s && s.to_i end end
 class Symbol; def self.from_s(s) s && s.intern end end
+class Time
+  def self.from_s(s)
+    s && Time.at(s.to_i)
+  end
+end
 
 class Boolean
   def self.from_s(s)
