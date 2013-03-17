@@ -58,11 +58,16 @@ body {
                 margin-bottom: 8px;
             }
 
+            .comments {
+                display: none;
+            }
+
             .operation {
                 font-size: 85%;
                 a {
                     color: #77d;
                     text-decoration: none;
+                    margin-right: 8px;
                 }
                 :hover {
                     color: #22F;

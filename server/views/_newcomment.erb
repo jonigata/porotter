@@ -1,6 +1,5 @@
-<form action="<%= local_url("p/newcomment") %>" method="post">
+<form>
   <input type="hidden" name="parent" value="<%= parent_id %>"/>
   <textarea name="content"></textarea>
-  <input type="submit" value="投稿"/>
+  <input type="button" value="投稿" onclick="postComment($(this).parent());return false;"/>
 </form>      
-

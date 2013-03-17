@@ -6,6 +6,12 @@
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>    
     <script src="<%= static_url("js/mypage.js") %>"></script>
     <link rel="stylesheet" href="<%= static_url("css/mypage.css") %>">
+
+    <script>
+      $(function() {
+        fillRoot();
+      });
+    </script>
   </head>
 
   <body>
@@ -14,9 +20,9 @@
       <p class="subtitle">ぽろったーは、リアルタイムに配信される情報にコメントを付けながら交流できるシステムです。</p>
     </header>
 
-    <%= erb :_newpost %>
+    <%= erb :_newarticle %>
 
-    <%= erb :_timeline, :locals => { :timeline => user.store.primary_timeline, :comment => :enabled } %>
-    
+    <div id="root">
+    </div>
   </body>
 </html>

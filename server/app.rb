@@ -30,14 +30,24 @@ class Porotter < Sinatra::Base
     erb :userpage, :locals => { :user => user }
   end
 
-  post '/p/newpost' do
+  get '/p/user_timeline' do
+    render_root(@user)
+  end
+
+  post '/p/newarticle' do
     @user.add_post(params[:content])
-    redirect local_url('/')
+    render_root(@user)
   end
 
   post '/p/newcomment' do
     post = Post.attach_if_exist(params[:parent].to_i) or halt 403
     @user.add_comment(post, params[:content])
+    render_root(@user)
+  end
+
+  get '/p/favor' do
+    post = Post.attach_if_exist(params[:target].to_i) or halt 403
+    @user.toggle_favorite(post)
     redirect local_url('/')
   end
 
@@ -47,6 +57,11 @@ class Porotter < Sinatra::Base
 
   get %r{/static/(.*\.(js|css|png|gif))} do |path, ext|
     send_file File.join(settings.public_folder, path)
+  end
+
+  private
+  def render_root(user)
+    erb :_timeline, :locals => { :user => user, :timeline => user.store.primary_timeline, :comment => :enabled, :direction => :upward }
   end
 
 end

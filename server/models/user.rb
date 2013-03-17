@@ -23,6 +23,7 @@ class User < RedisMapper::PlatformModel
 
           user.store.my_posts = Timeline.create
           user.store.primary_timeline = Timeline.create
+          user.store.favorites = Timeline.create
           user.store.watchers.add(user.store.my_posts)
           user.store.watchers.add(user.store.primary_timeline)
           user.add_post("最初の投稿です")
@@ -58,6 +59,20 @@ class User < RedisMapper::PlatformModel
     parent.store.comments.add_post(Post.create(self, content))
   end
 
+  def toggle_favorite(post)
+    self.store.favorites ||= Timeline.create
+    if favors?(post)
+      self.store.favorites.remove_post(post)
+    else
+      self.store.favorites.add_post(post)
+    end
+  end
+
+  def favors?(post)
+    self.store.favorites ||= Timeline.create
+    self.store.favorites.member?(post)
+  end
+
   index_accessor :username
 
   property      :username,          String
@@ -66,5 +81,6 @@ class User < RedisMapper::PlatformModel
   list_property :notifications,     Integer
   property      :my_posts,          Timeline # 自分の投稿
   property      :primary_timeline,  Timeline # 自分のホームページに出るTL
+  property      :favorites,         Timeline # 自分のお気に入り
   set_property  :watchers,          Timeline # 自分の投稿をウォッチしてるTL
 end

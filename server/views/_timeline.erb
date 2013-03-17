@@ -1,5 +1,5 @@
 <section class="posts">
-  <% timeline.fetch_all.each do |post| %>
+  <% timeline.fetch_all(direction).each do |post| %>
   <article class="post">
     <div class="avatar">
       <div class="icon">
@@ -14,8 +14,12 @@
           @<%= post.store.author.store.username %>
         </span>
         <span class="favorite">
-          <a href="">
+          <a href="<%= local_url("p/favor") %>?target=<%= post.store.id %>">
+            <% if user.favors?(post) %>
+            ★解除
+            <% else %>
             お気に入りに登録
+            <% end %>
           </a>
         </span>
       </div>
@@ -23,13 +27,19 @@
         <%= post.store.content %>
       </div>
 
-      <% if post.store.comments %>
-      <%= erb :_timeline, :locals => { :timeline => post.store.comments, :comment => :disabled } %>
-      <% end %>
+      <% comments = post.store.comments %>
+      <div class="comments">
+        <% if comments %>
+        <%= erb :_timeline, :locals => { :user => user, :timeline => comments, :comment => :disabled, :direction => :downward } %>
+        <% end %>
+      </div>
 
       <div class="operation">
         <% if comment == :enabled %>
-        <a href="#" onclick="openComment(this);">コメントする</a>
+        <a href="#" onclick="openComments(this);return false;">
+          コメントを見る(<%= comments ? comments.length : 0 %>)
+        </a>
+        <a href="#" onclick="openCommentForm(this);return false;">コメントする</a>
         <% end %>
       </div>
       <div class="comment-form">
