@@ -18,7 +18,7 @@
       <h1><%= user.store.username %>さんの投稿</h1>
     </section>
 
-    <%= erb :_timeline, :locals => { :timeline => user.store.primary_timeline, :comment => :enabled } %>
+    <%= erb :_timeline, :locals => { :user => user, :timeline => user.store.primary_timeline, :comment => :enabled, :direction => :upward } %>
     
   </body>
 </html>
