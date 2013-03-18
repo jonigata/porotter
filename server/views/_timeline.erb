@@ -32,6 +32,14 @@
       <% comments = post.store.comments %>
       <div class="comments">
         <% if !comments.empty? %>
+        <div class="close-button">
+          <div>
+            <a href="#" onclick="openComments(this); return false;">×</a>
+          </div>
+          <div>
+            <a href="#" onclick="scrollToLastComment(this); return false;">↓</a>
+          </div>
+        </div>
         <%= erb :_timeline, :locals => { :user => user, :root => root, :timeline => comments, :comment => :disabled, :direction => :downward } %>
         <% end %>
       </div>

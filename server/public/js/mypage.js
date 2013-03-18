@@ -1,9 +1,17 @@
+function getEntry(obj) {
+    return $($(obj).parents(".entry")[0])
+}
+
 function openComments(obj) {
-    $(obj).parents(".entry").find('> .comments').toggle();
+    getEntry(obj).find('> .comments').toggle();
 }
 
 function openCommentForm(obj) {
-    $(obj).parents(".entry").find('> .comment-form').toggle();
+    getEntry(obj).find('> .comment-form').toggle();
+}
+
+function scrollToLastComment(obj) {
+    $(document).scrollTop(getEntry(obj).find('> .operation').offset().top);
 }
 
 function fillRoot(timelineId) {
@@ -41,7 +49,7 @@ function postComment(timelineId, form) {
             timeline: timelineId
         }
     }).done(function(data) {
-        $($(form).parents(".entry")[0]).find('> .comments').html(data);
+        getEntry(form).find('> .comments').html(data);
     });
     form.find('[name="content"]').val('');
 }

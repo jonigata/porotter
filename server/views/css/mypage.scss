@@ -1,8 +1,17 @@
 body {
     margin: 10px;
     padding: 10px;
+}
 
-    
+@mixin action-link {
+    a {
+        color: #77d;
+        text-decoration: none;
+    }
+    :hover {
+        color: #22F;
+        text-decoration: underline;
+    }
 }
 
 .posts {
@@ -41,14 +50,7 @@ body {
                     margin-left: 8px;
                     font-size: 70%;
                     color: #999;
-                    a {
-                        color: #77d;
-                        text-decoration: none;
-                    }
-                    :hover {
-                        color: #22F;
-                        text-decoration: underline;
-                    }
+                    @include action-link;
                 }
             }
 
@@ -60,19 +62,18 @@ body {
 
             .comments {
                 display: none;
+
+                .close-button {
+                    height: 0px;
+                    position: relative;
+                    margin-left: -16px;
+                    @include action-link;
+                }             
             }
 
             .operation {
                 font-size: 85%;
-                a {
-                    color: #77d;
-                    text-decoration: none;
-                    margin-right: 8px;
-                }
-                :hover {
-                    color: #22F;
-                    text-decoration: underline;
-                }
+                @include action-link;
             }
 
             .comment-form {
