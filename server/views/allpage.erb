@@ -7,9 +7,10 @@
     <script src="<%= static_url("js/mypage.js") %>"></script>
     <link rel="stylesheet" href="<%= static_url("css/mypage.css") %>">
 
+    <% timeline = Users.singleton.store.global_timeline %>
     <script>
       $(function() {
-        fillRoot(<%= target.store.primary_timeline.store.id %>);
+        fillRoot(<%= timeline.store.id %>);
       });
     </script>
   </head>
@@ -20,12 +21,9 @@
       <p class="subtitle">ぽろったーは、リアルタイムに配信される情報にコメントを付けながら交流できるシステムです。</p>
     </header>
 
-    <section>
-      <h1><%= target.store.username %>さんの投稿</h1>
-    </section>
+    <%= erb :_newarticle, :locals => { :root => timeline }  %>
 
     <div id="root">
     </div>
-    
   </body>
 </html>

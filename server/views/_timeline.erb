@@ -14,13 +14,15 @@
           @<%= post.store.author.store.username %>
         </span>
         <span class="favorite">
-          <a href="<%= local_url("p/favor") %>?target=<%= post.store.id %>">
-            <% if user.favors?(post) %>
+          <% if @user %>
+          <a href="<%= local_url("m/favor") %>?target=<%= post.store.id %>">
+            <% if @user.favors?(post) %>
             ★解除
             <% else %>
             お気に入りに登録
             <% end %>
           </a>
+          <% end %>
         </span>
       </div>
       <div class="content">
@@ -30,7 +32,7 @@
       <% comments = post.store.comments %>
       <div class="comments">
         <% if comments %>
-        <%= erb :_timeline, :locals => { :user => user, :timeline => comments, :comment => :disabled, :direction => :downward } %>
+        <%= erb :_timeline, :locals => { :user => user, :root => root, :timeline => comments, :comment => :disabled, :direction => :downward } %>
         <% end %>
       </div>
 
@@ -39,12 +41,16 @@
         <a href="#" onclick="openComments(this);return false;">
           コメントを見る(<%= comments ? comments.length : 0 %>)
         </a>
+        <%   if @user %>
         <a href="#" onclick="openCommentForm(this);return false;">コメントする</a>
+        <%   end %>
         <% end %>
       </div>
+      <% if @user %>
       <div class="comment-form">
-        <%= erb :_newcomment, :locals => { :parent_id => post.store.id } %>
+        <%= erb :_newcomment, :locals => { :parent_id => post.store.id, :root => root } %>
       </div>
+      <% end %>
     </div>
   </article>
   <% end %>

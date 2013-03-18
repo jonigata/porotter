@@ -18,34 +18,45 @@ class Porotter < Sinatra::Base
 
   before do
     @user = User.attach_if_exist(session['user_id'])
-    redirect "#{URL_PREFIX}/account/login", 303 unless @user
+    p request.path_info
+    s = request.path_info.split('/')[1]
+    p s
+    if !@user && s != 'user' && s != 'p' && s != 'static'
+      redirect "#{URL_PREFIX}/account/login", 303
+    end
   end
 
   get '/' do
-    erb :mypage, :locals => { :user => @user }
+    # erb :mypage
+    erb :allpage
+  end
+
+  get "/user/all" do
+    erb :allpage
   end
 
   get '/user/*' do |username|
-    user = User.store_class.find_by_username(username) or halt 404
-    erb :userpage, :locals => { :user => user }
+    target = User.store_class.find_by_username(username) or halt 404
+    erb :userpage, :locals => { :target => target }
   end
 
-  get '/p/user_timeline' do
-    render_root(@user)
+  get '/p/timeline' do
+    render_root(Timeline.attach_if_exist(params['timeline'].to_i))
   end
 
-  post '/p/newarticle' do
+  post '/m/newarticle' do
     @user.add_post(params[:content])
-    render_root(@user)
+    render_root(Timeline.attach_if_exist(params['timeline'].to_i))
   end
 
-  post '/p/newcomment' do
+  post '/m/newcomment' do
+    p params[:content]
     post = Post.attach_if_exist(params[:parent].to_i) or halt 403
     @user.add_comment(post, params[:content])
-    render_root(@user)
+    render_root(Timeline.attach_if_exist(params['timeline'].to_i))
   end
 
-  get '/p/favor' do
+  get '/m/favor' do
     post = Post.attach_if_exist(params[:target].to_i) or halt 403
     @user.toggle_favorite(post)
     redirect local_url('/')
@@ -60,8 +71,9 @@ class Porotter < Sinatra::Base
   end
 
   private
-  def render_root(user)
-    erb :_timeline, :locals => { :user => user, :timeline => user.store.primary_timeline, :comment => :enabled, :direction => :upward }
+  def render_root(timeline)
+    halt 403 unless timeline
+    erb :_timeline, :locals => { :user => @user, :root => timeline, :timeline => timeline, :comment => :enabled, :direction => :upward }
   end
 
 end
