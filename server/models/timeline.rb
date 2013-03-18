@@ -27,5 +27,9 @@ class Timeline < RedisMapper::PlatformModel
     self.store.posts.length
   end
 
+  def empty?
+    self.store.posts.empty?
+  end
+
   ordered_set_property  :posts, Post
 end

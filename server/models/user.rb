@@ -56,8 +56,7 @@ class User < RedisMapper::PlatformModel
   end
 
   def add_comment(parent, content)
-    parent.store.comments ||= Timeline.create
-    parent.store.comments.add_post(Post.create(self, content))
+    parent.add_comment(self, content)
   end
 
   def toggle_favorite(post)

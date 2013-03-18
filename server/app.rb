@@ -41,19 +41,19 @@ class Porotter < Sinatra::Base
   end
 
   get '/p/timeline' do
-    render_root(Timeline.attach_if_exist(params['timeline'].to_i))
+    render_timeline(Timeline.attach_if_exist(params['timeline'].to_i), :upward)
   end
 
   post '/m/newarticle' do
     @user.add_post(params[:content])
-    render_root(Timeline.attach_if_exist(params['timeline'].to_i))
+    render_timeline(Timeline.attach_if_exist(params['timeline'].to_i), :upward)
   end
 
   post '/m/newcomment' do
     p params[:content]
     post = Post.attach_if_exist(params[:parent].to_i) or halt 403
     @user.add_comment(post, params[:content])
-    render_root(Timeline.attach_if_exist(params['timeline'].to_i))
+    render_timeline(Timeline.attach_if_exist(params['timeline'].to_i), :downward)
   end
 
   get '/m/favor' do
@@ -71,9 +71,9 @@ class Porotter < Sinatra::Base
   end
 
   private
-  def render_root(timeline)
+  def render_timeline(timeline, direction)
     halt 403 unless timeline
-    erb :_timeline, :locals => { :user => @user, :root => timeline, :timeline => timeline, :comment => :enabled, :direction => :upward }
+    erb :_timeline, :locals => { :user => @user, :root => timeline, :timeline => timeline, :comment => :enabled, :direction => direction }
   end
 
 end

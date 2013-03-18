@@ -4,7 +4,12 @@ class Post < RedisMapper::PlatformModel
       post.store.author = user
       post.store.content = content
       post.store.created_at = post.store.updated_at = Time.now
+      post.store.comments = Timeline.create
     end
+  end
+
+  def add_comment(author, content)
+    self.store.comments.add_post(Post.create(author, content))
   end
 
   property  :author,        User

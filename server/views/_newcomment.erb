@@ -1,5 +1,5 @@
 <form>
   <input type="hidden" name="parent" value="<%= parent_id %>"/>
   <textarea name="content"></textarea>
-  <input type="button" value="投稿" onclick="postComment(<%= root.store.id %>, $(this).parent());return false;"/>
+  <input type="button" value="投稿" onclick="postComment(<%= timeline.store.id %>, $(this).parent());return false;"/>
 </form>      

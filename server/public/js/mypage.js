@@ -1,20 +1,18 @@
 function openComments(obj) {
-    $(obj).parent().parent().find('> .comments').toggle();
+    $(obj).parents(".entry").find('> .comments').toggle();
 }
 
 function openCommentForm(obj) {
-    $(obj).parent().parent().find('> .comment-form').toggle();
+    $(obj).parents(".entry").find('> .comment-form').toggle();
 }
 
 function fillRoot(timelineId) {
-    console.log(timelineId);
     $.ajax({
         url: "/foo/p/timeline",
         data: {
             timeline: timelineId
         }
     }).done(function(data) {
-        console.log(data);
         $('#root').html(data);
     });
 }
@@ -43,8 +41,7 @@ function postComment(timelineId, form) {
             timeline: timelineId
         }
     }).done(function(data) {
-        console.log(timelineId);
-        $('#root').html(data);
+        $($(form).parents(".entry")[0]).find('> .comments').html(data);
     });
     form.find('[name="content"]').val('');
 }
