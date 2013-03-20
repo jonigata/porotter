@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 require 'sinatra/rocketio'
-require_relative 'watch'
 
 class Porotter < Sinatra::Base
   register Sinatra::Namespace
