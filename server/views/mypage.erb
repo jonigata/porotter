@@ -3,11 +3,8 @@
   <head>
     <meta charset="utf-8">
     <title>ぽろったー</title>
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>    
-    <script src="<%= static_url("js/mypage.js") %>"></script>
-    <script src="<%= static_url("js/watch.js") %>"></script>
-    <script src="<%= rocketio_js %>"></script>
-    <link rel="stylesheet" href="<%= static_url("css/mypage.css") %>">
+
+    <%= erb :_head %>
 
     <% timeline = @user.store.primary_timeline %>
     <script>
