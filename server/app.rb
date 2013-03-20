@@ -1,12 +1,73 @@
 # -*- coding: utf-8 -*-
 
+require 'sinatra/rocketio'
+require_relative 'watch'
+
 class Porotter < Sinatra::Base
   register Sinatra::Namespace
+  register Sinatra::RocketIO
 
   configure :development do
     register Sinatra::Reloader
     also_reload "#{File.dirname(__FILE__)}/*.rb"
     also_reload "#{File.dirname(__FILE__)}/models/*.rb"
+  end
+
+  configure do
+    # $watchers[timeline_id] = [session_id, ...]
+    $watchers = Hash.new { |h, k| h[k] = Set.new }
+
+    # $watchees[session_id] = Set.new
+    $watchees = Hash.new
+
+    io = Sinatra::RocketIO
+    io.on :connect do |session, type|
+      puts "new client <#{session}> (type:#{type})"
+    end
+
+    io.on :disconnect do |session, type|
+      puts "delete client <#{session}> (type:#{type})"
+      $watchees.delete(session)
+    end
+
+    io.on :watch do |data, session, type|
+      puts "params: #{data}, <#{session}> type: #{type}"
+
+      begin 
+        targets = data["targets"].map { |e| e.to_i }
+
+        # targetsから要素が削除されている場合、
+        # $watchers[some]にはsessionが含まれているのに
+        # $watchees[session]にはsomeが含まれていないケースが生じるが、
+        # その判定はlazyに(通知時に)行う。
+
+        targets.each do |timeline_id|
+          $watchers[timeline_id] << session
+        end
+        $watchees[session] = Set.new(targets)
+      rescue => e
+        puts e
+        puts e.backtrace
+      end
+    end
+
+    EM.defer do
+      Redis.new.subscribe("timeline-watcher") do |on|
+        on.message do |channel, message|
+          timeline_id, version = JSON.parse(message)
+          deleted = []
+          $watchers[timeline_id].each do |session|
+            if $watchees[session].member?(timeline_id)
+              io.push :watch, {:timeline => timeline_id}, {:to => session }
+            else
+              deleted.push session
+            end
+          end
+          $watchers[timeline_id].subtract(deleted)
+          puts "some post detected: #{message}"
+        end
+      end
+    end
   end
 
   enable :sessions
@@ -18,9 +79,7 @@ class Porotter < Sinatra::Base
 
   before do
     @user = User.attach_if_exist(session['user_id'])
-    p request.path_info
     s = request.path_info.split('/')[1]
-    p s
     if !@user && s != 'user' && s != 'p' && s != 'static'
       redirect "#{URL_PREFIX}/account/login", 303
     end

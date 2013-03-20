@@ -5,14 +5,18 @@
     <title>ぽろったー</title>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>    
     <script src="<%= static_url("js/mypage.js") %>"></script>
+    <script src="<%= static_url("js/watch.js") %>"></script>
+    <script src="<%= rocketio_js %>"></script>
     <link rel="stylesheet" href="<%= static_url("css/mypage.css") %>">
 
     <% timeline = Users.singleton.store.global_timeline %>
     <script>
       $(function() {
         fillRoot(<%= timeline.store.id %>);
+        startWatch();
       });
     </script>
+
   </head>
 
   <body>

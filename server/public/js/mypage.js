@@ -1,9 +1,18 @@
 function getEntry(obj) {
-    return $($(obj).parents(".entry")[0])
+    return $($(obj).parents(".entry")[0]);
 }
 
 function openComments(obj) {
-    getEntry(obj).find('> .comments').toggle();
+    var comments = getEntry(obj).find('> .comments');
+    comments.toggle();
+    var posts = comments.find('> .posts');
+    if (0 < posts.length) {
+        if (comments.is(':visible')) {
+            watchTimeline(comments.find('> .posts').attr('timeline-id') - 0);
+        } else {
+            unwatchTimeline(comments.find('> .posts').attr('timeline-id') - 0);
+        }
+    }
 }
 
 function openCommentForm(obj) {
@@ -22,6 +31,8 @@ function fillRoot(timelineId) {
         }
     }).done(function(data) {
         $('#root').html(data);
+        clearWatchees();
+        watchTimeline(timelineId);
     });
 }
 
@@ -53,3 +64,5 @@ function postComment(timelineId, form) {
     });
     form.find('[name="content"]').val('');
 }
+
+

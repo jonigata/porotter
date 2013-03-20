@@ -1,4 +1,4 @@
-<section class="posts">
+<section class="posts" timeline-id="<%= timeline.store.id %>">
   <% timeline.fetch_all(direction).each do |post| %>
   <article class="post">
     <div class="avatar">
@@ -40,7 +40,7 @@
             <a href="#" onclick="scrollToLastComment(this); return false;">↓</a>
           </div>
         </div>
-        <%= erb :_timeline, :locals => { :user => user, :root => root, :timeline => comments, :comment => :disabled, :direction => :downward } %>
+        <%=  erb :_timeline, :locals => { :user => user, :root => root, :timeline => comments, :comment => :disabled, :direction => :downward } %>
         <% end %>
       </div>
 

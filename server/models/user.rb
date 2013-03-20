@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 class SignUpError < Exception; end
 
-RedisMapper::PlatformModel.set_redis(Redis.new)
-
 class Timeline < RedisMapper::PlatformModel; end
 
 class User < RedisMapper::PlatformModel
