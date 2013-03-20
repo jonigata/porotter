@@ -40,10 +40,10 @@ class Porotter < Sinatra::Base
         # $watchees[session]にはsomeが含まれていないケースが生じるが、
         # その判定はlazyに(通知時に)行う。
 
+        $watchees[session] = Set.new(targets)
         targets.each do |timeline_id|
           $watchers[timeline_id] << session
         end
-        $watchees[session] = Set.new(targets)
       rescue => e
         puts e
         puts e.backtrace
@@ -56,7 +56,8 @@ class Porotter < Sinatra::Base
           timeline_id, version = JSON.parse(message)
           deleted = []
           $watchers[timeline_id].each do |session|
-            if $watchees[session].member?(timeline_id)
+            if $watchees.member?(session) &&
+                $watchees[session].member?(timeline_id)
               io.push :watch, {:timeline => timeline_id}, {:to => session }
             else
               deleted.push session

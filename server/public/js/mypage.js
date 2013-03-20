@@ -71,7 +71,9 @@ function postArticle(timelineId, form) {
             timeline: timelineId
         }
     }).done(function(data) {
+        saveOpenStates();
         $('#root').html(data);
+        loadOpenStates();
     });
     form.find('[name="content"]').val('');
 }
