@@ -34,7 +34,7 @@
         <% if !comments.empty? %>
         <div class="close-button">
           <div>
-            <a href="#" onclick="openComments(this); return false;">×</a>
+            <a href="#" onclick="toggleComments(this); return false;">×</a>
           </div>
           <div>
             <a href="#" onclick="scrollToLastComment(this); return false;">↓</a>
@@ -46,11 +46,11 @@
 
       <div class="operation">
         <% if comment == :enabled %>
-        <a href="#" onclick="openComments(this);return false;">
-          コメントを見る(<%= comments ? comments.length : 0 %>)
+        <a class="show-comment" href="#" onclick="toggleComments(this);return false;">
+          コメントを見る(<%= comments.length %>)
         </a>
         <%   if @user %>
-        <a href="#" onclick="openCommentForm(this);return false;">コメントする</a>
+        <a class="post-comment" href="#" onclick="toggleCommentForm(this);return false;">コメントする</a>
         <%   end %>
         <% end %>
       </div>

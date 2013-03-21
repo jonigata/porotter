@@ -10,7 +10,7 @@
     <script>
       $(function() {
         fillRoot(<%= timeline.store.id %>);
-        startWatch();
+        startWatch(function(data) { updateTimeline(data.timeline); });
       });
     </script>
 

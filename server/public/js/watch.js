@@ -25,11 +25,11 @@ function sendWatchees() {
         for(var k in watchees) {
             targets.push(k);
         }
-        io.push("watch", {targets: targets});
+         io.push("watch", {targets: targets});
     }
 }
 
-function startWatch() {
+function startWatch(callback) {
     io = new RocketIO().connect();
     io.on("connect", function(session) {
         connected = true;
@@ -39,5 +39,6 @@ function startWatch() {
     });
     io.on("watch", function(data) {
         console.log(data);
+        callback(data);
     });
 }

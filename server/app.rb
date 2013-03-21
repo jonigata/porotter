@@ -2,6 +2,12 @@
 
 require 'sinatra/rocketio'
 
+# $watchers[timeline_id] = [session_id, ...]
+$watchers = Hash.new { |h, k| h[k] = Set.new }
+
+# $watchees[session_id] = Set.new
+$watchees = Hash.new
+
 class Porotter < Sinatra::Base
   register Sinatra::Namespace
   register Sinatra::RocketIO
@@ -13,12 +19,6 @@ class Porotter < Sinatra::Base
   end
 
   configure do
-    # $watchers[timeline_id] = [session_id, ...]
-    $watchers = Hash.new { |h, k| h[k] = Set.new }
-
-    # $watchees[session_id] = Set.new
-    $watchees = Hash.new
-
     io = Sinatra::RocketIO
     io.on :connect do |session, type|
       puts "new client <#{session}> (type:#{type})"
@@ -50,6 +50,7 @@ class Porotter < Sinatra::Base
       end
     end
 
+
     EM.defer do
       Redis.new.subscribe("timeline-watcher") do |on|
         on.message do |channel, message|
@@ -58,6 +59,7 @@ class Porotter < Sinatra::Base
           $watchers[timeline_id].each do |session|
             if $watchees.member?(session) &&
                 $watchees[session].member?(timeline_id)
+              puts "send watch message"
               io.push :watch, {:timeline => timeline_id}, {:to => session }
             else
               deleted.push session
@@ -100,19 +102,20 @@ class Porotter < Sinatra::Base
   end
 
   get '/p/timeline' do
-    render_timeline(Timeline.attach_if_exist(params['timeline'].to_i), :upward)
+    direction = symbolize(params['direction'], [:upward, :downward]) or halt 403
+    comment = symbolize(params['comment'], [:enabled, :disabled]) or halt 403
+    render_timeline(Timeline.attach_if_exist(params['timeline'].to_i), direction, comment)
   end
 
   post '/m/newarticle' do
     @user.add_post(params[:content])
-    render_timeline(Timeline.attach_if_exist(params['timeline'].to_i), :upward)
+    "OK"
   end
 
   post '/m/newcomment' do
-    p params[:content]
     post = Post.attach_if_exist(params[:parent].to_i) or halt 403
     @user.add_comment(post, params[:content])
-    render_timeline(Timeline.attach_if_exist(params['timeline'].to_i), :downward)
+    "OK"
   end
 
   get '/m/favor' do
@@ -130,9 +133,16 @@ class Porotter < Sinatra::Base
   end
 
   private
-  def render_timeline(timeline, direction)
+  def render_timeline(timeline, direction, comment)
     halt 403 unless timeline
-    erb :_timeline, :locals => { :user => @user, :root => timeline, :timeline => timeline, :comment => :enabled, :direction => direction }
+    erb :_timeline, :locals => { :user => @user, :root => timeline, :timeline => timeline, :comment => comment, :direction => direction }
+  end
+
+  def symbolize(s, candidates)
+    candidates.each do |c|
+      return c if c.to_s == s
+    end
+    return nil
   end
 
 end

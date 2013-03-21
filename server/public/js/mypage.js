@@ -1,3 +1,4 @@
+// 親方向最内の'entry'クラスつきjQueryオブジェクトを得る
 function getEntry(obj) {
     return $($(obj).parents(".entry")[0]);
 }
@@ -26,21 +27,26 @@ function loadOpenStates() {
     });
 }
 
-function openComments(obj) {
-    var comments = getEntry(obj).find('> .comments');
+function toggleComments(obj) {
+    var entry = getEntry(obj);
+    var comments = entry.find('> .comments');
     comments.toggle();
     var posts = comments.find('> .posts');
     if (0 < posts.length) {
+        var show_comment = entry.find('> .operation .show-comment');
         if (comments.is(':visible')) {
             watchTimeline(comments.find('> .posts').attr('timeline-id') - 0);
+            show_comment.html('コメントを隠す');
         } else {
             unwatchTimeline(comments.find('> .posts').attr('timeline-id') - 0);
+            var commentCount = comments.find('.posts .post').length;
+            show_comment.html('コメントを見る(' + commentCount + ')');
         }
     }
     saveOpenStates();
 }
 
-function openCommentForm(obj) {
+function toggleCommentForm(obj) {
     getEntry(obj).find('> .comment-form').toggle();
 }
 
@@ -49,16 +55,39 @@ function scrollToLastComment(obj) {
 }
 
 function fillRoot(timelineId) {
+    console.log("fillRoot " + timelineId);
     $.ajax({
         url: "/foo/p/timeline",
         data: {
-            timeline: timelineId
+            timeline: timelineId,
+            direction: 'upward',
+            comment: 'enabled'
         }
     }).done(function(data) {
+        saveOpenStates();
         $('#root').html(data);
         clearWatchees();
         watchTimeline(timelineId);
         loadOpenStates();
+    });
+}
+
+function fillComment(e, timelineId) {
+    console.log("fillComment " + timelineId);
+    $.ajax({
+        url: "/foo/p/timeline",
+        data: {
+            timeline: timelineId,
+            direction: 'downward',
+            comment: 'disabled'
+        }
+    }).done(function(data) {
+        console.log(data);
+        var entry = getEntry(e);
+        e.replaceWith(data);
+        var commentCount = entry.find('.comments .posts .post').length;
+        entry.find('> .operation .show-comment').html('コメントを見る(' + commentCount + ')');
+        scrollToLastComment(e);
     });
 }
 
@@ -70,10 +99,6 @@ function postArticle(timelineId, form) {
             content: $(form).find('[name="content"]').val(),
             timeline: timelineId
         }
-    }).done(function(data) {
-        saveOpenStates();
-        $('#root').html(data);
-        loadOpenStates();
     });
     form.find('[name="content"]').val('');
 }
@@ -87,10 +112,14 @@ function postComment(timelineId, form) {
             content: $(form).find('[name="content"]').val(),
             timeline: timelineId
         }
-    }).done(function(data) {
-        getEntry(form).find('> .comments').html(data);
     });
     form.find('[name="content"]').val('');
 }
 
-
+function updateTimeline(timelineId) {
+    if (timelineId == $('#root > .posts').attr('timeline-id') - 0) {
+        fillRoot(timelineId);
+    } else {
+        fillComment($('.posts[timeline-id="'+timelineId+'"]'), timelineId);
+    }
+}
