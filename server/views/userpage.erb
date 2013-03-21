@@ -9,8 +9,8 @@
     <% timeline = target.store.primary_timeline %>
     <script>
       $(function() {
-        fillRoot(<%= timeline.store.id %>);
-        startWatch(function(data) { updateTimeline(data.timeline); });
+        fillPosts($('[timeline-id="<%= timeline.store.id %>"]'));
+        startWatch(function(data) { updateTimeline(data.timeline, data.version); });
       });
     </script>
 
@@ -27,7 +27,8 @@
     </section>
 
     <div id="root">
+      <section class="posts" timeline-id="<%= timeline.store.id %>" timeline-version="<%= timeline.store.version %>">
+      </section>
     </div>
-    
   </body>
 </html>

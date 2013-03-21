@@ -1,4 +1,4 @@
-<section class="posts" timeline-id="<%= timeline.store.id %>">
+<section class="posts" timeline-id="<%= timeline.store.id %>" timeline-version="<%= timeline.store.version %>">
   <% timeline.fetch_all(direction).each do |post| %>
   <article class="post">
     <div class="avatar">
@@ -17,9 +17,9 @@
           <% if @user %>
           <a href="<%= local_url("m/favor") %>?target=<%= post.store.id %>">
             <% if @user.favors?(post) %>
-            ★解除
+            そうでもない
             <% else %>
-            お気に入りに登録
+            そうかも
             <% end %>
           </a>
           <% end %>

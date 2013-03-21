@@ -60,7 +60,7 @@ class Porotter < Sinatra::Base
             if $watchees.member?(session) &&
                 $watchees[session].member?(timeline_id)
               puts "send watch message"
-              io.push :watch, {:timeline => timeline_id}, {:to => session }
+              io.push :watch, {:timeline => timeline_id, :version => version}, {:to => session }
             else
               deleted.push session
             end
