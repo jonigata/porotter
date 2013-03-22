@@ -37,6 +37,7 @@ function toggleComments(obj) {
         if (comments.is(':visible')) {
             updateWatchingTimelines();
             show_comment.html('コメントを隠す');
+            scrollToLastComment(entry);
         } else {
             updateWatchingTimelines();
             var commentCount = comments.find('.posts .post').length;
@@ -47,14 +48,31 @@ function toggleComments(obj) {
 }
 
 function toggleCommentForm(obj) {
-    getEntry(obj).find('> .comment-form').toggle();
+    var commentForm = getEntry(obj).find('> .comment-form');
+    commentForm.toggle();
+    if (commentForm.is(':visible')) {
+        scrollToElement(commentForm);
+    }
 }
 
-function scrollToLastComment(obj) {
-    $(document).scrollTop(getEntry(obj).find('> .operation').offset().top);
+function scrollToElement(e) {
+    var bottomMargin = 32;
+    $(document).scrollTop(
+        e.offset().top - $(window).height() + e.height() + bottomMargin);
 }
 
-function fillPosts(posts) {
+function scrollToLastComment(entry) {
+    scrollToElement(entry.find('> .operation'));
+}
+
+function fillPosts(posts, version) {
+    if (version != null) {
+        if (version <= posts.attr('version') - 0) {
+            console.log('update signal received but already updated');
+            return;
+        }
+    }
+
     var timelineId = posts.attr('timeline-id');
     console.log(posts);
 
@@ -70,7 +88,6 @@ function fillPosts(posts) {
         }
     }).done(function(data) {
         if (isRoot) {
-            saveOpenStates();
             posts.replaceWith(data);
             loadOpenStates();
         } else {
@@ -114,11 +131,5 @@ function postComment(timelineId, form) {
 }
 
 function updateTimeline(timelineId, version) {
-    var posts = $('[timeline-id="' +timelineId+ '"]');
-
-    if (version <= posts.attr('version') - 0) {
-        console.log('update signal received but already updated');
-        return;
-    }
-    fillPosts(posts, version);
+    fillPosts($('[timeline-id="' +timelineId+ '"]'), version);
 }
