@@ -25,7 +25,7 @@ class User < RedisMapper::PlatformModel
           user.store.watchers.add(Users.singleton.store.global_timeline)
           user.store.watchers.add(user.store.my_posts)
           user.store.watchers.add(user.store.primary_timeline)
-          user.add_post("最初の投稿です")
+          user.add_article("最初の投稿です")
 
           Users.singleton.add_user(user)
         end
@@ -61,9 +61,12 @@ class User < RedisMapper::PlatformModel
     self.store.favorites ||= Timeline.create
     if favors?(post)
       self.store.favorites.remove_post(post)
+      post.store.favored_incr(-1)
     else
       self.store.favorites.add_post(post)
+      post.store.favored_incr(1)
     end
+    redis.publish "watcher", [:post, post.store.id, post.store.favored].to_json
   end
 
   def favors?(post)

@@ -17,4 +17,5 @@ class Post < RedisMapper::PlatformModel
   property  :created_at,    Time
   property  :updated_at,    Time
   property  :comments,      Timeline
+  property  :favored,       Integer
 end

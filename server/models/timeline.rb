@@ -8,13 +8,13 @@ class Timeline < RedisMapper::PlatformModel
   def add_post(post)
     self.store.posts.add(post.store.created_at.to_i, post)
     version = self.store.version_incr(1)
-    redis.publish "timeline-watcher", [self.store.id, version].to_json
+    redis.publish "watcher", [:timeline, self.store.id, version].to_json
   end
 
   def remove_post(post)
     self.store.posts.remove(post)
     version = self.store.version_incr(1)
-    redis.publish "timeline-watcher", [self.store.id, version].to_json
+    redis.publish "watcher", [:timeline, self.store.id, version].to_json
   end
 
   def member?(post)

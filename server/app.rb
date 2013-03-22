@@ -52,21 +52,25 @@ class Porotter < Sinatra::Base
 
 
     EM.defer do
-      Redis.new.subscribe("timeline-watcher") do |on|
+      Redis.new.subscribe("watcher") do |on|
         on.message do |channel, message|
-          timeline_id, version = JSON.parse(message)
-          deleted = []
-          $watchers[timeline_id].each do |session|
-            if $watchees.member?(session) &&
-                $watchees[session].member?(timeline_id)
-              puts "send watch message"
-              io.push :watch, {:timeline => timeline_id, :version => version}, {:to => session }
-            else
-              deleted.push session
+          type, timeline_id, version = JSON.parse(message)
+          case type
+          when "timeline"
+            deleted = []
+            $watchers[timeline_id].each do |session|
+              if $watchees.member?(session) &&
+                  $watchees[session].member?(timeline_id)
+                puts "send watch message"
+                io.push :watch, {:timeline => timeline_id, :version => version}, {:to => session }
+              else
+                deleted.push session
+              end
             end
+            $watchers[timeline_id].subtract(deleted)
+            puts "some post detected: #{message}"
+          when "post"
           end
-          $watchers[timeline_id].subtract(deleted)
-          puts "some post detected: #{message}"
         end
       end
     end

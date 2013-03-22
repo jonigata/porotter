@@ -9,8 +9,7 @@
     <% timeline = Users.singleton.store.global_timeline %>
     <script>
       $(function() {
-        MyPage.fillPosts($('[timeline-id="<%= timeline.store.id %>"]'));
-        startWatch(function(data) { updateTimeline(data.timeline, data.version); });
+        MyPage.init(<%= timeline.store.id %>);
       });
     </script>
 

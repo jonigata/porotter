@@ -1,5 +1,8 @@
 var MyPage = (function() {
 
+    var io = null;
+    var connected = false;
+
     // 親方向最内の'entry'クラスつきjQueryオブジェクトを得る
     function getEntry(obj) {
         return $($(obj).parents(".entry")[0]);
@@ -38,6 +41,17 @@ var MyPage = (function() {
             e.offset().top - $(window).height() + e.height() + bottomMargin);
     }
 
+    function subscribeTimelines() {
+        if (connected) {
+            var posts = $('[timeline-id]:visible');
+            var targets = [];
+            posts.each(function(i, e) {
+                targets.push($(e).attr('timeline-id')-0);
+            });
+            io.push("watch", {targets: targets});
+        }
+    }
+
     var exports = {
         toggleComments: function(obj) {
             var entry = getEntry(obj);
@@ -47,11 +61,11 @@ var MyPage = (function() {
             if (0 < posts.length) {
                 var showComment = entry.find('> .operation .show-comment');
                 if (comments.is(':visible')) {
-                    updateWatchingTimelines();
+                    subscribeTimelines();
                     showComment.html('コメントを隠す');
                     this.scrollToEntryTail(entry);
                 } else {
-                    updateWatchingTimelines();
+                    subscribeTimelines();
                     var commentCount = comments.find('.posts .post').length;
                     showComment.html('コメントを見る(' + commentCount + ')');
                 }
@@ -76,6 +90,7 @@ var MyPage = (function() {
 
             if (version != null) {
                 if (version <= posts.attr('version') - 0) {
+                    console.log('version older or equal');
                     return;
                 }
             }
@@ -99,10 +114,12 @@ var MyPage = (function() {
             }).done(function(data) {
                 posts.removeAttr('loading');
                 var waitingVersion = posts.attr('waiting');
+                posts.removeAttr('waiting');
                 var entry = getEntry(posts);
                 if (isRoot) {
                     posts.replaceWith(data);
                     loadOpenStates();
+                    subscribeTimelines();
                 } else {
                     posts.replaceWith(data);
                     var commentCount =
@@ -116,7 +133,6 @@ var MyPage = (function() {
                     var newPosts = entry.find('> .comments > .posts');
                     self.fillPosts(newPosts, waitingVersion - 0);
                 }
-                
             });
             
         },
@@ -161,9 +177,30 @@ var MyPage = (function() {
         },
 
         updateTimeline: function(timelineId, version) {
+            console.log("update timeline");
             this.fillPosts($('[timeline-id="' +timelineId+ '"]'), version);
+        },
+        
+        startWatch: function() {
+            var self = this;
+
+            io = new RocketIO().connect();
+            io.on("connect", function(session) {
+                connected = true;
+                subscribeTimelines();
+            });
+            io.on("watch", function(data) {
+                console.log("update signal received");
+                console.log(data);
+                self.updateTimeline(data.timeline, data.version);
+            });
+        },
+
+        init: function(timelineId) {
+            this.fillPosts($('[timeline-id="'+timelineId+'"]'));
+            this.startWatch();
         }
-    }
+    };
     
     return exports;
 })();
