@@ -1,4 +1,4 @@
-<section class="posts" timeline-id="<%= timeline.store.id %>" timeline-version="<%= timeline.store.version %>">
+<section class="posts" timeline-id="<%= timeline.store.id %>" version="<%= timeline.store.version %>">
   <% timeline.fetch_all(direction).each do |post| %>
   <article class="post">
     <div class="avatar">
@@ -34,23 +34,23 @@
         <% if !comments.empty? %>
         <div class="close-button">
           <div>
-            <a href="#" onclick="toggleComments(this); return false;">×</a>
+            <a href="#" onclick="MyPage.toggleComments(this); return false;">×</a>
           </div>
           <div>
-            <a href="#" onclick="scrollToLastComment(this); return false;">↓</a>
+            <a href="#" onclick="MyPage.scrollToEntryTail(this); return false;">↓</a>
           </div>
         </div>
-        <%=  erb :_timeline, :locals => { :user => user, :root => root, :timeline => comments, :comment => :disabled, :direction => :downward } %>
         <% end %>
+        <%= erb :_timeline, :locals => { :user => user, :root => root, :timeline => comments, :comment => :disabled, :direction => :downward } %>
       </div>
 
       <div class="operation">
         <% if comment == :enabled %>
-        <a class="show-comment" href="#" onclick="toggleComments(this);return false;">
+        <a class="show-comment" href="#" onclick="MyPage.toggleComments(this);return false;">
           コメントを見る(<%= comments.length %>)
         </a>
         <%   if @user %>
-        <a class="post-comment" href="#" onclick="toggleCommentForm(this);return false;">コメントする</a>
+        <a class="post-comment" href="#" onclick="MyPage.toggleCommentForm(this);return false;">コメントする</a>
         <%   end %>
         <% end %>
       </div>

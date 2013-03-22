@@ -9,7 +9,7 @@
     <% timeline = @user.store.primary_timeline %>
     <script>
       $(function() {
-        fillPosts($('[timeline-id="<%= timeline.store.id %>"]'));
+        MyPage.fillPosts($('[timeline-id="<%= timeline.store.id %>"]'));
         startWatch(function(data) { updateTimeline(data.timeline, data.version); });
       });
     </script>

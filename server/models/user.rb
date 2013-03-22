@@ -45,7 +45,7 @@ class User < RedisMapper::PlatformModel
     self.store.hashed_password == Misc.hash_pw(self.store.salt, password)
   end
 
-  def add_post(content)
+  def add_article(content)
     Post.create(self, content).tap do |post|
       self.store.watchers.each do |tl|
         tl.add_post(post)

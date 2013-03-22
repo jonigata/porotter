@@ -108,7 +108,7 @@ class Porotter < Sinatra::Base
   end
 
   post '/m/newarticle' do
-    @user.add_post(params[:content])
+    @user.add_article(params[:content])
     "OK"
   end
 
