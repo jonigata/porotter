@@ -66,6 +66,41 @@ var MyPage = (function() {
         });
     }
 
+    function startLoad(posts, version) {
+        if (posts.attr('loading')) {
+            console.log("タイムライン取得中なので待機キューに入れる");
+            posts.attr('waiting', version);
+            return false;
+        }
+
+        if (version != null) {
+            if (version <= posts.attr('version') - 0) {
+                console.log('version older or equal');
+                return false;
+            }
+        }
+
+        posts.attr('loading', 'true');
+        return true;
+    }
+
+    function finishLoad(posts, f) {
+        var timelineId = posts.attr('timeline-id');
+
+        posts.removeAttr('loading');
+        var waitingVersion = posts.attr('waiting');
+        posts.removeAttr('waiting');
+
+        f();
+
+        if (waitingVersion != null) {
+            // loading中に更新リクエストが来ている場合は再試行
+            console.log("waiting versionの取得を開始");
+            exports.fillPosts(
+                $('[timeline-id=" + timelineId + "]'), waitingVersion - 0);
+        }
+    }
+
     var exports = {
         toggleComments: function(obj) {
             var entry = getEntry(obj);
@@ -85,27 +120,12 @@ var MyPage = (function() {
         },
 
         fillPosts: function(posts, version) {
-            if (posts.attr('loading')) {
-                console.log("タイムライン取得中なので待機キューに入れる");
-                posts.attr('waiting', version);
+            if (!startLoad(posts, version)) {
                 return;
             }
 
-            if (version != null) {
-                if (version <= posts.attr('version') - 0) {
-                    console.log('version older or equal');
-                    return;
-                }
-            }
-
-            posts.attr('loading', 'true');
-
             var timelineId = posts.attr('timeline-id');
-
-            var isRoot =
-                    timelineId == $('#root > .posts').attr('timeline-id') - 0;
-
-            var self = this;
+            var isRoot = posts.parent().is('#root');
 
             $.ajax({
                 url: "/foo/p/timeline",
@@ -115,25 +135,16 @@ var MyPage = (function() {
                     comment: (isRoot ? 'enabled' : 'disabled')
                 }
             }).done(function(data) {
-                posts.removeAttr('loading');
-                var waitingVersion = posts.attr('waiting');
-                posts.removeAttr('waiting');
-                var entry = getEntry(posts);
-                if (isRoot) {
-                    posts.replaceWith(data);
-                    loadOpenStates();
-                    subscribeTimelines();
-                } else {
-                    posts.replaceWith(data);
-                    updateCommentDisplayText();
-                }
-
-                if (waitingVersion != null) {
-                    // loading中に更新リクエストが来ている場合は再試行
-                    console.log("waiting versionの取得を開始");
-                    var newPosts = entry.find('> .comments > .posts');
-                    self.fillPosts(newPosts, waitingVersion - 0);
-                }
+                finishLoad(posts, function() {
+                    if (isRoot) {
+                        posts.replaceWith(data);
+                        loadOpenStates();
+                        subscribeTimelines();
+                    } else {
+                        posts.replaceWith(data);
+                        updateCommentDisplayText();
+                    }
+                });
             });
             
         },
