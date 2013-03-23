@@ -49,7 +49,7 @@ var MyPage = (function() {
             var targets = $('[timeline-id]:visible').map(function(i, e) {
                 return $(e).attr('timeline-id') - 0;
             });
-            io.push("watch", {targets: targets.get()});
+            io.push("watch-timeline", {targets: targets.get()});
         }
     }
 
@@ -148,6 +148,10 @@ var MyPage = (function() {
             console.log("timeline update signal received");
             console.log(data);
             updateTimeline(data.timeline, data.version);
+        });
+        io.on("watch-post", function(data) {
+            console.log("post update signal received");
+            console.log(data);
         });
     }
 

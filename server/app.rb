@@ -2,11 +2,52 @@
 
 require 'sinatra/rocketio'
 
-# $watchers[timeline_id] = [session_id, ...]
-$watchers = Hash.new { |h, k| h[k] = Set.new }
+class Notifiee
+  def initialize
+    # @watchers[timeline_id] = [session_id, ...]
+    @watchers = Hash.new { |h, k| h[k] = Set.new }
+    # @watchees[session_id] = Set.new
+    @watchees = Hash.new
+  end
 
-# $watchees[session_id] = Set.new
-$watchees = Hash.new
+  def set_targets(session, data)
+    begin 
+      targets = data["targets"].map { |e| e.to_i }
+
+      # targetsから要素が削除されている場合、
+      # watchers[some]にはsessionが含まれているのに
+      # watchees[session]にはsomeが含まれていないケースが生じるが、
+      # その判定はlazyに(通知時に)行う。
+
+      @watchees[session] = Set.new(targets)
+      targets.each do |target_id|
+        @watchers[target_id] << session
+      end
+    rescue => e
+      puts e
+      puts e.backtrace
+    end
+  end
+
+  def trigger(message)
+    target_id, version = JSON.parse(message)
+    deleted = []
+    @watchers[target_id].each do |session|
+      if @watchees.member?(session) && @watchees[session].member?(target_id)
+        yield target_id, version, session
+      else
+        deleted.push session
+      end
+    end
+    @watchers[target_id].subtract(deleted)
+  end
+
+  def remove_session(session)
+    @watchees.delete(session)
+  end
+end
+
+$timeline_notifiee = Notifiee.new
 
 class Porotter < Sinatra::Base
   register Sinatra::Namespace
@@ -26,46 +67,26 @@ class Porotter < Sinatra::Base
 
     io.on :disconnect do |session, type|
       puts "delete client <#{session}> (type:#{type})"
-      $watchees.delete(session)
+      $timeline_notifiee.remove_session(session)
     end
 
-    io.on :watch do |data, session, type|
-      puts "params: #{data}, <#{session}> type: #{type}"
-
-      begin 
-        targets = data["targets"].map { |e| e.to_i }
-
-        # targetsから要素が削除されている場合、
-        # $watchers[some]にはsessionが含まれているのに
-        # $watchees[session]にはsomeが含まれていないケースが生じるが、
-        # その判定はlazyに(通知時に)行う。
-
-        $watchees[session] = Set.new(targets)
-        targets.each do |timeline_id|
-          $watchers[timeline_id] << session
-        end
-      rescue => e
-        puts e
-        puts e.backtrace
-      end
+    io.on :'watch-timeline' do |data, session, type|
+      puts "watch-timeline params: #{data}, <#{session}> type: #{type}"
+      $timeline_notifiee.set_targets(session, data)
     end
-
 
     EM.defer do
-      Redis.new.subscribe("timeline-watcher") do |on|
+      Redis.new.subscribe("timeline-watcher", "post-watcher") do |on|
         on.message do |channel, message|
-          timeline_id, version = JSON.parse(message)
-          deleted = []
-          $watchers[timeline_id].each do |session|
-            if $watchees.member?(session) &&
-                $watchees[session].member?(timeline_id)
+          case channel
+          when "timeline-watcher"
+            $timeline_notifiee.trigger(message) do |timeline_id, version, session|
               puts "send watch message: #{timeline_id}"
               io.push :'watch-timeline', {:timeline => timeline_id, :version => version}, {:to => session }
-            else
-              deleted.push session
             end
+          when "post-watcher"
+            
           end
-          $watchers[timeline_id].subtract(deleted)
         end
       end
     end

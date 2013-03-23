@@ -15,20 +15,19 @@ class Post < RedisMapper::PlatformModel
   end
 
   def favor
-    post.store.favored_incr(1)
+    self.store.favored_incr(1)
     version_up
   end
 
   def unfavor
-    post.store.favored_incr(-1)
-    post.store.version_incr(1)
+    self.store.favored_incr(-1)
     version_up
   end
 
   private
   def version_up
-    version = post.store.version_incr(1)
-    redis.publish "post-watcher", [:post, post.store.id, version].to_json
+    version = self.store.version_incr(1)
+    redis.publish "post-watcher", [:post, self.store.id, version].to_json
   end
 
   property  :version,       Integer
