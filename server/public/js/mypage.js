@@ -43,12 +43,10 @@ var MyPage = (function() {
 
     function subscribeTimelines() {
         if (connected) {
-            var posts = $('[timeline-id]:visible');
-            var targets = [];
-            posts.each(function(i, e) {
-                targets.push($(e).attr('timeline-id')-0);
+            var targets = $('[timeline-id]:visible').map(function(i, e) {
+                return $(e).attr('timeline-id')-0;
             });
-            io.push("watch", {targets: targets});
+            io.push("watch", {targets: targets.get()});
         }
     }
 
