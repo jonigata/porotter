@@ -35,6 +35,7 @@ var MyPage = (function() {
             }
         });
         updateCommentDisplayText();
+        subscribeTimelines();
     }
 
     function scrollToElement(e) {
@@ -96,9 +97,58 @@ var MyPage = (function() {
         if (waitingVersion != null) {
             // loading中に更新リクエストが来ている場合は再試行
             console.log("waiting versionの取得を開始");
-            exports.fillPosts(
-                $('[timeline-id=" + timelineId + "]'), waitingVersion - 0);
+            fillPosts(timelineId, waitingVersion - 0);
         }
+    }
+
+    function fillPosts(timelineId, version) {
+        var posts = $('[timeline-id="' +timelineId+ '"]');
+
+        if (!startLoad(posts, version)) {
+            return;
+        }
+
+        var isRoot = posts.parent().is('#root');
+
+        $.ajax({
+            url: "/foo/p/timeline",
+            data: {
+                timeline: timelineId,
+                direction: (isRoot ? 'upward' : 'downward'),
+                comment: (isRoot ? 'enabled' : 'disabled')
+            }
+        }).done(function(data) {
+            finishLoad(posts, function() {
+                posts.replaceWith(data);
+                if (isRoot) {
+                    loadOpenStates();
+                } else {
+                    updateCommentDisplayText();
+                }
+            });
+        });
+        
+    }
+
+    function updateTimeline(timelineId, version) {
+        console.log("update timeline");
+        fillPosts(timelineId, version);
+    }
+
+    function updatePost(postId, version) {
+    }
+
+    function startWatch() {
+        io = new RocketIO().connect();
+        io.on("connect", function(session) {
+            connected = true;
+            subscribeTimelines();
+        });
+        io.on("watch-timeline", function(data) {
+            console.log("timeline update signal received");
+            console.log(data);
+            updateTimeline(data.timeline, data.version);
+        });
     }
 
     var exports = {
@@ -119,36 +169,6 @@ var MyPage = (function() {
             }
         },
 
-        fillPosts: function(posts, version) {
-            if (!startLoad(posts, version)) {
-                return;
-            }
-
-            var timelineId = posts.attr('timeline-id');
-            var isRoot = posts.parent().is('#root');
-
-            $.ajax({
-                url: "/foo/p/timeline",
-                data: {
-                    timeline: timelineId,
-                    direction: (isRoot ? 'upward' : 'downward'),
-                    comment: (isRoot ? 'enabled' : 'disabled')
-                }
-            }).done(function(data) {
-                finishLoad(posts, function() {
-                    if (isRoot) {
-                        posts.replaceWith(data);
-                        loadOpenStates();
-                        subscribeTimelines();
-                    } else {
-                        posts.replaceWith(data);
-                        updateCommentDisplayText();
-                    }
-                });
-            });
-            
-        },
-
         scrollToEntryTail: function(obj) {
             scrollToElement(getEntry(obj));
         },
@@ -163,7 +183,7 @@ var MyPage = (function() {
                     timeline: timelineId
                 }
             }).done(function() {
-                self.fillPosts($('[timeline-id="' +timelineId+ '"]'));
+                fillPosts(timelineId);
             });
             form.find('[name="content"]').val('');
         },
@@ -179,7 +199,7 @@ var MyPage = (function() {
                     timeline: timelineId
                 }
             }).done(function() {
-                self.fillPosts($('[timeline-id="' +timelineId+ '"]'));
+                fillPosts(timelineId);
             });
             form.find('[name="content"]').val('');
         },
@@ -193,32 +213,9 @@ var MyPage = (function() {
             });
         },
 
-        updateTimeline: function(timelineId, version) {
-            console.log("update timeline");
-            this.fillPosts($('[timeline-id="' +timelineId+ '"]'), version);
-        },
-
-        updatePost: function(postId, version) {
-        },
-        
-        startWatch: function() {
-            var self = this;
-
-            io = new RocketIO().connect();
-            io.on("connect", function(session) {
-                connected = true;
-                subscribeTimelines();
-            });
-            io.on("watch-timeline", function(data) {
-                console.log("timeline update signal received");
-                console.log(data);
-                self.updateTimeline(data.timeline, data.version);
-            });
-        },
-
         init: function(timelineId) {
-            this.fillPosts($('[timeline-id="'+timelineId+'"]'));
-            this.startWatch();
+            fillPosts(timelineId);
+            startWatch();
         }
     };
     
