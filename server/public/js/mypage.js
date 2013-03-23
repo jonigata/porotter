@@ -5,7 +5,12 @@ var MyPage = (function() {
 
     // 親方向最内の'entry'クラスつきjQueryオブジェクトを得る
     function getEntry(obj) {
-        return $($(obj).parents(".entry")[0]);
+        var e = $(obj);
+        if (e.is('.entry')) {
+            return e;
+        } else {
+            return $(e.parents(".entry")[0]);
+        }
     }
 
     function saveOpenStates() {
@@ -23,16 +28,13 @@ var MyPage = (function() {
         for(var i = 0; i < rawOpened.length ; i++) {
             opened[rawOpened[i]] = rawOpened[i];
         }
-        
         $('.comments').each(function(i, e) {
             var timelineId = $(e).find('> .posts').attr('timeline-id') - 0;
             if (opened[timelineId] != null) {
                 $(e).show();
-                var showComment =
-                        getEntry(e).find('> .operation .show-comment');
-                showComment.html('コメントを隠す');
             }
         });
+        updateCommentDisplayText();
     }
 
     function scrollToElement(e) {
@@ -44,10 +46,24 @@ var MyPage = (function() {
     function subscribeTimelines() {
         if (connected) {
             var targets = $('[timeline-id]:visible').map(function(i, e) {
-                return $(e).attr('timeline-id')-0;
+                return $(e).attr('timeline-id') - 0;
             });
             io.push("watch", {targets: targets.get()});
         }
+    }
+
+    function updateCommentDisplayText() {
+        $('.comments').each(function(i, e) {
+            var comments = $(e);
+            var entry = getEntry(e);
+            var showComment = entry.find('> .operation .show-comment');
+            if (comments.is(':visible')) {
+                showComment.html('コメントを隠す');
+            } else {
+                var count = comments.find('> .posts > .post').length;
+                showComment.html('コメントを見る(' + count + ')');
+            }
+        });
     }
 
     var exports = {
@@ -55,19 +71,8 @@ var MyPage = (function() {
             var entry = getEntry(obj);
             var comments = entry.find('> .comments');
             comments.toggle();
-            var posts = comments.find('> .posts');
-            if (0 < posts.length) {
-                var showComment = entry.find('> .operation .show-comment');
-                if (comments.is(':visible')) {
-                    subscribeTimelines();
-                    showComment.html('コメントを隠す');
-                    this.scrollToEntryTail(entry);
-                } else {
-                    subscribeTimelines();
-                    var commentCount = comments.find('.posts .post').length;
-                    showComment.html('コメントを見る(' + commentCount + ')');
-                }
-            }
+            updateCommentDisplayText();
+            subscribeTimelines();
             saveOpenStates();
         },
 
@@ -120,9 +125,7 @@ var MyPage = (function() {
                     subscribeTimelines();
                 } else {
                     posts.replaceWith(data);
-                    var commentCount =
-                            entry.find('> .comments > .posts > .post').length;
-                    entry.find('> .operation .show-comment').html('コメントを見る(' + commentCount + ')');
+                    updateCommentDisplayText();
                 }
 
                 if (waitingVersion != null) {
@@ -136,11 +139,7 @@ var MyPage = (function() {
         },
 
         scrollToEntryTail: function(obj) {
-            if ($(obj).is('.entry')) {
-                scrollToElement($(obj));
-            } else {
-                scrollToElement(getEntry(obj));
-            }
+            scrollToElement(getEntry(obj));
         },
 
         postArticle: function(timelineId, form) {
