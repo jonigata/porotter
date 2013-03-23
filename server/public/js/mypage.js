@@ -176,9 +176,21 @@ var MyPage = (function() {
             form.find('[name="content"]').val('');
         },
 
+        favor: function(postId) {
+            $.ajax({
+                url: "/foo/m/favor",
+                data: {
+                    target: postId
+                }
+            });
+        },
+
         updateTimeline: function(timelineId, version) {
             console.log("update timeline");
             this.fillPosts($('[timeline-id="' +timelineId+ '"]'), version);
+        },
+
+        updatePost: function(postId, version) {
         },
         
         startWatch: function() {
@@ -189,8 +201,8 @@ var MyPage = (function() {
                 connected = true;
                 subscribeTimelines();
             });
-            io.on("watch", function(data) {
-                console.log("update signal received");
+            io.on("watch-timeline", function(data) {
+                console.log("timeline update signal received");
                 console.log(data);
                 self.updateTimeline(data.timeline, data.version);
             });

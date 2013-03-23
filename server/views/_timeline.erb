@@ -15,7 +15,7 @@
         </span>
         <span class="favorite">
           <% if @user %>
-          <a href="<%= local_url("m/favor") %>?target=<%= post.store.id %>">
+          <a href="#" onclick="MyPage.favor(<%= post.store.id %>);return false;">
             <% if @user.favors?(post) %>
             そうでもない
             <% else %>

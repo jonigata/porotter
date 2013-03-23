@@ -52,25 +52,20 @@ class Porotter < Sinatra::Base
 
 
     EM.defer do
-      Redis.new.subscribe("watcher") do |on|
+      Redis.new.subscribe("timeline-watcher") do |on|
         on.message do |channel, message|
-          type, timeline_id, version = JSON.parse(message)
-          case type
-          when "timeline"
-            deleted = []
-            $watchers[timeline_id].each do |session|
-              if $watchees.member?(session) &&
-                  $watchees[session].member?(timeline_id)
-                puts "send watch message"
-                io.push :watch, {:timeline => timeline_id, :version => version}, {:to => session }
-              else
-                deleted.push session
-              end
+          timeline_id, version = JSON.parse(message)
+          deleted = []
+          $watchers[timeline_id].each do |session|
+            if $watchees.member?(session) &&
+                $watchees[session].member?(timeline_id)
+              puts "send watch message: #{timeline_id}"
+              io.push :'watch-timeline', {:timeline => timeline_id, :version => version}, {:to => session }
+            else
+              deleted.push session
             end
-            $watchers[timeline_id].subtract(deleted)
-            puts "some post detected: #{message}"
-          when "post"
           end
+          $watchers[timeline_id].subtract(deleted)
         end
       end
     end
@@ -125,7 +120,7 @@ class Porotter < Sinatra::Base
   get '/m/favor' do
     post = Post.attach_if_exist(params[:target].to_i) or halt 403
     @user.toggle_favorite(post)
-    redirect local_url('/')
+    "OK"
   end
 
   get %r{/static/(.*)\.css} do |path|

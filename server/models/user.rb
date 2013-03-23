@@ -59,14 +59,13 @@ class User < RedisMapper::PlatformModel
 
   def toggle_favorite(post)
     self.store.favorites ||= Timeline.create
-    if favors?(post)
-      self.store.favorites.remove_post(post)
-      post.store.favored_incr(-1)
-    else
+    if !favors?(post)
       self.store.favorites.add_post(post)
-      post.store.favored_incr(1)
+      post.favor
+    else
+      self.store.favorites.remove_post(post)
+      post.unfavor
     end
-    redis.publish "watcher", [:post, post.store.id, post.store.favored].to_json
   end
 
   def favors?(post)
