@@ -1,0 +1,61 @@
+<article class="post" post-id="<%= post.store.id %>" version="<%= post.store.version %>">
+  <div class="avatar">
+    <div class="icon">
+    </div>
+  </div>
+  <div class="entry">
+    <div class="author">
+      <span class="label">
+        <%= post.store.author.store.username %>
+      </span>
+      <span class="username">
+        @<%= post.store.author.store.username %>
+      </span>
+      <span class="favorite">
+        <% if @user %>
+        <a href="#" onclick="MyPage.favor(<%= post.store.id %>);return false;">
+          <% if @user.favors?(post) %>
+          そうでもない
+          <% else %>
+          そうかも
+          <% end %>
+        </a>
+        <% end %>
+      </span>
+    </div>
+    <div class="content">
+      <%= post.store.content %>
+    </div>
+
+    <% comments = post.store.comments %>
+    <div class="comments">
+      <% if !comments.empty? %>
+      <div class="close-button">
+        <div>
+          <a href="#" onclick="MyPage.toggleComments(this); return false;">×</a>
+        </div>
+        <div>
+          <a href="#" onclick="MyPage.scrollToEntryTail(this); return false;">↓</a>
+        </div>
+      </div>
+      <% end %>
+      <%= erb :_timeline, :locals => { :user => user, :root => root, :timeline => comments, :comment => :disabled, :direction => :downward } %>
+    </div>
+
+    <div class="operation">
+      <% if comment == :enabled %>
+      <a class="show-comment" href="#" onclick="MyPage.toggleComments(this);return false;">
+        コメントを見る(<%= comments.length %>)
+      </a>
+      <%   if @user %>
+      <a class="post-comment" href="#" onclick="MyPage.toggleCommentForm(this);return false;">コメントする</a>
+      <%   end %>
+      <% end %>
+    </div>
+    <% if @user %>
+    <div class="comment-form">
+      <%= erb :_newcomment, :locals => { :parent_id => post.store.id, :timeline => comments } %>
+    </div>
+    <% end %>
+  </div>
+</article>
