@@ -22,9 +22,11 @@
     <div class="operation">
       <% if level == 0 %>
       <a class="show-comment" href="#" onclick="MyPage.toggleComments(this);return false;">
-        コメントを見る(<%= comments.length %>)
+        <img src="<%= local_url("/images/chat.png") %>">
+        <span class="show-comment-label">コメントを見る(<%= comments.length %>)</span>
       </a>
       <%   if @user %>
+      <span class="ui-delimiter-8"></span>
       <a class="post-comment" href="#" onclick="MyPage.toggleCommentForm(this);return false;">コメントする</a>
       <%   end %>
       <% end %>

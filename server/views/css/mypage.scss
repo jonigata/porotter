@@ -14,6 +14,10 @@ body {
     }
 }
 
+.ui-delimiter-8 {
+    margin-left: 8px;
+}           
+
 .posts {
     .post {
         border-top: 1px dashed #DDD;
@@ -73,8 +77,15 @@ body {
             }
 
             .operation {
-                font-size: 85%;
+                img {
+                    width: 20px;
+                    height: 20px;
+                    vertical-align: middle;
+                    margin-right: -4px;
+                }
+                font-size: 75%;
                 @include action-link;
+                height: 12px;
             }
 
             .comment-form {

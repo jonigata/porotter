@@ -67,12 +67,12 @@ var MyPage = (function() {
         $('.comments').each(function(i, e) {
             var comments = $(e);
             var entry = getEntry(e);
-            var showComment = entry.find('> .operation .show-comment');
+            var showComment = entry.find('> .operation .show-comment-label');
             if (comments.is(':visible')) {
-                showComment.html('コメントを隠す');
+                showComment.html('隠す');
             } else {
                 var count = entry.find('> .detail').attr('comment-count') - 0;
-                showComment.html('コメントを見る(' + count + ')');
+                showComment.html('×' + count + '');
             }
         });
     }
