@@ -71,7 +71,7 @@ var MyPage = (function() {
             if (comments.is(':visible')) {
                 showComment.html('コメントを隠す');
             } else {
-                var count = comments.find('> .posts > .post').length;
+                var count = comments.attr('count') - 0;
                 showComment.html('コメントを見る(' + count + ')');
             }
         });
@@ -127,10 +127,14 @@ var MyPage = (function() {
             }
         }).done(function(data) {
             finishLoad(posts, function() {
+                var entry = getEntry(posts);
                 posts.replaceWith(data);
                 if (level == 0) {
                     loadOpenStates();
                 } else {
+                    var comments = entry.find('> .comments');
+                    comments.attr(
+                        'count', comments.find('> .posts > .post').length);
                     updateCommentDisplayText();
                     subscribePosts();
                 }

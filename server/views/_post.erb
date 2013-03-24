@@ -7,8 +7,7 @@
     <%= erb :_detail, :locals => { :post => post, :level => level } %>
 
     <% comments = post.store.comments %>
-    <div class="comments">
-      <% if !comments.empty? %>
+    <div class="comments" count="<%= comments.length %>">
       <div class="close-button">
         <div>
           <a href="#" onclick="MyPage.toggleComments(this); return false;">×</a>
@@ -17,7 +16,6 @@
           <a href="#" onclick="MyPage.scrollToEntryTail(this); return false;">↓</a>
         </div>
       </div>
-      <% end %>
       <%= erb :_timeline, :locals => { :timeline => comments, :level => level + 1 } %>
     </div>
 
