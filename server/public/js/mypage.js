@@ -71,7 +71,7 @@ var MyPage = (function() {
             if (comments.is(':visible')) {
                 showComment.html('コメントを隠す');
             } else {
-                var count = comments.attr('count') - 0;
+                var count = entry.find('> .detail').attr('comment-count') - 0;
                 showComment.html('コメントを見る(' + count + ')');
             }
         });
@@ -128,13 +128,13 @@ var MyPage = (function() {
         }).done(function(data) {
             finishLoad(posts, function() {
                 var entry = getEntry(posts);
-                posts.replaceWith(data);
+                var newPosts = $(data);
+                posts.replaceWith(newPosts);
                 if (level == 0) {
                     loadOpenStates();
                 } else {
-                    var comments = entry.find('> .comments');
-                    comments.attr(
-                        'count', comments.find('> .posts > .post').length);
+                    var count = newPosts.find('> .post').length;
+                    entry.find('> .detail').attr('comment-count', count);
                     updateCommentDisplayText();
                     subscribePosts();
                 }
@@ -161,6 +161,7 @@ var MyPage = (function() {
         }).done(function(data) {
             console.log('updateDetail data incomming');
             post.find('> .entry > .detail').replaceWith(data);
+            updateCommentDisplayText();
         });
     }
 
@@ -188,6 +189,19 @@ var MyPage = (function() {
             var entry = getEntry(obj);
             var comments = entry.find('> .comments');
             comments.toggle();
+            if (comments.is(':visible')) {
+                var idealVersion = entry.find('> .detail').attr(
+                    'comments-version');
+                if (idealVersion != null) {
+                    idealVersion -= 0;
+                    var posts = comments.find('> .posts');
+                    var actualVersion = posts.attr('version') - 0;
+                    if (actualVersion < idealVersion) {
+                        var timelineId = posts.attr('timeline-id') - 0;
+                        fillPosts(timelineId, idealVersion);
+                    }
+                }
+            }
             updateCommentDisplayText();
             subscribeTimelines();
             subscribePosts();

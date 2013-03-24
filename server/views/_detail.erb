@@ -1,4 +1,5 @@
-<div class="detail">
+<% comments = post.store.comments %>
+<div class="detail" comment-count="<%= comments.length %>" comments-version="<%= comments.store.version %>">
   <div class="author">
     <span class="label">
       <%= post.store.author.store.username %>

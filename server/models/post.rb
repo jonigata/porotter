@@ -11,7 +11,7 @@ class Post < RedisMapper::PlatformModel
 
   def add_comment(author, content)
     self.store.comments.add_post(Post.create(author, content))
-    self.store.version_incr(1)
+    version_up
   end
 
   def favor
