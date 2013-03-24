@@ -36,6 +36,7 @@ var MyPage = (function() {
         });
         updateCommentDisplayText();
         subscribeTimelines();
+        subscribePosts();
     }
 
     function scrollToElement(e) {
@@ -50,6 +51,15 @@ var MyPage = (function() {
                 return $(e).attr('timeline-id') - 0;
             });
             io.push("watch-timeline", {targets: targets.get()});
+        }
+    }
+
+    function subscribePosts() {
+        if (connected) {
+            var targets = $('[post-id]:visible').map(function(i, e) {
+                return $(e).attr('post-id') - 0;
+            });
+            io.push("watch-post", {targets: targets.get()});
         }
     }
 
@@ -103,27 +113,26 @@ var MyPage = (function() {
 
     function fillPosts(timelineId, version) {
         var posts = $('[timeline-id="' +timelineId+ '"]');
+        var level = posts.attr('level') - 0;
 
         if (!startLoad(posts, version)) {
             return;
         }
 
-        var isRoot = posts.parent().is('#root');
-
         $.ajax({
             url: "/foo/p/timeline",
             data: {
                 timeline: timelineId,
-                direction: (isRoot ? 'upward' : 'downward'),
-                comment: (isRoot ? 'enabled' : 'disabled')
+                level: level
             }
         }).done(function(data) {
             finishLoad(posts, function() {
                 posts.replaceWith(data);
-                if (isRoot) {
+                if (level == 0) {
                     loadOpenStates();
                 } else {
                     updateCommentDisplayText();
+                    subscribePosts();
                 }
             });
         });
@@ -135,7 +144,20 @@ var MyPage = (function() {
         fillPosts(timelineId, version);
     }
 
-    function updatePost(postId, version) {
+    function updateDetail(postId, version) {
+        var post = $('[post-id="' + postId + '"]');
+        var level = post.parent().attr('level') - 0;
+
+        $.ajax({
+            url: "/foo/p/detail",
+            data: {
+                post: postId,
+                level: level
+            }
+        }).done(function(data) {
+            console.log('updateDetail data incomming');
+            post.find('> .entry > .detail').replaceWith(data);
+        });
     }
 
     function startWatch() {
@@ -143,6 +165,7 @@ var MyPage = (function() {
         io.on("connect", function(session) {
             connected = true;
             subscribeTimelines();
+            subscribePosts();
         });
         io.on("watch-timeline", function(data) {
             console.log("timeline update signal received");
@@ -152,6 +175,7 @@ var MyPage = (function() {
         io.on("watch-post", function(data) {
             console.log("post update signal received");
             console.log(data);
+            updateDetail(data.post, data.version);
         });
     }
 
@@ -162,6 +186,7 @@ var MyPage = (function() {
             comments.toggle();
             updateCommentDisplayText();
             subscribeTimelines();
+            subscribePosts();
             saveOpenStates();
         },
 

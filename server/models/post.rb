@@ -27,7 +27,7 @@ class Post < RedisMapper::PlatformModel
   private
   def version_up
     version = self.store.version_incr(1)
-    redis.publish "post-watcher", [:post, self.store.id, version].to_json
+    redis.publish "post-watcher", [self.store.id, version].to_json
   end
 
   property  :version,       Integer

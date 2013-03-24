@@ -2,52 +2,10 @@
 
 require 'sinatra/rocketio'
 
-class Notifiee
-  def initialize
-    # @watchers[timeline_id] = [session_id, ...]
-    @watchers = Hash.new { |h, k| h[k] = Set.new }
-    # @watchees[session_id] = Set.new
-    @watchees = Hash.new
-  end
-
-  def set_targets(session, data)
-    begin 
-      targets = data["targets"].map { |e| e.to_i }
-
-      # targetsから要素が削除されている場合、
-      # watchers[some]にはsessionが含まれているのに
-      # watchees[session]にはsomeが含まれていないケースが生じるが、
-      # その判定はlazyに(通知時に)行う。
-
-      @watchees[session] = Set.new(targets)
-      targets.each do |target_id|
-        @watchers[target_id] << session
-      end
-    rescue => e
-      puts e
-      puts e.backtrace
-    end
-  end
-
-  def trigger(message)
-    target_id, version = JSON.parse(message)
-    deleted = []
-    @watchers[target_id].each do |session|
-      if @watchees.member?(session) && @watchees[session].member?(target_id)
-        yield target_id, version, session
-      else
-        deleted.push session
-      end
-    end
-    @watchers[target_id].subtract(deleted)
-  end
-
-  def remove_session(session)
-    @watchees.delete(session)
-  end
-end
+require_relative 'notifiee'
 
 $timeline_notifiee = Notifiee.new
+$post_notifiee = Notifiee.new
 
 class Porotter < Sinatra::Base
   register Sinatra::Namespace
@@ -68,6 +26,7 @@ class Porotter < Sinatra::Base
     io.on :disconnect do |session, type|
       puts "delete client <#{session}> (type:#{type})"
       $timeline_notifiee.remove_session(session)
+      $post_notifiee.remove_session(session)
     end
 
     io.on :'watch-timeline' do |data, session, type|
@@ -75,17 +34,32 @@ class Porotter < Sinatra::Base
       $timeline_notifiee.set_targets(session, data)
     end
 
+    io.on :'watch-post' do |data, session, type|
+      puts "watch-post params: #{data}, <#{session}> type: #{type}"
+      $post_notifiee.set_targets(session, data)
+    end
+      
+
     EM.defer do
       Redis.new.subscribe("timeline-watcher", "post-watcher") do |on|
         on.message do |channel, message|
           case channel
           when "timeline-watcher"
-            $timeline_notifiee.trigger(message) do |timeline_id, version, session|
-              puts "send watch message: #{timeline_id}"
-              io.push :'watch-timeline', {:timeline => timeline_id, :version => version}, {:to => session }
+            puts "get timeline-watcher singal(#{message})"
+            EM.next_tick do
+              $timeline_notifiee.trigger(message) do |timeline_id, version, session|
+                puts "send timeline watch message: #{timeline_id}"
+                io.push :'watch-timeline', {:timeline => timeline_id, :version => version}, {:to => session }
+              end
             end
           when "post-watcher"
-            
+            puts "get post-watcher singal(#{message})"
+            EM.next_tick do
+              $post_notifiee.trigger(message) do |post_id, version, session|
+                puts "send post watch message: #{post_id}"
+                io.push :'watch-post', {:post => post_id, :version => version}, {:to => session }
+              end
+            end
           end
         end
       end
@@ -122,9 +96,14 @@ class Porotter < Sinatra::Base
   end
 
   get '/p/timeline' do
-    direction = symbolize(params['direction'], [:upward, :downward]) or halt 403
-    comment = symbolize(params['comment'], [:enabled, :disabled]) or halt 403
-    render_timeline(Timeline.attach_if_exist(params['timeline'].to_i), direction, comment)
+    level = params['level'].to_i or halt 403
+    render_timeline(Timeline.attach_if_exist(params['timeline'].to_i), level)
+  end
+
+  get '/p/detail' do
+    post = Post.attach_if_exist(params[:post].to_i) or halt 403
+    level = params['level'].to_i or halt 403
+    erb :_detail, :locals => { :post => post, :level => level }
   end
 
   post '/m/newarticle' do
@@ -153,9 +132,9 @@ class Porotter < Sinatra::Base
   end
 
   private
-  def render_timeline(timeline, direction, comment)
+  def render_timeline(timeline, level)
     halt 403 unless timeline
-    erb :_timeline, :locals => { :user => @user, :root => timeline, :timeline => timeline, :comment => comment, :direction => direction }
+    erb :_timeline, :locals => { :timeline => timeline, :level => level }
   end
 
   def symbolize(s, candidates)

@@ -1,0 +1,24 @@
+<div class="detail">
+  <div class="author">
+    <span class="label">
+      <%= post.store.author.store.username %>
+    </span>
+    <span class="username">
+      @<%= post.store.author.store.username %>
+    </span>
+    <span class="favorite">
+      <% if @user %>
+      <a href="#" onclick="MyPage.favor(<%= post.store.id %>);return false;">
+        <% if @user.favors?(post) %>
+        そうでもない
+        <% else %>
+        そうかも
+        <% end %>
+      </a>
+      <% end %>
+    </span>
+  </div>
+  <div class="content">
+    <%= post.store.content %>
+  </div>
+</div>

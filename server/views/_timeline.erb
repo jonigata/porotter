@@ -1,5 +1,5 @@
-<section class="posts" timeline-id="<%= timeline.store.id %>" version="<%= timeline.store.version %>">
-  <% timeline.fetch_all(direction).each do |post| %>
-  <%=  erb :_post, :locals => { :user => user, :root => root, :post => post, :comment => comment } %>
+<section class="posts" level="<%= level %>" timeline-id="<%= timeline.store.id %>" version="<%= timeline.store.version %>">
+  <% timeline.fetch_all(level == 0 ? :upward : :downward).each do |post| %>
+  <%=  erb :_post, :locals => { :post => post, :level => level } %>
   <% end %>
 </section>
