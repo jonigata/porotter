@@ -221,7 +221,6 @@ var MyPage = (function() {
         },
 
         postArticle: function(timelineId, form) {
-            var self = this;
             $.ajax({
                 url: "/foo/m/newarticle",
                 method: "post",
@@ -237,7 +236,6 @@ var MyPage = (function() {
         },
 
         postComment: function(timelineId, form) {
-            var self = this;
             $.ajax({
                 url: "/foo/m/newcomment",
                 method: "post",
@@ -248,6 +246,11 @@ var MyPage = (function() {
                 }
             }).done(function() {
                 fillPosts(timelineId);
+                var entry = getEntry(form);
+                var comments = entry.find('> .comments');
+                if (!comments.is(':visible')) {
+                    this.toggleComments(entry);
+                }
             });
             form.find('[name="content"]').val('');
             form.find('textarea').focus();
