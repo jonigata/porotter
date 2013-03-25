@@ -41,8 +41,11 @@ var MyPage = (function() {
 
     function scrollToElement(e) {
         var bottomMargin = 32;
-        $(document).scrollTop(
-            e.offset().top - $(window).height() + e.height() + bottomMargin);
+        var target =
+                e.offset().top - $(window).height() + e.height() + bottomMargin;
+        if ($(document).scrollTop() < target) {
+            $(document).scrollTop(target);
+        }
     }
 
     function subscribeTimelines() {
@@ -137,6 +140,12 @@ var MyPage = (function() {
                     entry.find('> .detail').attr('comment-count', count);
                     updateCommentDisplayText();
                     subscribePosts();
+                    var commentForm = entry.find('> .comment-form');
+                    console.log($(':focus'));
+                    if (commentForm.find('textarea').is(':focus')) {
+                        console.log("submit focused");
+                        scrollToElement(entry);
+                    }
                 }
             });
         });
@@ -213,11 +222,14 @@ var MyPage = (function() {
             commentForm.toggle();
             if (commentForm.is(':visible')) {
                 scrollToElement(commentForm);
+                commentForm.find('textarea').focus();
             }
         },
 
         scrollToEntryTail: function(obj) {
-            scrollToElement(getEntry(obj));
+            var entry = getEntry(obj);
+            scrollToElement(entry);
+            entry.find('> .comment-form').find('textarea').focus();
         },
 
         postArticle: function(timelineId, form) {
