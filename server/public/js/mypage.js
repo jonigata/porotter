@@ -80,6 +80,16 @@ var MyPage = (function() {
         });
     }
 
+    function updateFavorUI() {
+        $('.favorite').each(function(i, e) {
+            if ($(e).parent().attr('favor-this') == 'true') {
+                $(e).html('<a href="#" onclick="MyPage.favor(<%= post.store.id %>);return false;">そうでもない</a>');
+            } else {
+                $(e).html('<a href="#" onclick="MyPage.favor(<%= post.store.id %>);return false;">そうかも</a>');
+            }
+        });
+    }
+
     function startLoad(posts, version) {
         console.log(posts.attr('loading'));
         if (posts.attr('loading')) {
