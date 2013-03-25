@@ -16,6 +16,8 @@ class User < RedisMapper::PlatformModel
         self.new_instance do |user|
           user.store.username = username
           salt = Misc.new_salt
+          user.store.label = user.store.username
+          user.store.email = ''
           user.store.salt = salt
           user.store.hashed_password = Misc.hash_pw(salt, password)
 
@@ -61,10 +63,10 @@ class User < RedisMapper::PlatformModel
     self.store.favorites ||= Timeline.create
     if !favors?(post)
       self.store.favorites.add_post(post)
-      post.favor
+      post.favor(self)
     else
       self.store.favorites.remove_post(post)
-      post.unfavor
+      post.unfavor(self)
     end
   end
 
@@ -76,6 +78,8 @@ class User < RedisMapper::PlatformModel
   index_accessor :username
 
   property      :username,          String
+  property      :label,             String
+  property      :email,             String
   property      :salt,              String
   property      :hashed_password,   String
   list_property :notifications,     Integer

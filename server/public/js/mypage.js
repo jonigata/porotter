@@ -233,6 +233,7 @@ var MyPage = (function() {
                 fillPosts(timelineId);
             });
             form.find('[name="content"]').val('');
+            form.find('textarea').focus();
         },
 
         postComment: function(timelineId, form) {
@@ -249,6 +250,7 @@ var MyPage = (function() {
                 fillPosts(timelineId);
             });
             form.find('[name="content"]').val('');
+            form.find('textarea').focus();
         },
 
         favor: function(postId) {

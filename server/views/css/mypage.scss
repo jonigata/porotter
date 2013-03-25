@@ -3,6 +3,22 @@ body {
     padding: 10px;
 }
 
+@mixin clearfix {
+    zoom: 1;
+
+    &:before,
+    &:after {
+        display: block;
+        height: 0;
+        visibility: hidden;
+        content: "\0020";
+    }
+
+    &:after {
+        clear: both;
+    }
+}
+
 @mixin action-link {
     a {
         color: #77d;
@@ -16,7 +32,25 @@ body {
 
 .ui-delimiter-8 {
     margin-left: 8px;
-}           
+}
+
+.root-operation {
+    .left {
+        float: left;
+        textarea {
+            width: 240px;
+            height: 32px;
+        }
+    }
+    .right {
+        margin-left: 320px;
+        a {
+            line-height: 32px;
+            vertical-align: middle;
+        }
+    }
+    @include clearfix;
+}
 
 .posts {
     .post {
@@ -33,7 +67,7 @@ body {
             .icon {
                 width: 40px;
                 height: 40px;
-                border: solid 1px #BBB;
+                // border: solid 1px #BBB;
             }
         }
 
@@ -50,8 +84,14 @@ body {
                     color: #999;
                 }
 
-                .favorite {
+                .favored_by {
                     margin-left: 8px;
+                    img {
+                        vertical-align: middle;
+                    }
+                }
+
+                .favorite {
                     font-size: 70%;
                     color: #999;
                     @include action-link;
@@ -61,7 +101,7 @@ body {
             .content {
                 margin-top: 6px;
 
-                margin-bottom: 8px;
+                margin-bottom: 6px;
             }
 
             .comments {
@@ -80,8 +120,9 @@ body {
                 img {
                     width: 20px;
                     height: 20px;
-                    vertical-align: middle;
-                    margin-right: -4px;
+                    vertical-align: top;
+                    margin-top: -2px;
+                    margin-right: -2px;
                 }
                 font-size: 75%;
                 @include action-link;
@@ -92,5 +133,16 @@ body {
                 display: none;
             }
         }
+    }
+}
+
+.preferences {
+    .item {
+        form, p {
+            margin-left: 32px;
+       }
+       img {
+            vertical-align: middle;
+       }
     }
 }

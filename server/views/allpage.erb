@@ -21,7 +21,14 @@
       <p class="subtitle">ぽろったーは、リアルタイムに配信される情報にコメントを付けながら交流できるシステムです。</p>
     </header>
 
-    <%= erb :_newarticle, :locals => { :timeline => timeline }  %>
+    <div class="root-operation">
+      <div class="left">
+        <%= erb :_newarticle, :locals => { :timeline => timeline }  %>
+      </div>
+      <div class="right">
+        <a href="<%= local_url('/preferences') %>">個人設定</a>
+      </div>
+    </div>
 
     <div id="root">
       <section class="posts" timeline-id="<%= timeline.store.id %>" timeline-version="<%= timeline.store.version %>">

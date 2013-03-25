@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <title>ぽろったー</title>
+
+    <link rel="stylesheet" href="<%= static_url("css/mypage.css") %>">
+  </head>
+
+  <body>
+    <header>
+      <h1>ぽろったー</h1>
+      <p class="subtitle">ぽろったーは、リアルタイムに配信される情報にコメントを付けながら交流できるシステムです。</p>
+    </header>
+
+    <a href="<%= local_url("../") %>">もどる</a>
+
+    <div class="preferences">
+      <section class="item">
+        <h1>アカウント名</h1>
+        <p><%= @user.store.username %></p>
+      </section>
+      <section class="item">
+        <h1>表示する名前</h1>
+        <form action="<%= local_url("/edit_label") %>">
+          <input type="text" name="label" value="<%= @user.store.label %>">
+          <input type="submit" value="変更">
+        </form>
+      </section>
+      <section class="item">
+        <h1>メールアドレス</h1>
+        <form action="<%= local_url("/edit_email") %>">
+          <input type="text" name="email" value="<%= @user.store.email %>">
+          <input type="submit" value="変更">
+        </form>
+        <p>
+          gravatar: 
+          <img src="http://www.gravatar.com/avatar/<%= Misc.gravator(@user.store.email) %>?s=40&d=mm" alt="gravator"/>
+        </p>
+      </section>
+    </div>
+  </body>
+</html>

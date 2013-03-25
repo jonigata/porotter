@@ -14,13 +14,13 @@ class Post < RedisMapper::PlatformModel
     version_up
   end
 
-  def favor
-    self.store.favored_incr(1)
+  def favor(user)
+    self.store.favored_by.add(user)
     version_up
   end
 
-  def unfavor
-    self.store.favored_incr(-1)
+  def unfavor(user)
+    self.store.favored_by.remove(user)
     version_up
   end
 
@@ -36,5 +36,5 @@ class Post < RedisMapper::PlatformModel
   property  :created_at,    Time
   property  :updated_at,    Time
   property  :comments,      Timeline
-  property  :favored,       Integer
+  set_property :favored_by, User
 end

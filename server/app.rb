@@ -144,4 +144,14 @@ class Porotter < Sinatra::Base
     return nil
   end
 
+  def display_post_content(content)
+    if content == ''
+      "<span class='deleted'>この投稿は削除されています</span>"
+    else
+      Sanitize.clean(content).gsub(URI.regexp) do |uri|
+        "<a class='external-link' href='#{uri}' target='_blank'>#{uri}</a>"
+      end
+    end
+  end
+
 end

@@ -18,6 +18,7 @@ URL_PREFIX='/foo'
 require './web_server_helper'
 require './app'
 require './account'
+require './preferences'
 
 map URL_PREFIX do
   map "/" do
@@ -26,6 +27,10 @@ map URL_PREFIX do
 
   map '/account' do
     run Account.new
+  end
+
+  map '/preferences' do
+    run Preferences.new
   end
 end
 

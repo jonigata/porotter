@@ -1,6 +1,7 @@
 <article class="post" post-id="<%= post.store.id %>" version="<%= post.store.version %>">
   <div class="avatar">
     <div class="icon">
+      <img src="http://www.gravatar.com/avatar/<%= Misc.gravator(post.store.author.store.email) %>?s=40&d=mm" alt="gravator"/>
     </div>
   </div>
   <div class="entry">
@@ -19,18 +20,18 @@
       <%= erb :_timeline, :locals => { :timeline => comments, :level => level + 1 } %>
     </div>
 
+    <% if level == 0 %>
     <div class="operation">
-      <% if level == 0 %>
       <a class="show-comment" href="#" onclick="MyPage.toggleComments(this);return false;">
         <img src="<%= local_url("/images/chat.png") %>">
         <span class="show-comment-label">コメントを見る(<%= comments.length %>)</span>
       </a>
-      <%   if @user %>
+      <% if @user %>
       <span class="ui-delimiter-8"></span>
       <a class="post-comment" href="#" onclick="MyPage.toggleCommentForm(this);return false;">コメントする</a>
-      <%   end %>
       <% end %>
     </div>
+    <% end %>
     <% if @user %>
     <div class="comment-form">
       <%= erb :_newcomment, :locals => { :parent_id => post.store.id, :timeline => comments } %>

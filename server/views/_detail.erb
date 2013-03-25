@@ -2,10 +2,17 @@
 <div class="detail" comment-count="<%= comments.length %>" comments-version="<%= comments.store.version %>">
   <div class="author">
     <span class="label">
-      <%= post.store.author.store.username %>
+      <% author = post.store.author %>
+      <% label = author.store.label %>
+      <%== label && label != '' ? label : author.store.username %>
     </span>
     <span class="username">
       @<%= post.store.author.store.username %>
+    </span>
+    <span class="favored_by">
+      <% post.store.favored_by.each do |src| %>
+      <img src="http://www.gravatar.com/avatar/<%= Misc.gravator(src.store.email) %>?s=16&d=mm" alt="gravator"/>
+      <% end %>
     </span>
     <span class="favorite">
       <% if @user %>
@@ -20,6 +27,6 @@
     </span>
   </div>
   <div class="content">
-    <%= post.store.content %>
+    <%= display_post_content(post.store.content) %>
   </div>
 </div>
