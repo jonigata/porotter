@@ -4,10 +4,11 @@
     <span class="label">
       <% author = post.store.author %>
       <% label = author.store.label %>
-      <%== label && label != '' ? label : author.store.username %>
+      <% username = author.store.username %>
+      <%== label && label != '' ? label : username %>
     </span>
     <span class="username">
-      @<%= post.store.author.store.username %>
+      @<%= username %>
     </span>
     <span class="favored_by">
       <% post.store.favored_by.each do |src| %>

@@ -81,6 +81,7 @@ var MyPage = (function() {
     }
 
     function startLoad(posts, version) {
+        console.log(posts.attr('loading'));
         if (posts.attr('loading')) {
             console.log("タイムライン取得中なので待機キューに入れる");
             posts.attr('waiting', version);
@@ -115,6 +116,7 @@ var MyPage = (function() {
     }
 
     function fillPosts(timelineId, version) {
+        console.log('fillPosts(' + timelineId + ', ' + version + ') executed');
         var posts = $('[timeline-id="' +timelineId+ '"]');
         var level = posts.attr('level') - 0;
 
@@ -129,6 +131,7 @@ var MyPage = (function() {
                 level: level
             }
         }).done(function(data) {
+            console.log("timeline response receivied");
             finishLoad(posts, function() {
                 var entry = getEntry(posts);
                 var newPosts = $(data);
