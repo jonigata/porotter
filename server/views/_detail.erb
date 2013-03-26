@@ -17,7 +17,7 @@
     </span>
     <span class="favorite">
       <% if @user %>
-      <a href="#" onclick="MyPage.favor(<%= post.store.id %>);return false;">
+      <a href="#" onclick="MyPage.toggleFavorite(<%= post.store.id %>);return false;">
         <% if @user.favors?(post) %>
         そうでもない
         <% else %>

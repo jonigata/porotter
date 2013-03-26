@@ -1,0 +1,4 @@
+-js ../public/js/mypage.js
+--js-modern
+-main MyPage
+-lib jQueryExtern
