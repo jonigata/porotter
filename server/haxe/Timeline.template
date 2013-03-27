@@ -1,0 +1,50 @@
+<section class="timeline" level="::level::" timeline-id="::timelineId::" version="::timelineVersion::">
+  ::foreach posts::
+  <article class="post" post-id="::__current__.postId::" version="::__current__.postVersion::">
+    <div class="avatar">
+      <div class="icon">
+        <img src="http://www.gravatar.com/avatar/::__current__.icon::?s=40&d=mm" alt="gravator"/>
+      </div>
+    </div>
+    <div class="entry">
+      ::__current__.detail::
+      
+      <div class="comments" count="::__current__.commentsLength::">
+        <div class="close-button">
+          <div>
+            <a href="#" onclick="MyPage.toggleComments(this); return false;">×</a>
+          </div>
+          <div>
+            <a href="#" onclick="MyPage.scrollToEntryTail(this); return false;">↓</a>
+          </div>
+        </div>
+        <section class="timeline" level="::(level + 1)::" timeline-id="::__current__.commentsId::" version="0">
+        </section>        
+      </div>
+
+      ::if (level == 0)::
+      <div class="operation">
+        <a class="show-comment" href="#" onclick="MyPage.toggleComments(this);return false;">
+          <img src="::chatIconUrl::">
+          <span class="show-comment-label">コメントを見る(::__current__.commentsLength::)</span>
+        </a>
+        ::if userExists::
+        <span class="ui-delimiter-8"></span>
+        <a class="post-comment" href="#" onclick="MyPage.toggleCommentForm(this);return false;">コメントする</a>
+        ::end::
+      </div>
+      ::end::
+
+      ::if userExists::
+      <div class="comment-form">
+        <form>
+          <input type="hidden" name="parent" value="<%= parent_id %>"/>
+          <textarea name="content"></textarea>
+          <input type="button" value="投稿" onclick="MyPage.postComment(::__current__.commentsId::, $(this).parent());return false;"/>
+        </form>      
+      </div>
+      ::end::
+    </div>
+  </article>
+  ::end::
+</section>

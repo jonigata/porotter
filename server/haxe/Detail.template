@@ -1,0 +1,23 @@
+<div class="detail" comment-count="::commentsLength::" comments-version="::commentsVersion::">
+  <div class="author">
+    <span class="label">
+      ::authorLabel::
+    </span>
+    <span class="username">
+      @::authorUsername::
+    </span>
+    <span class="favored_by">
+      ::favoredBy::
+    </span>
+    <span class="favorite">
+      ::if (userExists)::
+      <a href="#" onclick="MyPage.toggleFavorite(::postId::);return false;">
+        ::favorLabel::
+      </a>
+      ::end::
+    </span>
+  </div>
+  <div class="content">
+    ::content::
+  </div>
+</div>
