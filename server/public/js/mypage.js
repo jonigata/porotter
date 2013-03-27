@@ -690,8 +690,6 @@ MyPage.toggleComments = function(obj) {
 			var actualVersion = Std.parseInt(timeline.attr("version"));
 			if(actualVersion < idealVersion) {
 				var timelineId = Std.parseInt(timeline.attr("timeline-id"));
-				console.log(timeline);
-				console.log(timeline.attr("timeline-id"));
 				MyPage.fillPosts(timelineId,idealVersion);
 			}
 		}
@@ -742,7 +740,6 @@ MyPage.fillPosts = function(timelineId,version) {
 	console.log("running ajax(jsonp)");
 	$.ajax({ url : "/foo/p/timeline", data : { timeline : timelineId, level : level}, dataType : "jsonp"}).done(function(data) {
 		console.log("timeline response receivied");
-		console.log(data);
 		var posts = data.posts;
 		var _g1 = 0, _g = posts.length;
 		while(_g1 < _g) {
@@ -769,7 +766,6 @@ MyPage.fillPosts = function(timelineId,version) {
 				MyPage.updateCommentDisplayText();
 				MyPage.subscribePosts();
 				var commentForm = entry.find("> .comment-form");
-				console.log(new $(":focus"));
 				if(commentForm.find("textarea")["is"](":focus")) {
 					console.log("submit focused");
 					MyPage.scrollToElement(entry);
@@ -783,6 +779,7 @@ MyPage.saveOpenStates = function() {
 		var e = new $(elem);
 		return Std.parseInt(e.find("> .timeline").attr("timeline-id"));
 	});
+	console.log(a.get());
 	js.Cookie.set("opened",JSON.stringify(a.get()),7);
 }
 MyPage.loadOpenStates = function() {
@@ -793,12 +790,13 @@ MyPage.loadOpenStates = function() {
 		var _g1 = 0, _g = rawOpened.length;
 		while(_g1 < _g) {
 			var i = _g1++;
+			var timelineId = Std.string(rawOpened[i]);
 			opened.set(Std.string(rawOpened[i]),rawOpened[i]);
 		}
 		new $(".comments").each(function(i,elem) {
 			var e = new $(elem);
 			var timelineId = e.find("> .timeline").attr("timeline-id");
-			if(opened.exists(timelineId)) e.show();
+			if(opened.exists(timelineId)) MyPage.toggleComments(elem);
 		});
 	}
 	MyPage.updateCommentDisplayText();

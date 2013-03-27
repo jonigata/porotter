@@ -43,8 +43,6 @@ class MyPage {
                 var actualVersion = Std.parseInt(timeline.attr('version'));
                 if (actualVersion < idealVersion) {
                     var timelineId = Std.parseInt(timeline.attr('timeline-id'));
-                    trace(timeline);
-                    trace(timeline.attr('timeline-id'));
                     fillPosts(timelineId, idealVersion);
                 }
             }
@@ -136,7 +134,6 @@ class MyPage {
             dataType: 'jsonp'
         }).done(function(data: Dynamic) {
             trace("timeline response receivied");
-            trace(data);
             var posts: Array<Dynamic> = data.posts;
             for(i in 0...posts.length) {
                 var post: Dynamic = posts[i];
@@ -161,7 +158,6 @@ class MyPage {
                     updateCommentDisplayText();
                     subscribePosts();
                     var commentForm = entry.find('> .comment-form');
-                    trace(new JQuery(':focus'));
                     if (commentForm.find('textarea').is(':focus')) {
                         trace("submit focused");
                         scrollToElement(entry);
@@ -178,6 +174,7 @@ class MyPage {
                 return Std.parseInt(e.find('> .timeline').attr('timeline-id'));
             }
         );
+        trace(a.get());
         Cookie.set('opened', JSON.stringify(a.get()), 7);
     }
 
@@ -187,13 +184,17 @@ class MyPage {
             var rawOpened: Array<Int> = JQuery._static.parseJSON(cookie);
             var opened = new Hash<Int>();
             for(i in 0...rawOpened.length) {
+                var timelineId = Std.string(rawOpened[i]);
                 opened.set(Std.string(rawOpened[i]), rawOpened[i]);
             }
-            new JQuery('.comments').each(function(i: Int, elem: Dynamic) {
+
+            new JQuery('.comments').each(
+                function(i: Int, elem: Dynamic) {
                     var e = new JQuery(elem);
-                    var timelineId = e.find('> .timeline').attr('timeline-id');
+                    var timelineId: String =
+                        e.find('> .timeline').attr('timeline-id');
                     if (opened.exists(timelineId)) {
-                        e.show();
+                        toggleComments(elem);
                     }
                 });
         }
