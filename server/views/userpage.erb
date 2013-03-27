@@ -26,8 +26,7 @@
     </section>
 
     <div id="root">
-      <section class="posts" level="0" timeline-id="<%= timeline.store.id %>" timeline-version="<%= timeline.store.version %>">
-      </section>
+      <%= erb :_timeline, :locals => { :timeline => timeline, :level => 0, :placeholder => true } %>
     </div>
   </body>
 </html>

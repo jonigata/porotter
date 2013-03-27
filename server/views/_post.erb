@@ -17,7 +17,7 @@
           <a href="#" onclick="MyPage.scrollToEntryTail(this); return false;">↓</a>
         </div>
       </div>
-      <%= erb :_timeline, :locals => { :timeline => comments, :level => level + 1 } %>
+      <%= erb :_timeline, :locals => { :timeline => comments, :level => level + 1, :placeholder => true } %>
     </div>
 
     <% if level == 0 %>

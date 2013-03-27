@@ -11,6 +11,8 @@ class Porotter < Sinatra::Base
   register Sinatra::Namespace
   register Sinatra::RocketIO
 
+  helpers Sinatra::Jsonp
+
   configure :development do
     register Sinatra::Reloader
     also_reload "#{File.dirname(__FILE__)}/*.rb"
@@ -96,14 +98,14 @@ class Porotter < Sinatra::Base
   end
 
   get '/p/timeline' do
+    timeline = Timeline.attach_if_exist(params['timeline'].to_i) or halt 403
     level = params['level'].to_i or halt 403
-    render_timeline(Timeline.attach_if_exist(params['timeline'].to_i), level)
+    JSONP(make_timeline_data(timeline, level))
   end
 
   get '/p/detail' do
     post = Post.attach_if_exist(params[:post].to_i) or halt 403
-    level = params['level'].to_i or halt 403
-    erb :_detail, :locals => { :post => post, :level => level }
+    JSONP(make_detail_data(post))
   end
 
   post '/m/newarticle' do
@@ -132,11 +134,6 @@ class Porotter < Sinatra::Base
   end
 
   private
-  def render_timeline(timeline, level)
-    halt 403 unless timeline
-    erb :_timeline, :locals => { :timeline => timeline, :level => level }
-  end
-
   def symbolize(s, candidates)
     candidates.each do |c|
       return c if c.to_s == s
@@ -152,6 +149,48 @@ class Porotter < Sinatra::Base
         "<a class='external-link' href='#{uri}' target='_blank'>#{uri}</a>"
       end
     end
+  end
+
+  def make_detail_data(post)
+    comments = post.store.comments;
+    author = post.store.author
+    {
+      :commentsId => comments.store.id,
+      :commentsLength => comments.length,
+      :commentsVersion => comments.store.version,
+      :authorLabel => author.store.label,
+      :authorUsername => author.store.username,
+      :favoredBy => post.store.favored_by.map {
+        |x| Misc.gravator(x.store.email)
+      },
+      :userExists => (@user ? true : false),
+      :postId => post.store.id,
+      :favorLabel => @user.favors?(post) ? 'そうでもない' : 'そうかも',
+      :content => display_post_content(post.store.content)
+    }
+  end
+
+  def make_timeline_data(timeline, level)
+    {
+      :level => level,
+      :timelineId => timeline.store.id,
+      :timelineVersion => timeline.store.version,
+      :posts => timeline.fetch_all(level == 0 ? :upward : :downward).map do |post|
+        detail = make_detail_data(post)
+        {
+          :postId => post.store.id,
+          :postVersion => post.store.version,
+          :icon => Misc.gravator(post.store.author.store.email),
+          :detail => detail,
+          :commentsId => detail[:commentsId],
+          :commentsLength => detail[:commentsLength],
+          :commentsVersion => detail[:commentsVersion],
+          :comments => [],
+          :userExists => @user ? true : false,
+          :chatIconUrl => local_url('/images/chat.png')
+        }
+      end,
+    }
   end
 
 end

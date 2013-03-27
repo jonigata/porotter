@@ -23,6 +23,9 @@ class MyPage {
     static function main() {
     }
 
+    static function testIt() {
+    }
+
     static function init(timelineId: Int) {
         fillPosts(timelineId, null);
         startWatch();
@@ -36,10 +39,12 @@ class MyPage {
             var n = entry.find('> .detail').attr('comments-version');
             if (n != null) {
                 var idealVersion = Std.parseInt(n);
-                var posts = comments.find('> .posts');
-                var actualVersion = Std.parseInt(posts.attr('version'));
+                var timeline = comments.find('> .timeline');
+                var actualVersion = Std.parseInt(timeline.attr('version'));
                 if (actualVersion < idealVersion) {
-                    var timelineId = Std.parseInt(posts.attr('timeline-id'));
+                    var timelineId = Std.parseInt(timeline.attr('timeline-id'));
+                    trace(timeline);
+                    trace(timeline.attr('timeline-id'));
                     fillPosts(timelineId, idealVersion);
                 }
             }
@@ -114,32 +119,47 @@ class MyPage {
     // private functions
     static private function fillPosts(timelineId: Int, version: Int) {
         trace(Std.format('fillPosts($timelineId, $version) executed'));
-        var posts = new JQuery(Std.format('[timeline-id="$timelineId"]'));
-        var level = Std.parseInt(posts.attr('level'));
+        var timeline = new JQuery(Std.format('[timeline-id="$timelineId"]'));
+        var level = Std.parseInt(timeline.attr('level'));
 
-        if (!startLoad(posts, version)) {
+        if (!startLoad(timeline, version)) {
             return;
         }
 
+        trace("running ajax(jsonp)");
         JQuery._static.ajax({ 
             url: "/foo/p/timeline",
             data: {
                 timeline: timelineId,
                 level: level
-            }
-        }).done(function(data: String) {
+            },
+            dataType: 'jsonp'
+        }).done(function(data: Dynamic) {
             trace("timeline response receivied");
-            finishLoad(posts, function() {
-                var entry = getEntry(posts);
-                var newPosts = new JQuery(data);
-                posts.replaceWith(newPosts);
+            trace(data);
+            var posts: Array<Dynamic> = data.posts;
+            for(i in 0...posts.length) {
+                var post: Dynamic = posts[i];
+                var favoredBy = "";
+                var srcFavoredBy: Array<String> = post.detail.favoredBy;
+                for(j in 0...srcFavoredBy.length) {
+                    favoredBy += Std.format('<img src="http://www.gravatar.com/avatar/${srcFavoredBy[j]}?s=16&d=mm" alt="gravator"/>');
+                }
+                post.detail.favoredBy = favoredBy;
+                post.detail = applyTemplate("Detail", post.detail);
+            }
+            finishLoad(timeline, function() {
+                var output = applyTemplate("Timeline", data);
+                var entry = getEntry(timeline);
+                var newPosts = new JQuery(output);
+                timeline.replaceWith(newPosts);
                 if (level == 0) {
                     loadOpenStates();
                 } else {
                     var count = newPosts.find('> .post').length;
                     entry.find('> .detail').attr('comment-count', count);
-                     updateCommentDisplayText();
-                      subscribePosts();
+                    updateCommentDisplayText();
+                    subscribePosts();
                     var commentForm = entry.find('> .comment-form');
                     trace(new JQuery(':focus'));
                     if (commentForm.find('textarea').is(':focus')) {
@@ -155,7 +175,7 @@ class MyPage {
         var a = new JQuery('.comments:visible').map(
             function(i: Int, elem: Dynamic) {
                 var e = new JQuery(elem);
-                return Std.parseInt(e.find('> .posts').attr('timeline-id'));
+                return Std.parseInt(e.find('> .timeline').attr('timeline-id'));
             }
         );
         Cookie.set('opened', JSON.stringify(a.get()), 7);
@@ -171,7 +191,7 @@ class MyPage {
             }
             new JQuery('.comments').each(function(i: Int, elem: Dynamic) {
                     var e = new JQuery(elem);
-                    var timelineId = e.find('> .posts').attr('timeline-id');
+                    var timelineId = e.find('> .timeline').attr('timeline-id');
                     if (opened.exists(timelineId)) {
                         e.show();
                     }
@@ -182,31 +202,31 @@ class MyPage {
         subscribePosts();
     }
 
-    static private function startLoad(posts: Dynamic, version: Int): Bool {
-        trace(posts.attr('loading'));
-        if (posts.attr('loading') != null) {
+    static private function startLoad(timeline: Dynamic, version: Int): Bool {
+        trace(timeline.attr('loading'));
+        if (timeline.attr('loading') != null) {
             trace("タイムライン取得中なので待機キューに入れる");
-            posts.attr('waiting', version);
+            timeline.attr('waiting', version);
             return false;
         }
 
         if (version != null) {
-            if (version <= Std.parseInt(posts.attr('version'))) {
+            if (version <= Std.parseInt(timeline.attr('version'))) {
                 trace('version older or equal');
                 return false;
             }
         }
 
-        posts.attr('loading', 'true');
+        timeline.attr('loading', 'true');
         return true;
     }
 
-    static private function finishLoad(posts: Dynamic, f: Void->Void) {
-        var timelineId = Std.parseInt(posts.attr('timeline-id'));
+    static private function finishLoad(timeline: Dynamic, f: Void->Void) {
+        var timelineId = Std.parseInt(timeline.attr('timeline-id'));
 
-        posts.removeAttr('loading');
-        var waitingVersion = posts.attr('waiting');
-        posts.removeAttr('waiting');
+        timeline.removeAttr('loading');
+        var waitingVersion = timeline.attr('waiting');
+        timeline.removeAttr('waiting');
 
         f();
 
@@ -280,7 +300,7 @@ class MyPage {
         fillPosts(timelineId, version);
     }
 
-    static private function updateDetail(postId: Int, version: Int) {
+    static function updateDetail(postId: Int, version: Int) {
         var post = new JQuery(Std.format('[post-id="$postId"]'));
         var level = Std.parseInt(post.parent().attr('level'));
 
@@ -289,12 +309,26 @@ class MyPage {
             data: {
                 post: postId,
                 level: level
+            },
+            dataType: 'jsonp'
+        }).done(function(data: Dynamic) {
+            var favoredBy = "";
+            for(i in 0...data.favoredBy.length) {
+                favoredBy += Std.format('<img src="http://www.gravatar.com/avatar/${data.favoredBy[i]}?s=16&d=mm" alt="gravator"/>');
             }
-        }).done(function(data) {
-            trace('updateDetail data incomming');
-            post.find('> .entry > .detail').replaceWith(data);
+            data.favoredBy = favoredBy;
+
+            var output = applyTemplate("Detail", data);
+            post.find('> .entry > .detail').replaceWith(output);
             updateCommentDisplayText();
         });
+
+    }
+
+    static private function applyTemplate(codename: String, data: Dynamic): String {
+        var templateCode = haxe.Resource.getString(codename);
+        var template = new haxe.Template(templateCode);
+        return template.execute(data);
     }
 
     static private function startWatch() {

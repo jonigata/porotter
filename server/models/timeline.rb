@@ -41,6 +41,6 @@ class Timeline < RedisMapper::PlatformModel
     redis.publish "timeline-watcher", [self.store.id, version].to_json
   end    
 
-  property              :version, Integer
-  ordered_set_property  :posts, Post
+  property              :version,   Integer
+  ordered_set_property  :posts,     Post
 end

@@ -19,6 +19,11 @@
     <header>
       <h1>ぽろったー</h1>
       <p class="subtitle">ぽろったーは、リアルタイムに配信される情報にコメントを付けながら交流できるシステムです。</p>
+      <a href="#" onclick="MyPage.testIt(226);return false;">
+        テスト
+      </a>
+      <div id="test-it">
+      </div>
     </header>
 
     <div class="root-operation">
@@ -31,8 +36,7 @@
     </div>
 
     <div id="root">
-      <section class="posts" level="0" timeline-id="<%= timeline.store.id %>" timeline-version="<%= timeline.store.version %>">
-      </section>
+      <%= erb :_timeline, :locals => { :timeline => timeline, :level => 0, :placeholder => true } %>
     </div>
   </body>
 </html>

@@ -2,3 +2,5 @@
 --js-modern
 -main MyPage
 -lib jQueryExtern
+-resource Detail.template@Detail
+-resource Timeline.template@Timeline
