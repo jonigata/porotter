@@ -38,7 +38,7 @@
       ::if userExists::
       <div class="comment-form">
         <form>
-          <input type="hidden" name="parent" value="<%= parent_id %>"/>
+          <input type="hidden" name="parent" value="::__current__.postId::"/>
           <textarea name="content"></textarea>
           <input type="button" value="投稿" onclick="MyPage.postComment(::__current__.commentsId::, $(this).parent());return false;"/>
         </form>      
