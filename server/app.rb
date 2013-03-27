@@ -32,12 +32,12 @@ class Porotter < Sinatra::Base
     end
 
     io.on :'watch-timeline' do |data, session, type|
-      puts "watch-timeline params: #{data}, <#{session}> type: #{type}"
+      # puts "watch-timeline params: #{data}, <#{session}> type: #{type}"
       $timeline_notifiee.set_targets(session, data)
     end
 
     io.on :'watch-post' do |data, session, type|
-      puts "watch-post params: #{data}, <#{session}> type: #{type}"
+      # puts "watch-post params: #{data}, <#{session}> type: #{type}"
       $post_notifiee.set_targets(session, data)
     end
       
@@ -47,18 +47,18 @@ class Porotter < Sinatra::Base
         on.message do |channel, message|
           case channel
           when "timeline-watcher"
-            puts "get timeline-watcher singal(#{message})"
+            # puts "get timeline-watcher singal(#{message})"
             EM.next_tick do
               $timeline_notifiee.trigger(message) do |timeline_id, version, session|
-                puts "send timeline watch message: #{timeline_id}"
+                # puts "send timeline watch message: #{timeline_id}"
                 io.push :'watch-timeline', {:timeline => timeline_id, :version => version}, {:to => session }
               end
             end
           when "post-watcher"
-            puts "get post-watcher singal(#{message})"
+            # puts "get post-watcher singal(#{message})"
             EM.next_tick do
               $post_notifiee.trigger(message) do |post_id, version, session|
-                puts "send post watch message: #{post_id}"
+                # puts "send post watch message: #{post_id}"
                 io.push :'watch-post', {:post => post_id, :version => version}, {:to => session }
               end
             end
@@ -165,7 +165,7 @@ class Porotter < Sinatra::Base
       },
       :userExists => (@user ? true : false),
       :postId => post.store.id,
-      :favorLabel => @user.favors?(post) ? 'そうでもない' : 'そうかも',
+      :favorLabel => @user ? (@user.favors?(post) ? 'そうでもない' : 'そうかも') : '',
       :content => display_post_content(post.store.content)
     }
   end
@@ -175,7 +175,7 @@ class Porotter < Sinatra::Base
       :level => level,
       :timelineId => timeline.store.id,
       :timelineVersion => timeline.store.version,
-      :posts => timeline.fetch_all(level == 0 ? :upward : :downward).map do |post|
+      :posts => timeline.fetch_all(:upward).map do |post|
         detail = make_detail_data(post)
         {
           :postId => post.store.id,

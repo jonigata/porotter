@@ -157,11 +157,6 @@ class MyPage {
                     entry.find('> .detail').attr('comment-count', count);
                     updateCommentDisplayText();
                     subscribePosts();
-                    var commentForm = entry.find('> .comment-form');
-                    if (commentForm.find('textarea').is(':focus')) {
-                        trace("submit focused");
-                        scrollToElement(entry);
-                    }
                 }
             });
         });
