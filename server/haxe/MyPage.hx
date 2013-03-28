@@ -107,6 +107,7 @@ class MyPage {
     static function toggleFavorite(postId: Int) {
         JQuery._static.ajax({
             url: "/foo/ajax/m/favor",
+            method: "post",
             data: {
                 target: postId
             }

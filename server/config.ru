@@ -22,6 +22,7 @@ require './ajax'
 require './account'
 require './preferences'
 require './static'
+require './webapi'
 
 map URL_PREFIX do
   map "/" do
@@ -43,8 +44,8 @@ map URL_PREFIX do
   map '/preferences' do
     run Preferences.new
   end
+
+  map '/api' do
+    run WebAPI.new
+  end 
 end
-
-
-
-

@@ -36,7 +36,7 @@ class Ajax < Sinatra::Base
     post_new_comment(r.parent, params[:content])
   end
 
-  get '/m/favor' do
+  post '/m/favor' do
     halt_on_exception do
       r = params.enstructure(:target => [/[0-9]+/, Integer])
     end
