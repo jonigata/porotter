@@ -1,6 +1,6 @@
 <section class="timeline" level="::level::" timeline-id="::timelineId::" version="::timelineVersion::">
   ::foreach posts::
-  <article class="post" post-id="::__current__.postId::" version="::__current__.postVersion::">
+  <article class="post" score="::__current__.score::" post-id="::__current__.postId::" version="::__current__.postVersion::">
     <div class="avatar">
       <div class="icon">
         <img src="http://www.gravatar.com/avatar/::__current__.icon::?s=40&d=mm" alt="gravator"/>

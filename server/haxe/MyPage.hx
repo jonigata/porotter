@@ -156,7 +156,7 @@ class MyPage {
                 var output = applyTemplate("Timeline", data);
                 var entry = getEntry(oldTimeline);
                 var newTimeline = new JQuery(output);
-                oldTimeline.replaceWith(newTimeline);
+                mergeTimeline(oldTimeline, newTimeline);
                 if (level == 0) {
                     loadOpenStates();
                 } else {
@@ -167,10 +167,27 @@ class MyPage {
                 }
                 trace(data.lastScore);
                 if (data.lastScore != 0) {
-                    newTimeline.append(Std.format('<a href="#" last-score="${data.lastScore}" onclick="MyPage.continueRead(this); return false;">続きを読む</a>'));
+                    oldTimeline.append(Std.format('<a href="#" last-score="${data.lastScore}" onclick="MyPage.continueRead(this); return false;">続きを読む</a>'));
                 }
             });
         });
+    }
+
+    static private function mergeTimeline(
+        oldTimeline: Dynamic, newTimeline: Dynamic) {
+        var ne: Dynamic = newTimeline.children().eq(0);
+        var oldTimelineElements: Array<Dynamic> = oldTimeline.children().get();
+        for(ore in oldTimelineElements) {
+            var oe = new JQuery(ore);
+            var old_score = Std.parseInt(oe.attr('score'));
+            while(old_score < Std.parseInt(ne.attr('score')) && 0 < ne.length) {
+                ne.insertBefore(oe);
+                ne = ne.next();
+            }
+        }
+        var nextne = ne.nextAll();
+        oldTimeline.append(ne);
+        oldTimeline.append(nextne);
     }
 
     static private function saveOpenStates() {

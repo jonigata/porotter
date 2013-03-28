@@ -76,9 +76,11 @@ module APIHelper
       :timelineId => timeline.store.id,
       :timelineVersion => timeline.store.version,
       :lastScore => last_score,
-      :posts => posts.map do |post|
+      :posts => posts.map do |h|
+        score, post = h.values_at(:score, :value)
         detail = make_detail_data(post)
         {
+          :score => score,
           :postId => post.store.id,
           :postVersion => post.store.version,
           :icon => Misc.gravator(post.store.author.store.email),
