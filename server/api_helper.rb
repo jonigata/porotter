@@ -26,6 +26,12 @@ module APIHelper
   end
 
   private
+  def ensure_params(h)
+    halt_on_exception do
+      params.enstructure(h)
+    end
+  end
+
   def halt_on_exception(code = 403)
     begin
       yield

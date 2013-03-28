@@ -1,5 +1,20 @@
-require 'open-uri'
+require 'httpclient'
 
-open('http://localhost:9292/foo/api/v/timeline?api_key=fd5b07f860cad77d88d2007fa103c0a7&username=apiman&password=apiman&timeline=1&level=0') do |f|
-  puts f.read  
+def basicopt
+  {
+    :api_key => 'fd5b07f860cad77d88d2007fa103c0a7',
+    :username => 'apiman',
+    :password => 'apiman',
+  }
 end
+
+client = HTTPClient.new
+
+contents = IO.readlines("#{File.dirname(__FILE__)}/data.txt")
+
+3.times do
+  client.post(
+    'http://localhost:9292/foo/api/m/newarticle',
+    basicopt.merge(:content => contents.sample))
+end
+
