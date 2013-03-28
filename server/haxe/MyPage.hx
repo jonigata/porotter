@@ -27,7 +27,7 @@ class MyPage {
     }
 
     static function init(timelineId: Int) {
-        fillPosts(timelineId, null);
+        fillTimeline(timelineId, null);
         startWatch();
     }
 
@@ -43,7 +43,7 @@ class MyPage {
                 var actualVersion = Std.parseInt(timeline.attr('version'));
                 if (actualVersion < idealVersion) {
                     var timelineId = Std.parseInt(timeline.attr('timeline-id'));
-                    fillPosts(timelineId, idealVersion);
+                    fillTimeline(timelineId, idealVersion);
                 }
             }
         }
@@ -77,7 +77,7 @@ class MyPage {
                 timeline: timelineId
             }
         }).done(function() {
-            fillPosts(timelineId, 0);
+            fillTimeline(timelineId, 0);
         });
         form.find('[name="content"]').val('');
         form.find('textarea').focus();
@@ -93,7 +93,7 @@ class MyPage {
                 timeline: timelineId
             }
         }).done(function() {
-            fillPosts(timelineId, 0);
+            fillTimeline(timelineId, 0);
             var entry = getEntry(form);
             var comments = entry.find('> .comments');
             if (!comments.is(':visible')) {
@@ -120,12 +120,12 @@ class MyPage {
 
     ////////////////////////////////////////////////////////////////
     // private functions
-    static private function fillPosts(timelineId: Int, version: Int) {
-        trace(Std.format('fillPosts($timelineId, $version) executed'));
-        var timeline = new JQuery(Std.format('[timeline-id="$timelineId"]'));
-        var level = Std.parseInt(timeline.attr('level'));
+    static private function fillTimeline(timelineId: Int, version: Int) {
+        trace(Std.format('fillTimeline($timelineId, $version) executed'));
+        var oldTimeline = new JQuery(Std.format('[timeline-id="$timelineId"]'));
+        var level = Std.parseInt(oldTimeline.attr('level'));
 
-        if (!startLoad(timeline, version)) {
+        if (!startLoad(oldTimeline, version)) {
             return;
         }
 
@@ -152,22 +152,22 @@ class MyPage {
                 post.detail.favoredBy = favoredBy;
                 post.detail = applyTemplate("Detail", post.detail);
             }
-            finishLoad(timeline, function() {
+            finishLoad(oldTimeline, function() {
                 var output = applyTemplate("Timeline", data);
-                var entry = getEntry(timeline);
-                var newPosts = new JQuery(output);
-                timeline.replaceWith(newPosts);
+                var entry = getEntry(oldTimeline);
+                var newTimeline = new JQuery(output);
+                oldTimeline.replaceWith(newTimeline);
                 if (level == 0) {
                     loadOpenStates();
                 } else {
-                    var count = newPosts.find('> .post').length;
+                    var count = newTimeline.find('> .post').length;
                     entry.find('> .detail').attr('comment-count', count);
                     updateCommentDisplayText();
                     subscribePosts();
                 }
                 trace(data.lastScore);
                 if (data.lastScore != 0) {
-                    newPosts.append(Std.format('<a href="#" last-score="${data.lastScore}" onclick="MyPage.continueRead(this); return false;">続きを読む</a>'));
+                    newTimeline.append(Std.format('<a href="#" last-score="${data.lastScore}" onclick="MyPage.continueRead(this); return false;">続きを読む</a>'));
                 }
             });
         });
@@ -240,7 +240,7 @@ class MyPage {
         if (waitingVersion != null) {
             // loading中に更新リクエストが来ている場合は再試行
             trace("waiting versionの取得を開始");
-            fillPosts(timelineId, Std.parseInt(waitingVersion));
+            fillTimeline(timelineId, Std.parseInt(waitingVersion));
         }
     }
 
@@ -304,7 +304,7 @@ class MyPage {
 
     static private function updateTimeline(timelineId: Int, version: Int) {
         trace("update timeline");
-        fillPosts(timelineId, version);
+        fillTimeline(timelineId, version);
     }
 
     static function updateDetail(postId: Int, version: Int) {

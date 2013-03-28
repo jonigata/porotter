@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 class Timeline < RedisMapper::PlatformModel
   def self.create
     self.new_instance.tap do |timeline|
@@ -25,8 +26,17 @@ class Timeline < RedisMapper::PlatformModel
       newest_version = :inf
     end
 
-    a = self.store.posts.revrange(newest_version, 0, [0, count])
-    [a.map { |h| h[:value] }, (a.empty? ? 0 : a.last[:score])]
+    posts = self.store.posts
+    a = posts.revrange(newest_version, 0, [0, count])
+    if a.empty?
+      [[], 0]
+    else
+      last_score = a.last[:score]
+      rest = posts.length_range(0, last_score-1)
+      puts "rest == #{rest}"
+      last_score = 0 if rest == 0 # 続きがない
+      [a.map { |h| h[:value] }, last_score]
+    end
   end
 
   def length

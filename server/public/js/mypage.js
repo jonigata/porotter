@@ -675,7 +675,7 @@ MyPage.main = function() {
 MyPage.testIt = function() {
 }
 MyPage.init = function(timelineId) {
-	MyPage.fillPosts(timelineId,null);
+	MyPage.fillTimeline(timelineId,null);
 	MyPage.startWatch();
 }
 MyPage.toggleComments = function(obj) {
@@ -690,7 +690,7 @@ MyPage.toggleComments = function(obj) {
 			var actualVersion = Std.parseInt(timeline.attr("version"));
 			if(actualVersion < idealVersion) {
 				var timelineId = Std.parseInt(timeline.attr("timeline-id"));
-				MyPage.fillPosts(timelineId,idealVersion);
+				MyPage.fillTimeline(timelineId,idealVersion);
 			}
 		}
 	}
@@ -714,14 +714,14 @@ MyPage.scrollToEntryTail = function(obj) {
 }
 MyPage.postArticle = function(timelineId,form) {
 	$.ajax({ url : "/foo/ajax/m/newarticle", method : "post", data : { content : new $(form).find("[name=\"content\"]").val(), timeline : timelineId}}).done(function() {
-		MyPage.fillPosts(timelineId,0);
+		MyPage.fillTimeline(timelineId,0);
 	});
 	form.find("[name=\"content\"]").val("");
 	form.find("textarea").focus();
 }
 MyPage.postComment = function(timelineId,form) {
 	$.ajax({ url : "/foo/ajax/m/newcomment", method : "post", data : { parent : new $(form).find("[name=\"parent\"]").val(), content : new $(form).find("[name=\"content\"]").val(), timeline : timelineId}}).done(function() {
-		MyPage.fillPosts(timelineId,0);
+		MyPage.fillTimeline(timelineId,0);
 		var entry = MyPage.getEntry(form);
 		var comments = entry.find("> .comments");
 		if(!comments["is"](":visible")) MyPage.toggleComments(entry);
@@ -735,11 +735,11 @@ MyPage.toggleFavorite = function(postId) {
 MyPage.continueRead = function(obj) {
 	new $(obj).remove();
 }
-MyPage.fillPosts = function(timelineId,version) {
-	console.log("fillPosts(" + timelineId + ", " + version + ") executed");
-	var timeline = new $("[timeline-id=\"" + timelineId + "\"]");
-	var level = Std.parseInt(timeline.attr("level"));
-	if(!MyPage.startLoad(timeline,version)) return;
+MyPage.fillTimeline = function(timelineId,version) {
+	console.log("fillTimeline(" + timelineId + ", " + version + ") executed");
+	var oldTimeline = new $("[timeline-id=\"" + timelineId + "\"]");
+	var level = Std.parseInt(oldTimeline.attr("level"));
+	if(!MyPage.startLoad(oldTimeline,version)) return;
 	console.log("running ajax(jsonp)");
 	$.ajax({ url : "/foo/ajax/v/timeline", data : { timeline : timelineId, newest_version : 0, count : 3}, dataType : "jsonp"}).done(function(data) {
 		data.level = level;
@@ -759,19 +759,19 @@ MyPage.fillPosts = function(timelineId,version) {
 			post.detail.favoredBy = favoredBy;
 			post.detail = MyPage.applyTemplate("Detail",post.detail);
 		}
-		MyPage.finishLoad(timeline,function() {
+		MyPage.finishLoad(oldTimeline,function() {
 			var output = MyPage.applyTemplate("Timeline",data);
-			var entry = MyPage.getEntry(timeline);
-			var newPosts = new $(output);
-			timeline.replaceWith(newPosts);
+			var entry = MyPage.getEntry(oldTimeline);
+			var newTimeline = new $(output);
+			oldTimeline.replaceWith(newTimeline);
 			if(level == 0) MyPage.loadOpenStates(); else {
-				var count = newPosts.find("> .post").length;
+				var count = newTimeline.find("> .post").length;
 				entry.find("> .detail").attr("comment-count",count);
 				MyPage.updateCommentDisplayText();
 				MyPage.subscribePosts();
 			}
 			console.log(data.lastScore);
-			if(data.lastScore != 0) newPosts.append("<a href=\"#\" last-score=\"" + Std.string(data.lastScore) + "\" onclick=\"MyPage.continueRead(this); return false;\">続きを読む</a>");
+			if(data.lastScore != 0) newTimeline.append("<a href=\"#\" last-score=\"" + Std.string(data.lastScore) + "\" onclick=\"MyPage.continueRead(this); return false;\">続きを読む</a>");
 		});
 	});
 }
@@ -828,7 +828,7 @@ MyPage.finishLoad = function(timeline,f) {
 	f();
 	if(waitingVersion != null) {
 		console.log("waiting versionの取得を開始");
-		MyPage.fillPosts(timelineId,Std.parseInt(waitingVersion));
+		MyPage.fillTimeline(timelineId,Std.parseInt(waitingVersion));
 	}
 }
 MyPage.scrollToElement = function(e) {
@@ -871,7 +871,7 @@ MyPage.subscribePosts = function() {
 }
 MyPage.updateTimeline = function(timelineId,version) {
 	console.log("update timeline");
-	MyPage.fillPosts(timelineId,version);
+	MyPage.fillTimeline(timelineId,version);
 }
 MyPage.updateDetail = function(postId,version) {
 	var post = new $("[post-id=\"" + postId + "\"]");
