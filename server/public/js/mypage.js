@@ -738,7 +738,8 @@ MyPage.fillPosts = function(timelineId,version) {
 	var level = Std.parseInt(timeline.attr("level"));
 	if(!MyPage.startLoad(timeline,version)) return;
 	console.log("running ajax(jsonp)");
-	$.ajax({ url : "/foo/ajax/v/timeline", data : { timeline : timelineId, level : level}, dataType : "jsonp"}).done(function(data) {
+	$.ajax({ url : "/foo/ajax/v/timeline", data : { timeline : timelineId, newest_version : 0, count : 3}, dataType : "jsonp"}).done(function(data) {
+		data.level = level;
 		console.log("timeline response receivied");
 		var posts = data.posts;
 		var _g1 = 0, _g = posts.length;

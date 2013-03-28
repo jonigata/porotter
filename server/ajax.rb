@@ -11,9 +11,10 @@ class Ajax < Sinatra::Base
 
   get '/v/timeline' do
     r = ensure_params(
-        :timeline => [/[0-9]+/, Integer],
-        :level => [/[0-9]+/, Integer])
-    get_timeline(r.timeline, r.level)
+      :timeline => [/[0-9]+/, Integer],
+      :newest_version => [/[0-9]+/, Integer],
+      :count => [/[0-9]+/, Integer])
+    get_timeline(r.timeline, r.newest_version, r.count)
   end
 
   get '/v/detail' do

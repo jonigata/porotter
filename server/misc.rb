@@ -1,5 +1,19 @@
 # -*- coding: utf-8 -*-
 
+class Object
+  def kick(a, r=nil)
+    if self === a
+      if block_given?
+        yield
+      else
+        r
+      end
+    else
+      self
+    end
+  end
+end
+
 class Array
   def sample
     self[rand(self.length)]

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 module APIHelper
-  def get_timeline(timeline_id, level)
+  def get_timeline(timeline_id, newest_version, count)
     timeline = Timeline.attach_if_exist(timeline_id) or raise
-    JSONP(make_timeline_data(timeline, level))
+    JSONP(make_timeline_data(timeline, newest_version, count))
   end
 
   def get_detail(post_id)
@@ -70,12 +70,12 @@ module APIHelper
     }
   end
 
-  def make_timeline_data(timeline, level)
-    posts = timeline.fetch_all(:upward)
+  def make_timeline_data(timeline, newest_version, count)
+    posts, last_score = timeline.fetch_all(newest_version.kick(0), count)
     {
-      :level => level,
       :timelineId => timeline.store.id,
       :timelineVersion => timeline.store.version,
+      :lastScore => last_score,
       :posts => posts.map do |post|
         detail = make_detail_data(post)
         {

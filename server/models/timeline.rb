@@ -18,16 +18,15 @@ class Timeline < RedisMapper::PlatformModel
     self.store.posts.member?(post)
   end
 
-  def fetch_all(direction)
-    if direction == :upward
-      self.store.posts.revrange(:inf, :'-inf', [0, 5]).map do |h|
-        h[:value]
-      end
+  def fetch_all(newest_version, count)
+    if newest_version
+      newest_version -= 1
     else
-      self.store.posts.range(:'-inf', :inf,  [0, 5]).map do |h|
-        h[:value]
-      end
+      newest_version = :inf
     end
+
+    a = self.store.posts.revrange(newest_version, 0, [0, count])
+    [a.map { |h| h[:value] }, (a.empty? ? 0 : a.last[:score])]
   end
 
   def length

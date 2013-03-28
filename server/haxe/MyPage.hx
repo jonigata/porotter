@@ -130,10 +130,12 @@ class MyPage {
             url: "/foo/ajax/v/timeline",
             data: {
                 timeline: timelineId,
-                level: level
+                newest_version: 0,
+                count: 3
             },
             dataType: 'jsonp'
         }).done(function(data: Dynamic) {
+            data.level = level;
             trace("timeline response receivied");
             var posts: Array<Dynamic> = data.posts;
             for(i in 0...posts.length) {
