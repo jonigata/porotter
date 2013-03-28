@@ -114,6 +114,10 @@ class MyPage {
         });
     }
 
+    static function continueRead(obj: Dynamic) {
+        new JQuery(obj).remove();
+    }
+
     ////////////////////////////////////////////////////////////////
     // private functions
     static private function fillPosts(timelineId: Int, version: Int) {
@@ -160,6 +164,10 @@ class MyPage {
                     entry.find('> .detail').attr('comment-count', count);
                     updateCommentDisplayText();
                     subscribePosts();
+                }
+                trace(data.lastScore);
+                if (data.lastScore != 0) {
+                    newPosts.append(Std.format('<a href="#" last-score="${data.lastScore}" onclick="MyPage.continueRead(this); return false;">続きを読む</a>'));
                 }
             });
         });

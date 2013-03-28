@@ -732,6 +732,9 @@ MyPage.postComment = function(timelineId,form) {
 MyPage.toggleFavorite = function(postId) {
 	$.ajax({ url : "/foo/ajax/m/favor", method : "post", data : { target : postId}});
 }
+MyPage.continueRead = function(obj) {
+	new $(obj).remove();
+}
 MyPage.fillPosts = function(timelineId,version) {
 	console.log("fillPosts(" + timelineId + ", " + version + ") executed");
 	var timeline = new $("[timeline-id=\"" + timelineId + "\"]");
@@ -767,6 +770,8 @@ MyPage.fillPosts = function(timelineId,version) {
 				MyPage.updateCommentDisplayText();
 				MyPage.subscribePosts();
 			}
+			console.log(data.lastScore);
+			if(data.lastScore != 0) newPosts.append("<a href=\"#\" last-score=\"" + Std.string(data.lastScore) + "\" onclick=\"MyPage.continueRead(this); return false;\">続きを読む</a>");
 		});
 	});
 }
