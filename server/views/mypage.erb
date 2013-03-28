@@ -8,7 +8,8 @@
     <%= erb :_owner, :locals => { :timeline => timeline } %>
 
     <div id="root">
-      <%= erb :_timeline, :locals => { :timeline => timeline, :level => 0, :placeholder => true } %>
+      <section class="timeline" level="0" timeline-id="<%= timeline.store.id %>" version="0">
+      </section>
     </div>
   </body>
 </html>

@@ -71,11 +71,12 @@ module APIHelper
   end
 
   def make_timeline_data(timeline, level)
+    posts = timeline.fetch_all(:upward)
     {
       :level => level,
       :timelineId => timeline.store.id,
       :timelineVersion => timeline.store.version,
-      :posts => timeline.fetch_all(:upward).map do |post|
+      :posts => posts.map do |post|
         detail = make_detail_data(post)
         {
           :postId => post.store.id,
