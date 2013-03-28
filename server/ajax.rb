@@ -37,8 +37,8 @@ class Ajax < Sinatra::Base
   end
 
   post '/m/favor' do
-    halt_on_exception do
-      r = params.enstructure(:target => [/[0-9]+/, Integer])
+    r = halt_on_exception do
+      params.enstructure(:target => [/[0-9]+/, Integer])
     end
     favor(r.target)
     "OK"

@@ -10,26 +10,27 @@ class Post < RedisMapper::PlatformModel
   end
 
   def add_comment(author, content)
+    version_up
     Post.create(author, content).tap do |post|
       self.store.comments.add_post(post)
-      version_up
     end
   end
 
   def favor(user)
-    self.store.favored_by.add(user)
     version_up
+    self.store.favored_by.add(user)
   end
 
   def unfavor(user)
-    self.store.favored_by.remove(user)
     version_up
+    self.store.favored_by.remove(user)
   end
 
   private
   def version_up
-    version = self.store.version_incr(1)
-    redis.publish "post-watcher", [self.store.id, version].to_json
+    self.store.version_incr(1).tap do |version|
+      redis.publish "post-watcher", [self.store.id, version].to_json
+    end
   end
 
   property  :version,       Integer

@@ -6,7 +6,7 @@ module APIHelper
     JSONP(make_timeline_data(timeline, level))
   end
 
-  def get_post(post_id)
+  def get_detail(post_id)
     post = Post.attach_if_exist(post_id) or raise
     JSONP(make_detail_data(post))
   end

@@ -6,13 +6,12 @@ class Timeline < RedisMapper::PlatformModel
   end
 
   def add_post(post)
-    self.store.posts.add(post.store.created_at.to_i, post)
-    version_up
+    self.store.posts.add(version_up, post)
   end
 
   def remove_post(post)
-    self.store.posts.remove(post)
     version_up
+    self.store.posts.remove(post)
   end
 
   def member?(post)
@@ -21,9 +20,13 @@ class Timeline < RedisMapper::PlatformModel
 
   def fetch_all(direction)
     if direction == :upward
-      self.store.posts.range_by_revrank(0, -1)
+      self.store.posts.revrange(:inf, :'-inf', [0, 5]).map do |h|
+        h[:value]
+      end
     else
-      self.store.posts.range_by_rank(0, -1)
+      self.store.posts.range(:'-inf', :inf,  [0, 5]).map do |h|
+        h[:value]
+      end
     end
   end
 
@@ -37,8 +40,9 @@ class Timeline < RedisMapper::PlatformModel
 
   private
   def version_up
-    version = self.store.version_incr(1)
-    redis.publish "timeline-watcher", [self.store.id, version].to_json
+    self.store.version_incr(1).tap do |version|
+      redis.publish "timeline-watcher", [self.store.id, version].to_json
+    end
   end    
 
   property              :version,   Integer

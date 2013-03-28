@@ -411,12 +411,25 @@ module RedisMapper
 
     class ModelOrderedSet < ModelStructureBase
       def range(lower, upper, limit = nil)
-        raise "ordered_set lower score must be Integer: passed = #{lower.inpsect}" unless lower.kind_of?(Integer)
-        raise "ordered_set upper score must be Integer: passed = #{upper.inpsect}" unless upper.kind_of?(Integer)
-        raise "limit argument must be [offset, count]: passed = #{limit.inspect}" unless limit.nil? || Structure.match([Integer, Integer], limit)
+        raise "ordered_set lower score must be Integer or :'-inf'; passed = #{lower.inspect}" unless lower.kind_of?(Integer) || lower == :'-inf'
+        raise "ordered_set upper score must be Integer or :inf or :'+inf'; passed = #{upper.inspect}" unless upper.kind_of?(Integer) || upper == :'+inf' || upper == :inf
+        raise "limit argument must be [offset, count]: passed = #{limit.inspect}" unless limit.nil? || Structure.match(tuple_template(Integer, Integer), limit)
         opt = {:withscores => true}
         opt.merge!(:limit => limit) if limit
-        redis.zrangebyscore(root_key, lower, upper, opt)
+        redis.zrangebyscore(root_key, lower, upper, opt).map do |value, score|
+          { :score => Integer.from_redis(score), :value => restriction.from_redis(value) }
+        end
+      end
+
+      def revrange(upper, lower, limit = nil)
+        raise "ordered_set lower score must be Integer or :'-inf'; passed = #{lower.inspect}" unless lower.kind_of?(Integer) || lower == :'-inf'
+        raise "ordered_set upper score must be Integer or :inf or :'+inf'; passed = #{upper.inspect}" unless upper.kind_of?(Integer) || upper == :'+inf' || upper == :inf
+        raise "limit argument must be [offset, count]: passed = #{limit.inspect}" unless limit.nil? || Structure.match(tuple_template(Integer, Integer), limit)
+        opt = {:withscores => true}
+        opt.merge!(:limit => limit) if limit
+        redis.zrevrangebyscore(root_key, upper, lower, opt).map do |value, score|
+          { :score => Integer.from_redis(score), :value => restriction.from_redis(value) }
+        end
       end
 
       def add(score, value)

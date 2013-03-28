@@ -730,7 +730,7 @@ MyPage.postComment = function(timelineId,form) {
 	form.find("textarea").focus();
 }
 MyPage.toggleFavorite = function(postId) {
-	$.ajax({ url : "/foo/ajax/m/favor", data : { target : postId}});
+	$.ajax({ url : "/foo/ajax/m/favor", method : "post", data : { target : postId}});
 }
 MyPage.fillPosts = function(timelineId,version) {
 	console.log("fillPosts(" + timelineId + ", " + version + ") executed");
