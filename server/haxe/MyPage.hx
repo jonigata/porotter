@@ -70,7 +70,7 @@ class MyPage {
 
     static function postArticle(timelineId: Int, form: Dynamic) {
         JQuery._static.ajax({
-            url: "/foo/m/newarticle",
+            url: "/foo/ajax/m/newarticle",
             method: "post",
             data: {
                 content: new JQuery(form).find('[name="content"]').val(),
@@ -85,7 +85,7 @@ class MyPage {
 
     static function postComment(timelineId: Int,form: Dynamic) {
         JQuery._static.ajax({
-            url: "/foo/m/newcomment",
+            url: "/foo/ajax/m/newcomment",
             method: "post",
             data: {
                 parent: new JQuery(form).find('[name="parent"]').val(),
@@ -106,7 +106,7 @@ class MyPage {
 
     static function toggleFavorite(postId: Int) {
         JQuery._static.ajax({
-            url: "/foo/m/favor",
+            url: "/foo/ajax/m/favor",
             data: {
                 target: postId
             }
@@ -126,7 +126,7 @@ class MyPage {
 
         trace("running ajax(jsonp)");
         JQuery._static.ajax({ 
-            url: "/foo/p/timeline",
+            url: "/foo/ajax/v/timeline",
             data: {
                 timeline: timelineId,
                 level: level
@@ -301,7 +301,7 @@ class MyPage {
         var level = Std.parseInt(post.parent().attr('level'));
 
         JQuery._static.ajax({
-            url: "/foo/p/detail",
+            url: "/foo/ajax/v/detail",
             data: {
                 post: postId,
                 level: level

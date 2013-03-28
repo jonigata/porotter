@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 module WebServerHelper
   def static_url(entity)
     "#{URL_PREFIX}/static/#{entity.gsub(/^\//, '')}"
@@ -15,6 +17,14 @@ module WebServerHelper
 
   def href(action)
     "href=\"#{local_url(action)}\""
+  end
+
+  def symbolize(s, candidates)
+    # symbol leak対策のためinternしない
+    candidates.each do |c|
+      return c if c.to_s == s
+    end
+    return nil
   end
 
   def render_login_page(login_error, signup_error)

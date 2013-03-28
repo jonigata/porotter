@@ -1,17 +1,7 @@
 # -*- coding: utf-8 -*-
 
 class Account < Sinatra::Base
-  configure :development do
-    register Sinatra::Reloader
-    also_reload "#{File.dirname(__FILE__)}/*.rb"
-    also_reload "#{File.dirname(__FILE__)}/models/*.rb"
-  end
-
-  enable :sessions
-  set :session_secret, 'porotter secret'
-  
-  include WebServerHelper
-  def here; "/account"; end
+  helpers WebServerHelper
 
   get '' do
     "ROOT"

@@ -16,14 +16,20 @@ require './models/timeline.rb'
 URL_PREFIX='/foo'
 
 require './web_server_helper'
+require './api_helper'
 require './app'
-require './static'
+require './ajax'
 require './account'
 require './preferences'
+require './static'
 
 map URL_PREFIX do
   map "/" do
     run Porotter.new
+  end
+
+  map "/ajax" do
+    run Ajax.new
   end
 
   map '/static' do

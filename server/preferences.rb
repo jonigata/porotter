@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 class Preferences < Sinatra::Base
-  include WebServerHelper
+  helpers WebServerHelper
 
   before do
     ensure_login_user_except([])

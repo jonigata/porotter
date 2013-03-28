@@ -713,14 +713,14 @@ MyPage.scrollToEntryTail = function(obj) {
 	entry.find("> .comment-form").find("textarea").focus();
 }
 MyPage.postArticle = function(timelineId,form) {
-	$.ajax({ url : "/foo/m/newarticle", method : "post", data : { content : new $(form).find("[name=\"content\"]").val(), timeline : timelineId}}).done(function() {
+	$.ajax({ url : "/foo/ajax/m/newarticle", method : "post", data : { content : new $(form).find("[name=\"content\"]").val(), timeline : timelineId}}).done(function() {
 		MyPage.fillPosts(timelineId,0);
 	});
 	form.find("[name=\"content\"]").val("");
 	form.find("textarea").focus();
 }
 MyPage.postComment = function(timelineId,form) {
-	$.ajax({ url : "/foo/m/newcomment", method : "post", data : { parent : new $(form).find("[name=\"parent\"]").val(), content : new $(form).find("[name=\"content\"]").val(), timeline : timelineId}}).done(function() {
+	$.ajax({ url : "/foo/ajax/m/newcomment", method : "post", data : { parent : new $(form).find("[name=\"parent\"]").val(), content : new $(form).find("[name=\"content\"]").val(), timeline : timelineId}}).done(function() {
 		MyPage.fillPosts(timelineId,0);
 		var entry = MyPage.getEntry(form);
 		var comments = entry.find("> .comments");
@@ -730,7 +730,7 @@ MyPage.postComment = function(timelineId,form) {
 	form.find("textarea").focus();
 }
 MyPage.toggleFavorite = function(postId) {
-	$.ajax({ url : "/foo/m/favor", data : { target : postId}});
+	$.ajax({ url : "/foo/ajax/m/favor", data : { target : postId}});
 }
 MyPage.fillPosts = function(timelineId,version) {
 	console.log("fillPosts(" + timelineId + ", " + version + ") executed");
@@ -738,7 +738,7 @@ MyPage.fillPosts = function(timelineId,version) {
 	var level = Std.parseInt(timeline.attr("level"));
 	if(!MyPage.startLoad(timeline,version)) return;
 	console.log("running ajax(jsonp)");
-	$.ajax({ url : "/foo/p/timeline", data : { timeline : timelineId, level : level}, dataType : "jsonp"}).done(function(data) {
+	$.ajax({ url : "/foo/ajax/v/timeline", data : { timeline : timelineId, level : level}, dataType : "jsonp"}).done(function(data) {
 		console.log("timeline response receivied");
 		var posts = data.posts;
 		var _g1 = 0, _g = posts.length;
@@ -870,7 +870,7 @@ MyPage.updateTimeline = function(timelineId,version) {
 MyPage.updateDetail = function(postId,version) {
 	var post = new $("[post-id=\"" + postId + "\"]");
 	var level = Std.parseInt(post.parent().attr("level"));
-	$.ajax({ url : "/foo/p/detail", data : { post : postId, level : level}, dataType : "jsonp"}).done(function(data) {
+	$.ajax({ url : "/foo/ajax/v/detail", data : { post : postId, level : level}, dataType : "jsonp"}).done(function(data) {
 		var favoredBy = "";
 		var _g1 = 0, _g = data.favoredBy.length;
 		while(_g1 < _g) {
