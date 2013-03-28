@@ -10,8 +10,10 @@ class Post < RedisMapper::PlatformModel
   end
 
   def add_comment(author, content)
-    self.store.comments.add_post(Post.create(author, content))
-    version_up
+    Post.create(author, content).tap do |post|
+      self.store.comments.add_post(post)
+      version_up
+    end
   end
 
   def favor(user)
