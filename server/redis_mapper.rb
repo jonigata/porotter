@@ -410,10 +410,13 @@ module RedisMapper
     end
 
     class ModelOrderedSet < ModelStructureBase
-      def range(lower, upper)
+      def range(lower, upper, limit = nil)
         raise "ordered_set lower score must be Integer: passed = #{lower.inpsect}" unless lower.kind_of?(Integer)
         raise "ordered_set upper score must be Integer: passed = #{upper.inpsect}" unless upper.kind_of?(Integer)
-        redis.zrangebyscore(root_key, lower, upper, {:withscores => true})
+        raise "limit argument must be [offset, count]: passed = #{limit.inspect}" unless limit.nil? || Structure.match([Integer, Integer], limit)
+        opt = {:withscores => true}
+        opt.merge!(:limit => limit) if limit
+        redis.zrangebyscore(root_key, lower, upper, opt)
       end
 
       def add(score, value)

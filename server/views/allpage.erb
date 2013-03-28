@@ -1,37 +1,11 @@
 <!doctype html>
 <html lang="ja">
-  <head>
-    <meta charset="utf-8">
-    <title>ぽろったー</title>
-
-    <%= erb :_head %>
-
-    <% timeline = Users.singleton.store.global_timeline %>
-    <script>
-      $(function() {
-        MyPage.init(<%= timeline.store.id %>);
-      });
-    </script>
-
-  </head>
+  <% timeline = Users.singleton.store.global_timeline %>
+  <%= erb :_head, :locals => { :timeline => timeline } %>
 
   <body>
-    <header>
-      <h1>ぽろったー</h1>
-      <p class="subtitle">ぽろったーは、リアルタイムに配信される情報にコメントを付けながら交流できるシステムです。</p>
-      <p>
-        <a href="https://github.com/jonigata/porotter">github</a>
-      </p>
-    </header>
-
-    <div class="root-operation">
-      <div class="left">
-        <%= erb :_newarticle, :locals => { :timeline => timeline }  %>
-      </div>
-      <div class="right">
-        <a href="<%= local_url('/preferences') %>">個人設定</a>
-      </div>
-    </div>
+    <%= erb :_preamble %>
+    <%= erb :_owner, :locals => { :timeline => timeline } %>
 
     <div id="root">
       <%= erb :_timeline, :locals => { :timeline => timeline, :level => 0, :placeholder => true } %>
