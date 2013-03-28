@@ -10,18 +10,15 @@ class Ajax < Sinatra::Base
   end
 
   get '/v/timeline' do
-    r = halt_on_exception do
-      params.enstructure(
+    r = ensure_params(
         :timeline => [/[0-9]+/, Integer],
         :level => [/[0-9]+/, Integer])
-    end
     get_timeline(r.timeline, r.level)
   end
 
   get '/v/detail' do
-    r = halt_on_exception do
-      params.enstructure(:post => [/[0-9]+/, Integer])
-    end
+    r = ensure_params(
+      :post => [/[0-9]+/, Integer])
     get_detail(r.post)
   end
 
@@ -30,16 +27,14 @@ class Ajax < Sinatra::Base
   end
 
   post '/m/newcomment' do
-    r = halt_on_exception do
-      params.enstructure(:parent => [/[0-9]+/, Integer])
-    end
+    r = ensure_params(
+      :parent => [/[0-9]+/, Integer])
     post_new_comment(r.parent, params[:content])
   end
 
   post '/m/favor' do
-    r = halt_on_exception do
-      params.enstructure(:target => [/[0-9]+/, Integer])
-    end
+    r = ensure_params(
+      :target => [/[0-9]+/, Integer])
     favor(r.target)
     "OK"
   end
