@@ -17,6 +17,7 @@ URL_PREFIX='/foo'
 
 require './web_server_helper'
 require './app'
+require './static'
 require './account'
 require './preferences'
 
@@ -24,6 +25,10 @@ map URL_PREFIX do
   map "/" do
     run Porotter.new
   end
+
+  map '/static' do
+    run Static.new
+  end 
 
   map '/account' do
     run Account.new
