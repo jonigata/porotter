@@ -2,7 +2,7 @@ require 'httpclient'
 
 def basicopt
   {
-    :api_key => 'fd5b07f860cad77d88d2007fa103c0a7',
+    :api_key => open("#{File.dirname(__FILE__)}/../API_KEY").read,
     :username => 'apiman',
     :password => 'apiman',
   }

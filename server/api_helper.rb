@@ -12,12 +12,12 @@ module APIHelper
   end
 
   def post_new_article(content)
-    @user.add_article(content).store.id
+    @user.add_article(content).store.id.to_s
   end
 
   def post_new_comment(parent_id, content)
     parent = Post.attach_if_exist(parent_id) or raise
-    @user.add_comment(parent, params[:content]).store.id
+    @user.add_comment(parent, params[:content]).store.id.to_s
   end
 
   def favor(target_id)

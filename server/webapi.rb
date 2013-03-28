@@ -7,14 +7,15 @@ class WebAPI < Sinatra::Base
 
   configure do
     api_key = ''
+    filename = "#{File.dirname(__FILE__)}/API_KEY"
 
-    if !File.exists?('./API_KEY')
-      open("./API_KEY", "w") do |file|
+    if !File.exists?(filename)
+      open(filename, "w") do |file|
         api_key = Digest::MD5.new.update("porotter" + Misc.new_salt)
         file.write(api_key)
       end
     else
-      open("./API_KEY") do |file|
+      open(filename) do |file|
         api_key = file.read
         puts "API_KEY = #{api_key}"
       end
@@ -49,13 +50,13 @@ class WebAPI < Sinatra::Base
   end
 
   post '/m/newarticle' do
-    post_new_article(params[:content]).to_s
+    post_new_article(params[:content])
   end
 
   post '/m/newcomment' do
     r = ensure_params(
         :parent => [/[0-9]+/, Integer])
-    post_new_comment(r.parent, params[:content]).to_s
+    post_new_comment(r.parent, params[:content])
   end
 
   post '/m/favor' do
