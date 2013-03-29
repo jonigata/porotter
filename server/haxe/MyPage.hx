@@ -255,12 +255,26 @@ class MyPage {
                 return Std.parseInt(e.find('> .timeline').attr('timeline-id'));
             }
         );
-        Cookie.set('opened', JSON.stringify(a.get()), 7);
+        Cookie.set('comments', JSON.stringify(a.get()), 7);
     }
 
     static private function loadOpenStates() {
-        var cookie = kickUndefined(Cookie.get('opened'));
+        loadOpenStatesAux(
+            "comments",
+            function(e: Dynamic) {
+                openComments(e);
+            });
+        
+        subscribeTimelines();
+        subscribePosts();
+    }
+
+    static private function loadOpenStatesAux(
+        label: String, f: Dynamic->Void) {
+
+        var cookie = kickUndefined(Cookie.get(label));
         if (cookie != null) {
+            trace(cookie);
             var rawOpened: Array<Int> = JQuery._static.parseJSON(cookie);
             var opened = new Hash<Int>();
             for(v in rawOpened) {
@@ -273,13 +287,10 @@ class MyPage {
                     var timelineId: String =
                         e.find('> .timeline').attr('timeline-id');
                     if (opened.exists(timelineId)) {
-                        openComments(e);
-                        updateCommentDisplayText(getEntry(e));
+                        f(e);
                     }
                 });
         }
-        subscribeTimelines();
-        subscribePosts();
     }
 
     static private function startLoad(timeline: Dynamic, version: Int): Bool {

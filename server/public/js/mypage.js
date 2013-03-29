@@ -814,11 +814,19 @@ MyPage.saveOpenStates = function() {
 		var e = new $(elem);
 		return Std.parseInt(e.find("> .timeline").attr("timeline-id"));
 	});
-	js.Cookie.set("opened",JSON.stringify(a.get()),7);
+	js.Cookie.set("comments",JSON.stringify(a.get()),7);
 }
 MyPage.loadOpenStates = function() {
-	var cookie = MyPage.kickUndefined(js.Cookie.get("opened"));
+	MyPage.loadOpenStatesAux("comments",function(e) {
+		MyPage.openComments(e);
+	});
+	MyPage.subscribeTimelines();
+	MyPage.subscribePosts();
+}
+MyPage.loadOpenStatesAux = function(label,f) {
+	var cookie = MyPage.kickUndefined(js.Cookie.get(label));
 	if(cookie != null) {
+		console.log(cookie);
 		var rawOpened = $.parseJSON(cookie);
 		var opened = new Hash();
 		var _g = 0;
@@ -830,14 +838,9 @@ MyPage.loadOpenStates = function() {
 		new $(".comments").each(function(i,elem) {
 			var e = new $(elem);
 			var timelineId = e.find("> .timeline").attr("timeline-id");
-			if(opened.exists(timelineId)) {
-				MyPage.openComments(e);
-				MyPage.updateCommentDisplayText(MyPage.getEntry(e));
-			}
+			if(opened.exists(timelineId)) f(e);
 		});
 	}
-	MyPage.subscribeTimelines();
-	MyPage.subscribePosts();
 }
 MyPage.startLoad = function(timeline,version) {
 	if(timeline.attr("loading") != null) {
