@@ -31,10 +31,10 @@ class Timeline < RedisMapper::PlatformModel
     if a.empty?
       [[], 0]
     else
-      last_score = a.last[:score]
-      rest = posts.length_range(0, last_score-1)
-      last_score = 0 if rest == 0 # 続きがない
-      [a, last_score]
+      oldest_score = a.last[:score]
+      rest = posts.length_range(0, oldest_score-1)
+      oldest_score = 0 if rest == 0 # 続きがない
+      [a, oldest_score]
     end
   end
 

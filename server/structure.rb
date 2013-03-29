@@ -132,7 +132,7 @@ class Hash
       av = self[k] or raise StructureException, "paramerter '#{k}' is not exist"
       if v[0]
         v[0].match(av) && $& == av or
-          raise StructureException, "bad #{k}" # 完全一致
+          raise StructureException, "bad #{k}: #{av.inspect}" # 完全一致
       end
       r[k] = v[1].from_s(av)
     end

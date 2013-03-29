@@ -106,11 +106,12 @@ module APIHelper
   end
 
   def make_timeline_data(timeline, newest_version, count)
-    posts, last_score = timeline.fetch_all(newest_version.kick(0), count)
+    posts, oldest_score = timeline.fetch_all(newest_version.kick(0), count)
     {
       :timelineId => timeline.store.id,
       :timelineVersion => timeline.store.version,
-      :lastScore => last_score,
+      :newestScore => 0,
+      :oldestScore => oldest_score,
       :posts => posts.map do |h|
         score, post = h.values_at(:score, :value)
         detail = make_detail_data(post)

@@ -1,4 +1,4 @@
-<section class="timeline" level="::level::" timeline-id="::timelineId::" version="::timelineVersion::">
+<section class="timeline" level="::level::" timeline-id="::timelineId::" version="::timelineVersion::" newest-score="::newestScore::" oldest-score="::oldestScore::">
   ::foreach posts::
   <article class="post" score="::__current__.score::" post-id="::__current__.postId::" version="::__current__.postVersion::">
     <div class="avatar">

@@ -7,7 +7,9 @@
     <%= erb :_preamble %>
     <%= erb :_owner, :locals => { :timeline => timeline } %>
 
-      <section class="timeline" level="0" timeline-id="<%= timeline.store.id %>" version="0">
+    <div id="root">
+      <section class="timeline" level="0" timeline-id="<%= timeline.store.id %>" version="0" newest-score="0" oldest-score="0">
       </section>
+    </div>
   </body>
 </html>

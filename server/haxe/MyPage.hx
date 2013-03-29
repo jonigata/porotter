@@ -27,7 +27,7 @@ class MyPage {
     }
 
     static function init(timelineId: Int) {
-        fillTimeline(timelineId, null);
+        fillTimeline(timelineId, 0, null);
         startWatch();
     }
 
@@ -43,7 +43,7 @@ class MyPage {
                 var actualVersion = Std.parseInt(timeline.attr('version'));
                 if (actualVersion < idealVersion) {
                     var timelineId = Std.parseInt(timeline.attr('timeline-id'));
-                    fillTimeline(timelineId, idealVersion);
+                    fillTimeline(timelineId, 0, idealVersion);
                 }
             }
         }
@@ -77,7 +77,7 @@ class MyPage {
                 timeline: timelineId
             }
         }).done(function() {
-            fillTimeline(timelineId, 0);
+            fillTimeline(timelineId, 0, 0);
         });
         form.find('[name="content"]').val('');
         form.find('textarea').focus();
@@ -93,7 +93,7 @@ class MyPage {
                 timeline: timelineId
             }
         }).done(function() {
-            fillTimeline(timelineId, 0);
+            fillTimeline(timelineId, 0, 0);
             var entry = getEntry(form);
             var comments = entry.find('> .comments');
             if (!comments.is(':visible')) {
@@ -114,15 +114,21 @@ class MyPage {
         });
     }
 
-    static function continueRead(obj: Dynamic) {
-        new JQuery(obj).remove();
-        
+    static function continueReading(obj: Dynamic) {
+        var e: Dynamic = new JQuery(obj);
+        var timeline = e.closest('.timeline');
+        var timelineId = Std.parseInt(timeline.attr('timeline-id'));
+        var oldestScore = Std.parseInt(timeline.attr('oldest-score'));
+        trace(Std.format('continueReading; timelineId = $timelineId, oldestScore = $oldestScore'));
+        e.remove();
+        fillTimeline(timelineId, oldestScore, null);
     }
 
     ////////////////////////////////////////////////////////////////
     // private functions
-    static private function fillTimeline(timelineId: Int, version: Int) {
-        trace(Std.format('fillTimeline($timelineId, $version) executed'));
+    static private function fillTimeline(
+        timelineId: Int, newestScore:Int, version: Int) {
+        trace(Std.format('fillTimeline($timelineId, $newestScore, $version) executed'));
         var oldTimeline = new JQuery(Std.format('[timeline-id="$timelineId"]'));
         var level = Std.parseInt(oldTimeline.attr('level'));
 
@@ -135,7 +141,7 @@ class MyPage {
             url: "/foo/ajax/v/timeline",
             data: {
                 timeline: timelineId,
-                newest_score: 0,
+                newest_score: newestScore,
                 count: 3
             },
             dataType: 'jsonp'
@@ -166,9 +172,9 @@ class MyPage {
                     updateCommentDisplayText();
                     subscribePosts();
                 }
-                trace(data.lastScore);
-                if (data.lastScore != 0) {
-                    oldTimeline.append(Std.format('<a href="#" last-score="${data.lastScore}" onclick="MyPage.continueRead(this); return false;">続きを読む</a>'));
+                trace(data.oldestScore);
+                if (data.oldestScore != 0) {
+                    oldTimeline.append(Std.format('<a href="#" onclick="MyPage.continueReading(this); return false;">続きを読む</a>'));
                 }
             });
         });
@@ -178,21 +184,51 @@ class MyPage {
         oldTimeline: Dynamic, newTimeline: Dynamic) {
         // O(M+N) M = newTimelineのエントリ数 N = oldTimelineのエントリ数
         var ne: Dynamic = newTimeline.children().eq(0);
+        trace(ne);
         var oldTimelineElements: Array<Dynamic> = oldTimeline.children().get();
         for(ore in oldTimelineElements) {
             var oe = new JQuery(ore);
-            var old_score = Std.parseInt(oe.attr('score'));
-            while(old_score < Std.parseInt(ne.attr('score')) && 0 < ne.length) {
-                ne.insertBefore(oe);
+            var oldScore = Std.parseInt(oe.attr('score'));
+            var newScore: Int = null;
+            while(oldScore <= (newScore = Std.parseInt(ne.attr('score')))) {
+                if (oldScore == Std.parseInt(ne.attr('score'))) {
+                    oe.replaceWith(ne);
+                } else {
+                    ne.insertBefore(oe);
+                }
                 ne = ne.next();
+                trace(ne);
+                if (ne.length == 0) {
+                    break;
+                }
             }
             if (ne.length == 0) {
                 break;
             }
         }
-        var nextne = ne.nextAll();
-        oldTimeline.append(ne);
-        oldTimeline.append(nextne);
+        if (0 < ne.length) {
+            var nextne = ne.nextAll();
+            oldTimeline.append(ne);
+            oldTimeline.append(nextne);
+        }
+        if (oldTimeline.attr('newest-score') == '0') {
+            oldTimeline.attr('newest-score', newTimeline.attr('newest-score'));
+        } else {
+            oldTimeline.attr(
+                'newest-score',
+                Math.max(
+                    Std.parseInt(oldTimeline.attr('newest-score')),
+                    Std.parseInt(newTimeline.attr('newest-score'))));
+        }
+        if (oldTimeline.attr('oldest-score') == '0') {
+            oldTimeline.attr('oldest-score', newTimeline.attr('oldest-score'));
+        } else {
+            oldTimeline.attr(
+                'oldest-score',
+                Math.min(
+                    Std.parseInt(oldTimeline.attr('oldest-score')),
+                    Std.parseInt(newTimeline.attr('oldest-score'))));
+        }
     }
 
     static private function saveOpenStates() {
@@ -262,7 +298,7 @@ class MyPage {
         if (waitingVersion != null) {
             // loading中に更新リクエストが来ている場合は再試行
             trace("waiting versionの取得を開始");
-            fillTimeline(timelineId, Std.parseInt(waitingVersion));
+            fillTimeline(timelineId, 0, Std.parseInt(waitingVersion));
         }
     }
 
@@ -326,7 +362,7 @@ class MyPage {
 
     static private function updateTimeline(timelineId: Int, version: Int) {
         trace("update timeline");
-        fillTimeline(timelineId, version);
+        fillTimeline(timelineId, 0, version);
     }
 
     static function updateDetail(postId: Int, version: Int) {
