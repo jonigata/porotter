@@ -747,7 +747,7 @@ MyPage.fetchTimeline = function(oldTimeline,newestScore,oldestScore,version) {
 	var timelineId = Std.parseInt(oldTimeline.attr("timeline-id"));
 	var level = Std.parseInt(oldTimeline.attr("level"));
 	if(!MyPage.startLoad(oldTimeline,version)) return;
-	$.ajax({ url : "/foo/ajax/v/timeline", data : { timeline : timelineId, newest_score : newestScore, oldest_score : oldestScore, count : 3}, dataType : "jsonp"}).done(function(data) {
+	$.ajax({ url : "/foo/ajax/v/timeline", data : { timeline : timelineId, newest_score : MyPage.kickUndefined(newestScore), oldest_score : MyPage.kickUndefined(oldestScore), count : 3}, dataType : "jsonp"}).done(function(data) {
 		data.level = level;
 		var posts = data.posts;
 		var _g1 = 0, _g = posts.length;
@@ -796,6 +796,7 @@ MyPage.mergeTimeline = function(oldTimeline,newTimeline) {
 				}
 				oldPost.remove();
 			}
+			console.log("insert new element");
 			ne = ne.next();
 			if(ne.length == 0) break;
 		}
@@ -814,7 +815,7 @@ MyPage.mergeTimeline = function(oldTimeline,newTimeline) {
 MyPage.updateScore = function(oldTimeline,newTimeline,label,cmp) {
 	var oldScore = MyPage.kickUndefined(oldTimeline.attr(label));
 	var newScore = MyPage.kickUndefined(newTimeline.attr(label));
-	if(oldScore == null) oldTimeline.attr(label,newScore); else if(newScore == null) oldTimeline.removeAttr(label); else oldTimeline.attr(label,cmp(Std.parseInt(oldTimeline.attr(label)),Std.parseInt(newTimeline.attr(label))));
+	if(oldScore == null) oldTimeline.attr(label,newScore); else if(newScore != null) oldTimeline.attr(label,cmp(Std.parseInt(oldTimeline.attr(label)),Std.parseInt(newTimeline.attr(label))));
 }
 MyPage.saveOpenStates = function() {
 	var a = new $(".comments:visible").map(function(i,elem) {

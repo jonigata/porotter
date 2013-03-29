@@ -149,8 +149,8 @@ class MyPage {
             url: "/foo/ajax/v/timeline",
             data: {
                 timeline: timelineId,
-                newest_score: newestScore,
-                oldest_score: oldestScore,
+                newest_score: kickUndefined(newestScore),
+                oldest_score: kickUndefined(oldestScore),
                 count: 3
             },
             dataType: 'jsonp'
@@ -208,6 +208,7 @@ class MyPage {
                     }
                     oldPost.remove();
                 }
+                trace('insert new element');
                 ne = ne.next();
                 if (ne.length == 0) {
                     break;
@@ -241,9 +242,7 @@ class MyPage {
         if (oldScore == null) {
             oldTimeline.attr(label, newScore);
         } else {
-            if (newScore == null) {
-                oldTimeline.removeAttr(label);
-            } else {
+            if (newScore != null) {
                 oldTimeline.attr(
                     label,
                     cmp(
