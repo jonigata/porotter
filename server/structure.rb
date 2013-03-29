@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+require 'ostruct'
+
 class Object
   def self.from_s(s)
     s
@@ -46,18 +48,14 @@ end
 
 class TupleTemplate < StructureTemplate; end
 class RecordTemplate < StructureTemplate; end
+class Nullable < StructureTemplate
+  def from_s(x)
+    args.from_s(x)
+  end
+end
 
 def tuple_template(*args) TupleTemplate.new(args) end
 def record_template(*args) RecordTemplate.new(*args) end
-
-class Nullable
-  def initialize(arg)
-    @arg = arg
-  end
-
-  attr_reader :arg
-end
-
 def nullable(arg) Nullable.new(arg) end
 
 module Structure
@@ -110,32 +108,24 @@ module Structure
   end
 end
 
-class CookedParams
-  def initialize(params)
-    @params = params
-  end
-
-  def method_missing(action, *args)
-    p = @params[action]
-    if p != nil
-      p
-    else
-      super
-    end
-  end
-end
-
 class Hash
   def enstructure(validator)
     r = {}
-    validator.each do |k, v|
-      av = self[k] or raise StructureException, "paramerter '#{k}' is not exist"
-      if v[0]
-        v[0].match(av) && $& == av or
-          raise StructureException, "bad #{k}: #{av.inspect}" # 完全一致
+    validator.each do |key, (regex, type)|
+      val = self[key]
+      if (val.nil? || val=='') && !type.kind_of?(Nullable)
+        raise StructureException, "paramerter '#{key}' is not exist"
       end
-      r[k] = v[1].from_s(av)
+      if val && val != ''
+        if regex
+          regex.match(val) && $& == val or
+            raise StructureException, "bad #{key}: #{val.inspect}" # 完全一致
+        end
+        r[key] = type.from_s(val)
+      else
+        r[key] = nil
+      end
     end
-    CookedParams.new(r)
+    OpenStruct.new(r).freeze
   end
 end

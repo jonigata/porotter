@@ -6,9 +6,11 @@ module APIHelper
       get '/v/timeline' do
         r = ensure_params(
           :timeline => [/[0-9]+/, Integer],
-          :newest_score => [/[0-9]+/, Integer],
+          :newest_score => [/[0-9]+/, nullable(Integer)],
+          :oldest_score => [/[0-9]+/, nullable(Integer)],
           :count => [/[0-9]+/, Integer])
-        get_timeline(r.timeline, r.newest_score, r.count)
+        p r
+        get_timeline(r.timeline, r.newest_score, r.oldest_score, r.count)
       end
 
       get '/v/detail' do
@@ -37,9 +39,9 @@ module APIHelper
   end
   
   private
-  def get_timeline(timeline_id, newest_version, count)
+  def get_timeline(timeline_id, newest_score, oldest_score, count)
     timeline = Timeline.attach_if_exist(timeline_id) or raise
-    JSONP(make_timeline_data(timeline, newest_version, count))
+    JSONP(make_timeline_data(timeline, newest_score, oldest_score, count))
   end
 
   def get_detail(post_id)
@@ -105,13 +107,14 @@ module APIHelper
     }
   end
 
-  def make_timeline_data(timeline, newest_version, count)
-    posts, oldest_score = timeline.fetch_all(newest_version.kick(0), count)
+  def make_timeline_data(timeline, newest_score, oldest_score, count)
+    posts, res_newest_score, res_oldest_score = timeline.fetch(
+      newest_score, oldest_score, count)
     {
       :timelineId => timeline.store.id,
       :timelineVersion => timeline.store.version,
-      :newestScore => 0,
-      :oldestScore => oldest_score,
+      :newestScore => res_newest_score,
+      :oldestScore => res_oldest_score,
       :posts => posts.map do |h|
         score, post = h.values_at(:score, :value)
         detail = make_detail_data(post)

@@ -19,22 +19,22 @@ class Timeline < RedisMapper::PlatformModel
     self.store.posts.member?(post)
   end
 
-  def fetch_all(newest_version, count)
-    if newest_version
-      newest_version -= 1
-    else
-      newest_version = :inf
-    end
+  def fetch(newest_score, oldest_score, count)
+    b = newest_score ? newest_score - 1 : :inf
+    e = oldest_score ? oldest_score + 1 : :'-inf'
 
     posts = self.store.posts
-    a = posts.revrange(newest_version, 0, [0, count])
+    a = posts.revrange(b, e, [0, count])
     if a.empty?
-      [[], 0]
+      [[], nil, nil]
     else
-      oldest_score = a.last[:score]
-      rest = posts.length_range(0, oldest_score-1)
-      oldest_score = 0 if rest == 0 # 続きがない
-      [a, oldest_score]
+      res_newest_score = a.first[:score]
+      res_oldest_score = a.last[:score]
+      if posts.length_range(0, res_oldest_score - 1) == 0
+        # 続きがない
+        res_oldest_score = nil
+      end
+      [a, res_newest_score, res_oldest_score]
     end
   end
 

@@ -675,7 +675,7 @@ MyPage.main = function() {
 MyPage.testIt = function() {
 }
 MyPage.init = function(timelineId) {
-	MyPage.fillTimeline(timelineId,0,null);
+	MyPage.fillTimeline(MyPage.getTimeline(timelineId),null);
 	MyPage.startWatch();
 }
 MyPage.toggleComments = function(obj) {
@@ -688,10 +688,7 @@ MyPage.toggleComments = function(obj) {
 			var idealVersion = Std.parseInt(n);
 			var timeline = comments.find("> .timeline");
 			var actualVersion = Std.parseInt(timeline.attr("version"));
-			if(actualVersion < idealVersion) {
-				var timelineId = Std.parseInt(timeline.attr("timeline-id"));
-				MyPage.fillTimeline(timelineId,0,idealVersion);
-			}
+			if(actualVersion < idealVersion) MyPage.fillTimeline(timeline,idealVersion);
 		}
 	}
 	MyPage.updateCommentDisplayText();
@@ -714,14 +711,14 @@ MyPage.scrollToEntryTail = function(obj) {
 }
 MyPage.postArticle = function(timelineId,form) {
 	$.ajax({ url : "/foo/ajax/m/newarticle", method : "post", data : { content : new $(form).find("[name=\"content\"]").val(), timeline : timelineId}}).done(function() {
-		MyPage.fillTimeline(timelineId,0,0);
+		MyPage.fillNewerTimeline(MyPage.getTimeline(timelineId),0);
 	});
 	form.find("[name=\"content\"]").val("");
 	form.find("textarea").focus();
 }
 MyPage.postComment = function(timelineId,form) {
 	$.ajax({ url : "/foo/ajax/m/newcomment", method : "post", data : { parent : new $(form).find("[name=\"parent\"]").val(), content : new $(form).find("[name=\"content\"]").val(), timeline : timelineId}}).done(function() {
-		MyPage.fillTimeline(timelineId,0,0);
+		MyPage.fillNewerTimeline(MyPage.getTimeline(timelineId),0);
 		var entry = MyPage.getEntry(form);
 		var comments = entry.find("> .comments");
 		if(!comments["is"](":visible")) MyPage.toggleComments(entry);
@@ -735,21 +732,27 @@ MyPage.toggleFavorite = function(postId) {
 MyPage.continueReading = function(obj) {
 	var e = new $(obj);
 	var timeline = e.closest(".timeline");
-	var timelineId = Std.parseInt(timeline.attr("timeline-id"));
-	var oldestScore = Std.parseInt(timeline.attr("oldest-score"));
-	console.log("continueReading; timelineId = " + timelineId + ", oldestScore = " + oldestScore);
 	e.remove();
-	MyPage.fillTimeline(timelineId,oldestScore,null);
+	MyPage.fillOlderTimeline(timeline,null);
 }
-MyPage.fillTimeline = function(timelineId,newestScore,version) {
-	console.log("fillTimeline(" + timelineId + ", " + newestScore + ", " + version + ") executed");
-	var oldTimeline = new $("[timeline-id=\"" + timelineId + "\"]");
+MyPage.fillTimeline = function(timeline,version) {
+	MyPage.fetchTimeline(timeline,null,null,version);
+}
+MyPage.fillNewerTimeline = function(timeline,version) {
+	MyPage.fetchTimeline(timeline,null,timeline.attr("newest-score"),version);
+}
+MyPage.fillOlderTimeline = function(timeline,version) {
+	MyPage.fetchTimeline(timeline,timeline.attr("oldest-score"),null,version);
+}
+MyPage.getTimeline = function(timelineId) {
+	return new $("[timeline-id=\"" + timelineId + "\"]");
+}
+MyPage.fetchTimeline = function(oldTimeline,newestScore,oldestScore,version) {
+	var timelineId = Std.parseInt(oldTimeline.attr("timeline-id"));
 	var level = Std.parseInt(oldTimeline.attr("level"));
 	if(!MyPage.startLoad(oldTimeline,version)) return;
-	console.log("running ajax(jsonp)");
-	$.ajax({ url : "/foo/ajax/v/timeline", data : { timeline : timelineId, newest_score : newestScore, count : 3}, dataType : "jsonp"}).done(function(data) {
+	$.ajax({ url : "/foo/ajax/v/timeline", data : { timeline : timelineId, newest_score : newestScore, oldest_score : oldestScore, count : 3}, dataType : "jsonp"}).done(function(data) {
 		data.level = level;
-		console.log("timeline response receivied");
 		var posts = data.posts;
 		var _g1 = 0, _g = posts.length;
 		while(_g1 < _g) {
@@ -776,14 +779,11 @@ MyPage.fillTimeline = function(timelineId,newestScore,version) {
 				MyPage.updateCommentDisplayText();
 				MyPage.subscribePosts();
 			}
-			console.log(data.oldestScore);
-			if(data.oldestScore != 0) oldTimeline.append("<a href=\"#\" onclick=\"MyPage.continueReading(this); return false;\">続きを読む</a>");
 		});
 	});
 }
 MyPage.mergeTimeline = function(oldTimeline,newTimeline) {
 	var ne = newTimeline.children().eq(0);
-	console.log(ne);
 	var oldTimelineElements = oldTimeline.children().get();
 	var _g = 0;
 	while(_g < oldTimelineElements.length) {
@@ -795,7 +795,6 @@ MyPage.mergeTimeline = function(oldTimeline,newTimeline) {
 		while(oldScore <= (newScore = Std.parseInt(ne.attr("score")))) {
 			if(oldScore == Std.parseInt(ne.attr("score"))) oe.replaceWith(ne); else ne.insertBefore(oe);
 			ne = ne.next();
-			console.log(ne);
 			if(ne.length == 0) break;
 		}
 		if(ne.length == 0) break;
@@ -807,16 +806,18 @@ MyPage.mergeTimeline = function(oldTimeline,newTimeline) {
 	}
 	MyPage.updateScore(oldTimeline,newTimeline,"newest-score",Math.max);
 	MyPage.updateScore(oldTimeline,newTimeline,"oldest-score",Math.min);
+	if(MyPage.kickUndefined(oldTimeline.attr("oldest-score")) != null) oldTimeline.append("<a class=\"continue-reading\" href=\"#\" onclick=\"MyPage.continueReading(this); return false;\">続きを読む</a>");
 }
 MyPage.updateScore = function(oldTimeline,newTimeline,label,cmp) {
-	if(oldTimeline.attr(label) == "0") oldTimeline.attr(label,newTimeline.attr(label)); else oldTimeline.attr(label,cmp(Std.parseInt(oldTimeline.attr(label)),Std.parseInt(newTimeline.attr(label))));
+	var oldScore = MyPage.kickUndefined(oldTimeline.attr(label));
+	var newScore = MyPage.kickUndefined(newTimeline.attr(label));
+	if(oldScore == null) oldTimeline.attr(label,newScore); else if(newScore == null) oldTimeline.removeAttr(label); else oldTimeline.attr(label,cmp(Std.parseInt(oldTimeline.attr(label)),Std.parseInt(newTimeline.attr(label))));
 }
 MyPage.saveOpenStates = function() {
 	var a = new $(".comments:visible").map(function(i,elem) {
 		var e = new $(elem);
 		return Std.parseInt(e.find("> .timeline").attr("timeline-id"));
 	});
-	console.log(a.get());
 	js.Cookie.set("opened",JSON.stringify(a.get()),7);
 }
 MyPage.loadOpenStates = function() {
@@ -841,31 +842,22 @@ MyPage.loadOpenStates = function() {
 	MyPage.subscribePosts();
 }
 MyPage.startLoad = function(timeline,version) {
-	console.log(timeline.attr("loading"));
 	if(timeline.attr("loading") != null) {
-		console.log("タイムライン取得中なので待機キューに入れる");
 		timeline.attr("waiting",version);
 		return false;
 	}
 	if(version != null) {
-		if(version <= Std.parseInt(timeline.attr("version"))) {
-			console.log("version older or equal");
-			return false;
-		}
+		if(version <= Std.parseInt(timeline.attr("version"))) return false;
 	}
 	timeline.attr("loading","true");
 	return true;
 }
 MyPage.finishLoad = function(timeline,f) {
-	var timelineId = Std.parseInt(timeline.attr("timeline-id"));
 	timeline.removeAttr("loading");
 	var waitingVersion = timeline.attr("waiting");
 	timeline.removeAttr("waiting");
 	f();
-	if(waitingVersion != null) {
-		console.log("waiting versionの取得を開始");
-		MyPage.fillTimeline(timelineId,0,Std.parseInt(waitingVersion));
-	}
+	if(waitingVersion != null) MyPage.fillNewerTimeline(timeline,Std.parseInt(waitingVersion));
 }
 MyPage.scrollToElement = function(e) {
 	var window = new $(js.Lib.window);
@@ -906,8 +898,7 @@ MyPage.subscribePosts = function() {
 	}
 }
 MyPage.updateTimeline = function(timelineId,version) {
-	console.log("update timeline");
-	MyPage.fillTimeline(timelineId,0,version);
+	MyPage.fillNewerTimeline(MyPage.getTimeline(timelineId),version);
 }
 MyPage.updateDetail = function(postId,version) {
 	var post = new $("[post-id=\"" + postId + "\"]");
@@ -938,15 +929,18 @@ MyPage.startWatch = function() {
 		MyPage.subscribePosts();
 	});
 	MyPage.io.on("watch-timeline",function(data) {
-		console.log("timeline update signal received");
-		console.log(data);
 		MyPage.updateTimeline(data.timeline,data.version);
 	});
 	MyPage.io.on("watch-post",function(data) {
-		console.log("post update signal received");
-		console.log(data);
 		MyPage.updateDetail(data.post,data.version);
 	});
+}
+MyPage.isUndefined = function(x) {
+	return "undefined" === typeof x;
+}
+MyPage.kickUndefined = function(x) {
+	if(MyPage.isUndefined(x)) return null;
+	return x;
 }
 var Reflect = function() { }
 $hxClasses["Reflect"] = Reflect;
@@ -2395,7 +2389,7 @@ Bool.__ename__ = ["Bool"];
 var Class = $hxClasses.Class = { __name__ : ["Class"]};
 var Enum = { };
 var Void = $hxClasses.Void = { __ename__ : ["Void"]};
-haxe.Resource.content = [{ name : "Detail", data : "s748:PGRpdiBjbGFzcz0iZGV0YWlsIiBjb21tZW50LWNvdW50PSI6OmNvbW1lbnRzTGVuZ3RoOjoiIGNvbW1lbnRzLXZlcnNpb249Ijo6Y29tbWVudHNWZXJzaW9uOjoiPgogIDxkaXYgY2xhc3M9ImF1dGhvciI%CiAgICA8c3BhbiBjbGFzcz0ibGFiZWwiPgogICAgICA6OmF1dGhvckxhYmVsOjoKICAgIDwvc3Bhbj4KICAgIDxzcGFuIGNsYXNzPSJ1c2VybmFtZSI%CiAgICAgIEA6OmF1dGhvclVzZXJuYW1lOjoKICAgIDwvc3Bhbj4KICAgIDxzcGFuIGNsYXNzPSJmYXZvcmVkX2J5Ij4KICAgICAgOjpmYXZvcmVkQnk6OgogICAgPC9zcGFuPgogICAgPHNwYW4gY2xhc3M9ImZhdm9yaXRlIj4KICAgICAgOjppZiAodXNlckV4aXN0cyk6OgogICAgICA8YSBocmVmPSIjIiBvbmNsaWNrPSJNeVBhZ2UudG9nZ2xlRmF2b3JpdGUoOjpwb3N0SWQ6Oik7cmV0dXJuIGZhbHNlOyI%CiAgICAgICAgOjpmYXZvckxhYmVsOjoKICAgICAgPC9hPgogICAgICA6OmVuZDo6CiAgICA8L3NwYW4%CiAgPC9kaXY%CiAgPGRpdiBjbGFzcz0iY29udGVudCI%CiAgICA6OmNvbnRlbnQ6OgogIDwvZGl2Pgo8L2Rpdj4K"},{ name : "Timeline", data : "s2694:PHNlY3Rpb24gY2xhc3M9InRpbWVsaW5lIiBsZXZlbD0iOjpsZXZlbDo6IiB0aW1lbGluZS1pZD0iOjp0aW1lbGluZUlkOjoiIHZlcnNpb249Ijo6dGltZWxpbmVWZXJzaW9uOjoiIG5ld2VzdC1zY29yZT0iOjpuZXdlc3RTY29yZTo6IiBvbGRlc3Qtc2NvcmU9Ijo6b2xkZXN0U2NvcmU6OiI%CiAgOjpmb3JlYWNoIHBvc3RzOjoKICA8YXJ0aWNsZSBjbGFzcz0icG9zdCIgc2NvcmU9Ijo6X19jdXJyZW50X18uc2NvcmU6OiIgcG9zdC1pZD0iOjpfX2N1cnJlbnRfXy5wb3N0SWQ6OiIgdmVyc2lvbj0iOjpfX2N1cnJlbnRfXy5wb3N0VmVyc2lvbjo6Ij4KICAgIDxkaXYgY2xhc3M9ImF2YXRhciI%CiAgICAgIDxkaXYgY2xhc3M9Imljb24iPgogICAgICAgIDxpbWcgc3JjPSJodHRwOi8vd3d3LmdyYXZhdGFyLmNvbS9hdmF0YXIvOjpfX2N1cnJlbnRfXy5pY29uOjo:cz00MCZkPW1tIiBhbHQ9ImdyYXZhdG9yIi8%CiAgICAgIDwvZGl2PgogICAgPC9kaXY%CiAgICA8ZGl2IGNsYXNzPSJlbnRyeSI%CiAgICAgIDo6X19jdXJyZW50X18uZGV0YWlsOjoKCiAgICAgIDo6aWYgKGxldmVsID09IDApOjoKICAgICAgPGRpdiBjbGFzcz0ib3BlcmF0aW9uIj4KICAgICAgICA8YSBjbGFzcz0ic2hvdy1jb21tZW50IiBocmVmPSIjIiBvbmNsaWNrPSJNeVBhZ2UudG9nZ2xlQ29tbWVudHModGhpcyk7cmV0dXJuIGZhbHNlOyI%CiAgICAgICAgICA8aW1nIHNyYz0iOjpjaGF0SWNvblVybDo6Ij4KICAgICAgICAgIDxzcGFuIGNsYXNzPSJzaG93LWNvbW1lbnQtbGFiZWwiPuOCs%ODoeODs%ODiOOCkuimi%OCiyg6Ol9fY3VycmVudF9fLmNvbW1lbnRzTGVuZ3RoOjopPC9zcGFuPgogICAgICAgIDwvYT4KICAgICAgICA6OmlmIHVzZXJFeGlzdHM6OgogICAgICAgIDxzcGFuIGNsYXNzPSJ1aS1kZWxpbWl0ZXItOCI%PC9zcGFuPgogICAgICAgIDxhIGNsYXNzPSJwb3N0LWNvbW1lbnQiIGhyZWY9IiMiIG9uY2xpY2s9Ik15UGFnZS50b2dnbGVDb21tZW50Rm9ybSh0aGlzKTtyZXR1cm4gZmFsc2U7Ij7jgrPjg6Hjg7Pjg4jjgZnjgos8L2E%CiAgICAgICAgOjplbmQ6OgogICAgICA8L2Rpdj4KICAgICAgOjplbmQ6OgoKICAgICAgOjppZiB1c2VyRXhpc3RzOjoKICAgICAgPGRpdiBjbGFzcz0iY29tbWVudC1mb3JtIj4KICAgICAgICA8Zm9ybT4KICAgICAgICAgIDxpbnB1dCB0eXBlPSJoaWRkZW4iIG5hbWU9InBhcmVudCIgdmFsdWU9Ijo6X19jdXJyZW50X18ucG9zdElkOjoiLz4KICAgICAgICAgIDx0ZXh0YXJlYSBuYW1lPSJjb250ZW50Ij48L3RleHRhcmVhPgogICAgICAgICAgPGlucHV0IHR5cGU9ImJ1dHRvbiIgdmFsdWU9IuaKleeovyIgb25jbGljaz0iTXlQYWdlLnBvc3RDb21tZW50KDo6X19jdXJyZW50X18uY29tbWVudHNJZDo6LCAkKHRoaXMpLnBhcmVudCgpKTtyZXR1cm4gZmFsc2U7Ii8%CiAgICAgICAgPC9mb3JtPiAgICAgIAogICAgICA8L2Rpdj4KICAgICAgOjplbmQ6OgogICAgICAKICAgICAgPGRpdiBjbGFzcz0iY29tbWVudHMiIGNvdW50PSI6Ol9fY3VycmVudF9fLmNvbW1lbnRzTGVuZ3RoOjoiPgogICAgICAgIDxkaXYgY2xhc3M9ImNsb3NlLWJ1dHRvbiI%CiAgICAgICAgICA8ZGl2PgogICAgICAgICAgICA8YSBocmVmPSIjIiBvbmNsaWNrPSJNeVBhZ2UudG9nZ2xlQ29tbWVudHModGhpcyk7IHJldHVybiBmYWxzZTsiPsOXPC9hPgogICAgICAgICAgPC9kaXY%CiAgICAgICAgICA8ZGl2PgogICAgICAgICAgICA8YSBocmVmPSIjIiBvbmNsaWNrPSJNeVBhZ2Uuc2Nyb2xsVG9FbnRyeVRhaWwodGhpcyk7IHJldHVybiBmYWxzZTsiPuKGkzwvYT4KICAgICAgICAgIDwvZGl2PgogICAgICAgIDwvZGl2PgogICAgICAgIDxzZWN0aW9uIGNsYXNzPSJ0aW1lbGluZSIgbGV2ZWw9Ijo6KGxldmVsICsgMSk6OiIgdGltZWxpbmUtaWQ9Ijo6X19jdXJyZW50X18uY29tbWVudHNJZDo6IiB2ZXJzaW9uPSIwIj4KICAgICAgICA8L3NlY3Rpb24%ICAgICAgICAKICAgICAgPC9kaXY%CiAgICA8L2Rpdj4KICA8L2FydGljbGU%CiAgOjplbmQ6Ogo8L3NlY3Rpb24%Cg"}];
+haxe.Resource.content = [{ name : "Detail", data : "s748:PGRpdiBjbGFzcz0iZGV0YWlsIiBjb21tZW50LWNvdW50PSI6OmNvbW1lbnRzTGVuZ3RoOjoiIGNvbW1lbnRzLXZlcnNpb249Ijo6Y29tbWVudHNWZXJzaW9uOjoiPgogIDxkaXYgY2xhc3M9ImF1dGhvciI%CiAgICA8c3BhbiBjbGFzcz0ibGFiZWwiPgogICAgICA6OmF1dGhvckxhYmVsOjoKICAgIDwvc3Bhbj4KICAgIDxzcGFuIGNsYXNzPSJ1c2VybmFtZSI%CiAgICAgIEA6OmF1dGhvclVzZXJuYW1lOjoKICAgIDwvc3Bhbj4KICAgIDxzcGFuIGNsYXNzPSJmYXZvcmVkX2J5Ij4KICAgICAgOjpmYXZvcmVkQnk6OgogICAgPC9zcGFuPgogICAgPHNwYW4gY2xhc3M9ImZhdm9yaXRlIj4KICAgICAgOjppZiAodXNlckV4aXN0cyk6OgogICAgICA8YSBocmVmPSIjIiBvbmNsaWNrPSJNeVBhZ2UudG9nZ2xlRmF2b3JpdGUoOjpwb3N0SWQ6Oik7cmV0dXJuIGZhbHNlOyI%CiAgICAgICAgOjpmYXZvckxhYmVsOjoKICAgICAgPC9hPgogICAgICA6OmVuZDo6CiAgICA8L3NwYW4%CiAgPC9kaXY%CiAgPGRpdiBjbGFzcz0iY29udGVudCI%CiAgICA6OmNvbnRlbnQ6OgogIDwvZGl2Pgo8L2Rpdj4K"},{ name : "Timeline", data : "s2839:PHNlY3Rpb24gY2xhc3M9InRpbWVsaW5lIgogICAgICAgICBsZXZlbD0iOjpsZXZlbDo6IgogICAgICAgICB0aW1lbGluZS1pZD0iOjp0aW1lbGluZUlkOjoiCiAgICAgICAgIHZlcnNpb249Ijo6dGltZWxpbmVWZXJzaW9uOjoiCiAgICAgICAgIDo6aWYgbmV3ZXN0U2NvcmU6OiBuZXdlc3Qtc2NvcmU9Ijo6bmV3ZXN0U2NvcmU6OiIgOjplbmQ6OgogICAgICAgICA6OmlmIG9sZGVzdFNjb3JlOjogb2xkZXN0LXNjb3JlPSI6Om9sZGVzdFNjb3JlOjoiIDo6ZW5kOjoKICAgICAgICAgPgogIDo6Zm9yZWFjaCBwb3N0czo6CiAgPGFydGljbGUgY2xhc3M9InBvc3QiIHNjb3JlPSI6Ol9fY3VycmVudF9fLnNjb3JlOjoiIHBvc3QtaWQ9Ijo6X19jdXJyZW50X18ucG9zdElkOjoiIHZlcnNpb249Ijo6X19jdXJyZW50X18ucG9zdFZlcnNpb246OiI%CiAgICA8ZGl2IGNsYXNzPSJhdmF0YXIiPgogICAgICA8ZGl2IGNsYXNzPSJpY29uIj4KICAgICAgICA8aW1nIHNyYz0iaHR0cDovL3d3dy5ncmF2YXRhci5jb20vYXZhdGFyLzo6X19jdXJyZW50X18uaWNvbjo6P3M9NDAmZD1tbSIgYWx0PSJncmF2YXRvciIvPgogICAgICA8L2Rpdj4KICAgIDwvZGl2PgogICAgPGRpdiBjbGFzcz0iZW50cnkiPgogICAgICA6Ol9fY3VycmVudF9fLmRldGFpbDo6CgogICAgICA6OmlmIChsZXZlbCA9PSAwKTo6CiAgICAgIDxkaXYgY2xhc3M9Im9wZXJhdGlvbiI%CiAgICAgICAgPGEgY2xhc3M9InNob3ctY29tbWVudCIgaHJlZj0iIyIgb25jbGljaz0iTXlQYWdlLnRvZ2dsZUNvbW1lbnRzKHRoaXMpO3JldHVybiBmYWxzZTsiPgogICAgICAgICAgPGltZyBzcmM9Ijo6Y2hhdEljb25Vcmw6OiI%CiAgICAgICAgICA8c3BhbiBjbGFzcz0ic2hvdy1jb21tZW50LWxhYmVsIj7jgrPjg6Hjg7Pjg4jjgpLopovjgosoOjpfX2N1cnJlbnRfXy5jb21tZW50c0xlbmd0aDo6KTwvc3Bhbj4KICAgICAgICA8L2E%CiAgICAgICAgOjppZiB1c2VyRXhpc3RzOjoKICAgICAgICA8c3BhbiBjbGFzcz0idWktZGVsaW1pdGVyLTgiPjwvc3Bhbj4KICAgICAgICA8YSBjbGFzcz0icG9zdC1jb21tZW50IiBocmVmPSIjIiBvbmNsaWNrPSJNeVBhZ2UudG9nZ2xlQ29tbWVudEZvcm0odGhpcyk7cmV0dXJuIGZhbHNlOyI%44Kz44Oh44Oz44OI44GZ44KLPC9hPgogICAgICAgIDo6ZW5kOjoKICAgICAgPC9kaXY%CiAgICAgIDo6ZW5kOjoKCiAgICAgIDo6aWYgdXNlckV4aXN0czo6CiAgICAgIDxkaXYgY2xhc3M9ImNvbW1lbnQtZm9ybSI%CiAgICAgICAgPGZvcm0%CiAgICAgICAgICA8aW5wdXQgdHlwZT0iaGlkZGVuIiBuYW1lPSJwYXJlbnQiIHZhbHVlPSI6Ol9fY3VycmVudF9fLnBvc3RJZDo6Ii8%CiAgICAgICAgICA8dGV4dGFyZWEgbmFtZT0iY29udGVudCI%PC90ZXh0YXJlYT4KICAgICAgICAgIDxpbnB1dCB0eXBlPSJidXR0b24iIHZhbHVlPSLmipXnqL8iIG9uY2xpY2s9Ik15UGFnZS5wb3N0Q29tbWVudCg6Ol9fY3VycmVudF9fLmNvbW1lbnRzSWQ6OiwgJCh0aGlzKS5wYXJlbnQoKSk7cmV0dXJuIGZhbHNlOyIvPgogICAgICAgIDwvZm9ybT4gICAgICAKICAgICAgPC9kaXY%CiAgICAgIDo6ZW5kOjoKICAgICAgCiAgICAgIDxkaXYgY2xhc3M9ImNvbW1lbnRzIiBjb3VudD0iOjpfX2N1cnJlbnRfXy5jb21tZW50c0xlbmd0aDo6Ij4KICAgICAgICA8ZGl2IGNsYXNzPSJjbG9zZS1idXR0b24iPgogICAgICAgICAgPGRpdj4KICAgICAgICAgICAgPGEgaHJlZj0iIyIgb25jbGljaz0iTXlQYWdlLnRvZ2dsZUNvbW1lbnRzKHRoaXMpOyByZXR1cm4gZmFsc2U7Ij7DlzwvYT4KICAgICAgICAgIDwvZGl2PgogICAgICAgICAgPGRpdj4KICAgICAgICAgICAgPGEgaHJlZj0iIyIgb25jbGljaz0iTXlQYWdlLnNjcm9sbFRvRW50cnlUYWlsKHRoaXMpOyByZXR1cm4gZmFsc2U7Ij7ihpM8L2E%CiAgICAgICAgICA8L2Rpdj4KICAgICAgICA8L2Rpdj4KICAgICAgICA8c2VjdGlvbiBjbGFzcz0idGltZWxpbmUiIGxldmVsPSI6OihsZXZlbCArIDEpOjoiIHRpbWVsaW5lLWlkPSI6Ol9fY3VycmVudF9fLmNvbW1lbnRzSWQ6OiIgdmVyc2lvbj0iMCI%CiAgICAgICAgPC9zZWN0aW9uPiAgICAgICAgCiAgICAgIDwvZGl2PgogICAgPC9kaXY%CiAgPC9hcnRpY2xlPgogIDo6ZW5kOjoKPC9zZWN0aW9uPgo"}];
 js.XMLHttpRequest = window.XMLHttpRequest?XMLHttpRequest:window.ActiveXObject?function() {
 	try {
 		return new ActiveXObject("Msxml2.XMLHTTP");

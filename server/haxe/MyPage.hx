@@ -27,7 +27,7 @@ class MyPage {
     }
 
     static function init(timelineId: Int) {
-        fillTimeline(timelineId, 0, null);
+        fillTimeline(getTimeline(timelineId), null);
         startWatch();
     }
 
@@ -42,8 +42,7 @@ class MyPage {
                 var timeline = comments.find('> .timeline');
                 var actualVersion = Std.parseInt(timeline.attr('version'));
                 if (actualVersion < idealVersion) {
-                    var timelineId = Std.parseInt(timeline.attr('timeline-id'));
-                    fillTimeline(timelineId, 0, idealVersion);
+                    fillTimeline(timeline, idealVersion);
                 }
             }
         }
@@ -77,7 +76,7 @@ class MyPage {
                 timeline: timelineId
             }
         }).done(function() {
-            fillTimeline(timelineId, 0, 0);
+            fillNewerTimeline(getTimeline(timelineId), 0);
         });
         form.find('[name="content"]').val('');
         form.find('textarea').focus();
@@ -93,7 +92,7 @@ class MyPage {
                 timeline: timelineId
             }
         }).done(function() {
-            fillTimeline(timelineId, 0, 0);
+            fillNewerTimeline(getTimeline(timelineId), 0);
             var entry = getEntry(form);
             var comments = entry.find('> .comments');
             if (!comments.is(':visible')) {
@@ -117,37 +116,52 @@ class MyPage {
     static function continueReading(obj: Dynamic) {
         var e: Dynamic = new JQuery(obj);
         var timeline = e.closest('.timeline');
-        var timelineId = Std.parseInt(timeline.attr('timeline-id'));
-        var oldestScore = Std.parseInt(timeline.attr('oldest-score'));
-        trace(Std.format('continueReading; timelineId = $timelineId, oldestScore = $oldestScore'));
         e.remove();
-        fillTimeline(timelineId, oldestScore, null);
+        fillOlderTimeline(timeline, null);
     }
 
     ////////////////////////////////////////////////////////////////
     // private functions
-    static private function fillTimeline(
-        timelineId: Int, newestScore:Int, version: Int) {
-        trace(Std.format('fillTimeline($timelineId, $newestScore, $version) executed'));
-        var oldTimeline = new JQuery(Std.format('[timeline-id="$timelineId"]'));
+    static private function fillTimeline(timeline: Dynamic, version: Int) {
+        fetchTimeline(timeline, null, null, version);
+    }
+
+    static private function fillNewerTimeline(timeline: Dynamic, version: Int) {
+        fetchTimeline(timeline, null, timeline.attr('newest-score'), version);
+    }
+    
+    static private function fillOlderTimeline(timeline: Dynamic, version: Int) {
+        fetchTimeline(timeline, timeline.attr('oldest-score'), null, version);
+    }
+
+    static private function getTimeline(timelineId: Int) {
+        return new JQuery(Std.format('[timeline-id="$timelineId"]'));
+    }
+    
+    static private function fetchTimeline(
+        oldTimeline: Dynamic,
+        newestScore: Dynamic,
+        oldestScore: Dynamic,
+        version: Int) {
+        
+        var timelineId = Std.parseInt(oldTimeline.attr('timeline-id'));
         var level = Std.parseInt(oldTimeline.attr('level'));
 
         if (!startLoad(oldTimeline, version)) {
             return;
         }
 
-        trace("running ajax(jsonp)");
         JQuery._static.ajax({ 
             url: "/foo/ajax/v/timeline",
             data: {
                 timeline: timelineId,
                 newest_score: newestScore,
+                oldest_score: oldestScore,
                 count: 3
             },
             dataType: 'jsonp'
         }).done(function(data: Dynamic) {
             data.level = level;
-            trace("timeline response receivied");
             var posts: Array<Dynamic> = data.posts;
             for(i in 0...posts.length) {
                 var post: Dynamic = posts[i];
@@ -172,10 +186,6 @@ class MyPage {
                     updateCommentDisplayText();
                     subscribePosts();
                 }
-                trace(data.oldestScore);
-                if (data.oldestScore != 0) {
-                    oldTimeline.append(Std.format('<a href="#" onclick="MyPage.continueReading(this); return false;">続きを読む</a>'));
-                }
             });
         });
     }
@@ -184,7 +194,6 @@ class MyPage {
         oldTimeline: Dynamic, newTimeline: Dynamic) {
         // O(M+N) M = newTimelineのエントリ数 N = oldTimelineのエントリ数
         var ne: Dynamic = newTimeline.children().eq(0);
-        trace(ne);
         var oldTimelineElements: Array<Dynamic> = oldTimeline.children().get();
         for(ore in oldTimelineElements) {
             var oe = new JQuery(ore);
@@ -197,7 +206,6 @@ class MyPage {
                     ne.insertBefore(oe);
                 }
                 ne = ne.next();
-                trace(ne);
                 if (ne.length == 0) {
                     break;
                 }
@@ -213,20 +221,31 @@ class MyPage {
         }
         updateScore(oldTimeline, newTimeline, 'newest-score', Math.max);
         updateScore(oldTimeline, newTimeline, 'oldest-score', Math.min);
+
+        if (kickUndefined(oldTimeline.attr('oldest-score')) != null) {
+            oldTimeline.append(Std.format('<a class="continue-reading" href="#" onclick="MyPage.continueReading(this); return false;">続きを読む</a>'));
+        }
     }
 
     static private function updateScore(
         oldTimeline: Dynamic, newTimeline: Dynamic, label: String,
         cmp: Float->Float->Float) {
 
-        if (oldTimeline.attr(label) == '0') {
-            oldTimeline.attr(label, newTimeline.attr(label));
+        var oldScore = kickUndefined(oldTimeline.attr(label));
+        var newScore = kickUndefined(newTimeline.attr(label));
+
+        if (oldScore == null) {
+            oldTimeline.attr(label, newScore);
         } else {
-            oldTimeline.attr(
-                label,
-                cmp(
-                    Std.parseInt(oldTimeline.attr(label)),
-                    Std.parseInt(newTimeline.attr(label))));
+            if (newScore == null) {
+                oldTimeline.removeAttr(label);
+            } else {
+                oldTimeline.attr(
+                    label,
+                    cmp(
+                        Std.parseInt(oldTimeline.attr(label)),
+                        Std.parseInt(newTimeline.attr(label))));
+            }
         }
     }
 
@@ -237,7 +256,6 @@ class MyPage {
                 return Std.parseInt(e.find('> .timeline').attr('timeline-id'));
             }
         );
-        trace(a.get());
         Cookie.set('opened', JSON.stringify(a.get()), 7);
     }
 
@@ -267,16 +285,13 @@ class MyPage {
     }
 
     static private function startLoad(timeline: Dynamic, version: Int): Bool {
-        trace(timeline.attr('loading'));
         if (timeline.attr('loading') != null) {
-            trace("タイムライン取得中なので待機キューに入れる");
             timeline.attr('waiting', version);
             return false;
         }
 
         if (version != null) {
             if (version <= Std.parseInt(timeline.attr('version'))) {
-                trace('version older or equal');
                 return false;
             }
         }
@@ -286,8 +301,6 @@ class MyPage {
     }
 
     static private function finishLoad(timeline: Dynamic, f: Void->Void) {
-        var timelineId = Std.parseInt(timeline.attr('timeline-id'));
-
         timeline.removeAttr('loading');
         var waitingVersion = timeline.attr('waiting');
         timeline.removeAttr('waiting');
@@ -296,8 +309,7 @@ class MyPage {
 
         if (waitingVersion != null) {
             // loading中に更新リクエストが来ている場合は再試行
-            trace("waiting versionの取得を開始");
-            fillTimeline(timelineId, 0, Std.parseInt(waitingVersion));
+            fillNewerTimeline(timeline, Std.parseInt(waitingVersion));
         }
     }
 
@@ -360,8 +372,7 @@ class MyPage {
     }
 
     static private function updateTimeline(timelineId: Int, version: Int) {
-        trace("update timeline");
-        fillTimeline(timelineId, 0, version);
+        fillNewerTimeline(getTimeline(timelineId), version);
     }
 
     static function updateDetail(postId: Int, version: Int) {
@@ -403,16 +414,22 @@ class MyPage {
             subscribePosts();
         });
         io.on("watch-timeline", function(data: Dynamic<Int>) {
-            trace("timeline update signal received");
-            trace(data);
             updateTimeline(data.timeline, data.version);
         });
         io.on("watch-post", function(data: Dynamic<Int>) {
-            trace("post update signal received");
-            trace(data);
             updateDetail(data.post, data.version);
         });
     }
 
+    static private function isUndefined(x: Dynamic) {
+        return untyped __js__('"undefined" === typeof x');
+    }
+
+    static private function kickUndefined(x: Dynamic): Dynamic {
+        if (isUndefined(x)) {
+            return null;
+        }
+        return x;
+    }
 }
 
