@@ -805,8 +805,11 @@ MyPage.mergeTimeline = function(oldTimeline,newTimeline) {
 		oldTimeline.append(ne);
 		oldTimeline.append(nextne);
 	}
-	if(oldTimeline.attr("newest-score") == "0") oldTimeline.attr("newest-score",newTimeline.attr("newest-score")); else oldTimeline.attr("newest-score",Math.max(Std.parseInt(oldTimeline.attr("newest-score")),Std.parseInt(newTimeline.attr("newest-score"))));
-	if(oldTimeline.attr("oldest-score") == "0") oldTimeline.attr("oldest-score",newTimeline.attr("oldest-score")); else oldTimeline.attr("oldest-score",Math.min(Std.parseInt(oldTimeline.attr("oldest-score")),Std.parseInt(newTimeline.attr("oldest-score"))));
+	MyPage.updateScore(oldTimeline,newTimeline,"newest-score",Math.max);
+	MyPage.updateScore(oldTimeline,newTimeline,"oldest-score",Math.min);
+}
+MyPage.updateScore = function(oldTimeline,newTimeline,label,cmp) {
+	if(oldTimeline.attr(label) == "0") oldTimeline.attr(label,newTimeline.attr(label)); else oldTimeline.attr(label,cmp(Std.parseInt(oldTimeline.attr(label)),Std.parseInt(newTimeline.attr(label))));
 }
 MyPage.saveOpenStates = function() {
 	var a = new $(".comments:visible").map(function(i,elem) {

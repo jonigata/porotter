@@ -211,23 +211,22 @@ class MyPage {
             oldTimeline.append(ne);
             oldTimeline.append(nextne);
         }
-        if (oldTimeline.attr('newest-score') == '0') {
-            oldTimeline.attr('newest-score', newTimeline.attr('newest-score'));
+        updateScore(oldTimeline, newTimeline, 'newest-score', Math.max);
+        updateScore(oldTimeline, newTimeline, 'oldest-score', Math.min);
+    }
+
+    static private function updateScore(
+        oldTimeline: Dynamic, newTimeline: Dynamic, label: String,
+        cmp: Float->Float->Float) {
+
+        if (oldTimeline.attr(label) == '0') {
+            oldTimeline.attr(label, newTimeline.attr(label));
         } else {
             oldTimeline.attr(
-                'newest-score',
-                Math.max(
-                    Std.parseInt(oldTimeline.attr('newest-score')),
-                    Std.parseInt(newTimeline.attr('newest-score'))));
-        }
-        if (oldTimeline.attr('oldest-score') == '0') {
-            oldTimeline.attr('oldest-score', newTimeline.attr('oldest-score'));
-        } else {
-            oldTimeline.attr(
-                'oldest-score',
-                Math.min(
-                    Std.parseInt(oldTimeline.attr('oldest-score')),
-                    Std.parseInt(newTimeline.attr('oldest-score'))));
+                label,
+                cmp(
+                    Std.parseInt(oldTimeline.attr(label)),
+                    Std.parseInt(newTimeline.attr(label))));
         }
     }
 
