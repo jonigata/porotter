@@ -681,15 +681,7 @@ MyPage.init = function(timelineId) {
 MyPage.toggleComments = function(obj) {
 	var entry = MyPage.getEntry(obj);
 	var comments = entry.find("> .comments");
-	comments.toggle();
-	if(comments["is"](":visible")) {
-		var n = entry.find("> .detail").attr("comments-version");
-		if(n != null) {
-			var idealVersion = Std.parseInt(n);
-			var timeline = comments.find("> .timeline");
-			MyPage.fillNewerTimeline(timeline,idealVersion);
-		}
-	}
+	if(comments["is"](":visible")) MyPage.closeComments(comments); else MyPage.openComments(comments);
 	MyPage.updateCommentDisplayText(entry);
 	MyPage.subscribeTimelines();
 	MyPage.subscribePosts();
@@ -825,21 +817,21 @@ MyPage.saveOpenStates = function() {
 	js.Cookie.set("opened",JSON.stringify(a.get()),7);
 }
 MyPage.loadOpenStates = function() {
-	var cookie = js.Cookie.get("opened");
+	var cookie = MyPage.kickUndefined(js.Cookie.get("opened"));
 	if(cookie != null) {
 		var rawOpened = $.parseJSON(cookie);
 		var opened = new Hash();
-		var _g1 = 0, _g = rawOpened.length;
-		while(_g1 < _g) {
-			var i = _g1++;
-			var timelineId = Std.string(rawOpened[i]);
-			opened.set(Std.string(rawOpened[i]),rawOpened[i]);
+		var _g = 0;
+		while(_g < rawOpened.length) {
+			var v = rawOpened[_g];
+			++_g;
+			opened.set(Std.string(v),v);
 		}
 		new $(".comments").each(function(i,elem) {
 			var e = new $(elem);
 			var timelineId = e.find("> .timeline").attr("timeline-id");
 			if(opened.exists(timelineId)) {
-				MyPage.toggleComments(elem);
+				MyPage.openComments(e);
 				MyPage.updateCommentDisplayText(MyPage.getEntry(e));
 			}
 		});
@@ -939,6 +931,18 @@ MyPage.startWatch = function() {
 	MyPage.io.on("watch-post",function(data) {
 		MyPage.updateDetail(data.post,data.version);
 	});
+}
+MyPage.openComments = function(comments) {
+	comments.show();
+	var n = MyPage.getEntry(comments).find("> .detail").attr("comments-version");
+	if(n != null) {
+		var idealVersion = Std.parseInt(n);
+		var timeline = comments.find("> .timeline");
+		MyPage.fillNewerTimeline(timeline,idealVersion);
+	}
+}
+MyPage.closeComments = function(comments) {
+	comments.hide();
 }
 MyPage.isUndefined = function(x) {
 	return "undefined" === typeof x;

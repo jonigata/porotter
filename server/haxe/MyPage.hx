@@ -34,14 +34,10 @@ class MyPage {
     static function toggleComments(obj: Dynamic) {
         var entry = getEntry(obj);
         var comments = entry.find('> .comments');
-        comments.toggle();
         if (comments.is(':visible')) {
-            var n = entry.find('> .detail').attr('comments-version');
-            if (n != null) {
-                var idealVersion = Std.parseInt(n);
-                var timeline = comments.find('> .timeline');
-                fillNewerTimeline(timeline, idealVersion);
-            }
+            closeComments(comments);
+        } else {
+            openComments(comments);
         }
         updateCommentDisplayText(entry);
         subscribeTimelines();
@@ -263,13 +259,12 @@ class MyPage {
     }
 
     static private function loadOpenStates() {
-        var cookie = Cookie.get('opened');
+        var cookie = kickUndefined(Cookie.get('opened'));
         if (cookie != null) {
             var rawOpened: Array<Int> = JQuery._static.parseJSON(cookie);
             var opened = new Hash<Int>();
-            for(i in 0...rawOpened.length) {
-                var timelineId = Std.string(rawOpened[i]);
-                opened.set(Std.string(rawOpened[i]), rawOpened[i]);
+            for(v in rawOpened) {
+                opened.set(Std.string(v), v);
             }
 
             new JQuery('.comments').each(
@@ -278,7 +273,7 @@ class MyPage {
                     var timelineId: String =
                         e.find('> .timeline').attr('timeline-id');
                     if (opened.exists(timelineId)) {
-                        toggleComments(elem);
+                        openComments(e);
                         updateCommentDisplayText(getEntry(e));
                     }
                 });
@@ -422,6 +417,20 @@ class MyPage {
         io.on("watch-post", function(data: Dynamic<Int>) {
             updateDetail(data.post, data.version);
         });
+    }
+
+    static private function openComments(comments: Dynamic) {
+        comments.show();
+        var n = getEntry(comments).find('> .detail').attr('comments-version');
+        if (n != null) {
+            var idealVersion = Std.parseInt(n);
+            var timeline = comments.find('> .timeline');
+            fillNewerTimeline(timeline, idealVersion);
+        }
+    }
+
+    static private function closeComments(comments: Dynamic) {
+        comments.hide();
     }
 
     static private function isUndefined(x: Dynamic) {
