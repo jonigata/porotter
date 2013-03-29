@@ -14,6 +14,9 @@ class Post < RedisMapper::PlatformModel
     Post.create(author, content).tap do |post|
       self.store.comments.add_post(post)
     end
+    self.store.watched_by.each do |timeline|
+      timeline.on_add_comment(self)
+    end
   end
 
   def favor(user)
@@ -24,6 +27,10 @@ class Post < RedisMapper::PlatformModel
   def unfavor(user)
     version_up
     self.store.favored_by.remove(user)
+  end
+
+  def watched_by(timeline)
+    self.store.watched_by.add(timeline)
   end
 
   private
@@ -40,4 +47,5 @@ class Post < RedisMapper::PlatformModel
   property  :updated_at,    Time
   property  :comments,      Timeline
   set_property :favored_by, User
+  set_property :watched_by, Timeline
 end

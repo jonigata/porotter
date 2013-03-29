@@ -39,14 +39,6 @@
       ::end::
       
       <div class="comments" count="::__current__.commentsLength::">
-        <div class="close-button">
-          <div>
-            <a href="#" onclick="MyPage.toggleComments(this); return false;">×</a>
-          </div>
-          <div>
-            <a href="#" onclick="MyPage.scrollToEntryTail(this); return false;">↓</a>
-          </div>
-        </div>
         <section class="timeline" level="::(level + 1)::" timeline-id="::__current__.commentsId::" version="0">
         </section>        
       </div>

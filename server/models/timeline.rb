@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 class Timeline < RedisMapper::PlatformModel
   def self.create
     self.new_instance.tap do |timeline|
@@ -8,6 +9,7 @@ class Timeline < RedisMapper::PlatformModel
 
   def add_post(post)
     self.store.posts.add(version_up, post)
+    post.watched_by(self)
   end
 
   def remove_post(post)
@@ -44,6 +46,11 @@ class Timeline < RedisMapper::PlatformModel
 
   def empty?
     self.store.posts.empty?
+  end
+
+  def on_add_comment(post)
+    # bump up
+    self.store.posts.add(version_up, post)
   end
 
   private

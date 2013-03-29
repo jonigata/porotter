@@ -114,10 +114,7 @@ class MyPage {
     }
 
     static function continueReading(obj: Dynamic) {
-        var e: Dynamic = new JQuery(obj);
-        var timeline = e.closest('.timeline');
-        e.remove();
-        fillOlderTimeline(timeline, null);
+        fillOlderTimeline(new JQuery(obj).closest('.timeline'), null);
     }
 
     ////////////////////////////////////////////////////////////////
@@ -192,7 +189,9 @@ class MyPage {
 
     static private function mergeTimeline(
         oldTimeline: Dynamic, newTimeline: Dynamic) {
-        // O(M+N) M = newTimelineのエントリ数 N = oldTimelineのエントリ数
+
+        oldTimeline.find('> .continue-reading').remove();
+
         var ne: Dynamic = newTimeline.children().eq(0);
         var oldTimelineElements: Array<Dynamic> = oldTimeline.children().get();
         for(ore in oldTimelineElements) {
@@ -204,6 +203,14 @@ class MyPage {
                     oe.replaceWith(ne);
                 } else {
                     ne.insertBefore(oe);
+                    // 古いものがある場合は子供を奪って消す
+                    var postId = ne.attr('post-id');
+                    var oldPost = ne.nextAll(Std.format('[post-id=$postId]'));
+                    if (0 < oldPost.length) {
+                        ne.find('> .entry > .comments').replaceWith(
+                            oldPost.find('> .entry > .comments'));
+                    }
+                    oldPost.remove();
                 }
                 ne = ne.next();
                 if (ne.length == 0) {
