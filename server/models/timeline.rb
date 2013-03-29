@@ -34,7 +34,7 @@ class Timeline < RedisMapper::PlatformModel
       res_oldest_score = a.last[:score]
       if posts.length_range(0, res_oldest_score - 1) == 0
         # 続きがない
-        res_oldest_score = nil
+        res_oldest_score = 0
       end
       [a, res_newest_score, res_oldest_score]
     end

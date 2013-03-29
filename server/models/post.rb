@@ -13,9 +13,9 @@ class Post < RedisMapper::PlatformModel
     version_up
     Post.create(author, content).tap do |post|
       self.store.comments.add_post(post)
-    end
-    self.store.watched_by.each do |timeline|
-      timeline.on_add_comment(self)
+      self.store.watched_by.each do |timeline|
+        timeline.on_add_comment(self)
+      end
     end
   end
 

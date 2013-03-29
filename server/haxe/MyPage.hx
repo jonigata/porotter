@@ -46,7 +46,7 @@ class MyPage {
                 }
             }
         }
-        updateCommentDisplayText();
+        updateCommentDisplayText(entry);
         subscribeTimelines();
         subscribePosts();
         saveOpenStates();
@@ -180,7 +180,7 @@ class MyPage {
                 } else {
                     var count = newTimeline.find('> .post').length;
                     entry.find('> .detail').attr('comment-count', count);
-                    updateCommentDisplayText();
+                    updateCommentDisplayText(entry);
                     subscribePosts();
                 }
             });
@@ -207,8 +207,10 @@ class MyPage {
                     var postId = ne.attr('post-id');
                     var oldPost = ne.nextAll(Std.format('[post-id=$postId]'));
                     if (0 < oldPost.length) {
-                        ne.find('> .entry > .comments').replaceWith(
+                        var entry = ne.find('> .entry');
+                        entry.find('> .comments').replaceWith(
                             oldPost.find('> .entry > .comments'));
+                        updateCommentDisplayText(entry);
                     }
                     oldPost.remove();
                 }
@@ -229,7 +231,8 @@ class MyPage {
         updateScore(oldTimeline, newTimeline, 'newest-score', Math.max);
         updateScore(oldTimeline, newTimeline, 'oldest-score', Math.min);
 
-        if (kickUndefined(oldTimeline.attr('oldest-score')) != null) {
+        var oldestScore = kickUndefined(oldTimeline.attr('oldest-score'));
+        if (oldestScore != '0' && oldestScore != null) {
             oldTimeline.append(Std.format('<a class="continue-reading" href="#" onclick="MyPage.continueReading(this); return false;">続きを読む</a>'));
         }
     }
@@ -283,10 +286,10 @@ class MyPage {
                         e.find('> .timeline').attr('timeline-id');
                     if (opened.exists(timelineId)) {
                         toggleComments(elem);
+                        updateCommentDisplayText(getEntry(e));
                     }
                 });
         }
-        updateCommentDisplayText();
         subscribeTimelines();
         subscribePosts();
     }
@@ -341,19 +344,15 @@ class MyPage {
         }
     }
 
-    static private function updateCommentDisplayText() {
-        new JQuery('.comments').each(function(i: Int, e: Dynamic) {
-            var comments = new JQuery(e);
-            var entry = getEntry(comments);
-            var showComment = entry.find('> .operation .show-comment-label');
-            if (comments.is(':visible')) {
-                showComment.html('隠す');
-            } else {
-                var count = entry.find('> .detail').attr('comment-count');
-                showComment.html(Std.format('×$count'));
-            }
-        });
-        
+    static private function updateCommentDisplayText(entry: Dynamic) {
+        var comments = entry.find('> .comments');
+        var showComment = entry.find('> .operation .show-comment-label');
+        if (comments.is(':visible')) {
+            showComment.html('隠す');
+        } else {
+            var count = entry.find('> .detail').attr('comment-count');
+            showComment.html(Std.format('×$count'));
+        }
     }
 
     static private function subscribeTimelines() {
@@ -401,8 +400,9 @@ class MyPage {
             data.favoredBy = favoredBy;
 
             var output = applyTemplate("Detail", data);
-            post.find('> .entry > .detail').replaceWith(output);
-            updateCommentDisplayText();
+            var entry = post.find('> .entry');
+            entry.find('> .detail').replaceWith(output);
+            updateCommentDisplayText(entry);
         });
 
     }

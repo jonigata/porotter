@@ -691,7 +691,7 @@ MyPage.toggleComments = function(obj) {
 			if(actualVersion < idealVersion) MyPage.fillTimeline(timeline,idealVersion);
 		}
 	}
-	MyPage.updateCommentDisplayText();
+	MyPage.updateCommentDisplayText(entry);
 	MyPage.subscribeTimelines();
 	MyPage.subscribePosts();
 	MyPage.saveOpenStates();
@@ -773,7 +773,7 @@ MyPage.fetchTimeline = function(oldTimeline,newestScore,oldestScore,version) {
 			if(level == 0) MyPage.loadOpenStates(); else {
 				var count = newTimeline.find("> .post").length;
 				entry.find("> .detail").attr("comment-count",count);
-				MyPage.updateCommentDisplayText();
+				MyPage.updateCommentDisplayText(entry);
 				MyPage.subscribePosts();
 			}
 		});
@@ -795,7 +795,11 @@ MyPage.mergeTimeline = function(oldTimeline,newTimeline) {
 				ne.insertBefore(oe);
 				var postId = ne.attr("post-id");
 				var oldPost = ne.nextAll("[post-id=" + postId + "]");
-				if(0 < oldPost.length) ne.find("> .entry > .comments").replaceWith(oldPost.find("> .entry > .comments"));
+				if(0 < oldPost.length) {
+					var entry = ne.find("> .entry");
+					entry.find("> .comments").replaceWith(oldPost.find("> .entry > .comments"));
+					MyPage.updateCommentDisplayText(entry);
+				}
 				oldPost.remove();
 			}
 			ne = ne.next();
@@ -810,7 +814,8 @@ MyPage.mergeTimeline = function(oldTimeline,newTimeline) {
 	}
 	MyPage.updateScore(oldTimeline,newTimeline,"newest-score",Math.max);
 	MyPage.updateScore(oldTimeline,newTimeline,"oldest-score",Math.min);
-	if(MyPage.kickUndefined(oldTimeline.attr("oldest-score")) != null) oldTimeline.append("<a class=\"continue-reading\" href=\"#\" onclick=\"MyPage.continueReading(this); return false;\">続きを読む</a>");
+	var oldestScore = MyPage.kickUndefined(oldTimeline.attr("oldest-score"));
+	if(oldestScore != "0" && oldestScore != null) oldTimeline.append("<a class=\"continue-reading\" href=\"#\" onclick=\"MyPage.continueReading(this); return false;\">続きを読む</a>");
 }
 MyPage.updateScore = function(oldTimeline,newTimeline,label,cmp) {
 	var oldScore = MyPage.kickUndefined(oldTimeline.attr(label));
@@ -838,10 +843,12 @@ MyPage.loadOpenStates = function() {
 		new $(".comments").each(function(i,elem) {
 			var e = new $(elem);
 			var timelineId = e.find("> .timeline").attr("timeline-id");
-			if(opened.exists(timelineId)) MyPage.toggleComments(elem);
+			if(opened.exists(timelineId)) {
+				MyPage.toggleComments(elem);
+				MyPage.updateCommentDisplayText(MyPage.getEntry(e));
+			}
 		});
 	}
-	MyPage.updateCommentDisplayText();
 	MyPage.subscribeTimelines();
 	MyPage.subscribePosts();
 }
@@ -874,16 +881,13 @@ MyPage.getEntry = function(obj) {
 	var e = new $(obj);
 	if(e["is"](".entry")) return e; else return e.closest(".entry");
 }
-MyPage.updateCommentDisplayText = function() {
-	new $(".comments").each(function(i,e) {
-		var comments = new $(e);
-		var entry = MyPage.getEntry(comments);
-		var showComment = entry.find("> .operation .show-comment-label");
-		if(comments["is"](":visible")) showComment.html("隠す"); else {
-			var count = entry.find("> .detail").attr("comment-count");
-			showComment.html("×" + count);
-		}
-	});
+MyPage.updateCommentDisplayText = function(entry) {
+	var comments = entry.find("> .comments");
+	var showComment = entry.find("> .operation .show-comment-label");
+	if(comments["is"](":visible")) showComment.html("隠す"); else {
+		var count = entry.find("> .detail").attr("comment-count");
+		showComment.html("×" + count);
+	}
 }
 MyPage.subscribeTimelines = function() {
 	if(MyPage.connected) {
@@ -916,8 +920,9 @@ MyPage.updateDetail = function(postId,version) {
 		}
 		data.favoredBy = favoredBy;
 		var output = MyPage.applyTemplate("Detail",data);
-		post.find("> .entry > .detail").replaceWith(output);
-		MyPage.updateCommentDisplayText();
+		var entry = post.find("> .entry");
+		entry.find("> .detail").replaceWith(output);
+		MyPage.updateCommentDisplayText(entry);
 	});
 }
 MyPage.applyTemplate = function(codename,data) {
@@ -2393,7 +2398,7 @@ Bool.__ename__ = ["Bool"];
 var Class = $hxClasses.Class = { __name__ : ["Class"]};
 var Enum = { };
 var Void = $hxClasses.Void = { __ename__ : ["Void"]};
-haxe.Resource.content = [{ name : "Detail", data : "s748:PGRpdiBjbGFzcz0iZGV0YWlsIiBjb21tZW50LWNvdW50PSI6OmNvbW1lbnRzTGVuZ3RoOjoiIGNvbW1lbnRzLXZlcnNpb249Ijo6Y29tbWVudHNWZXJzaW9uOjoiPgogIDxkaXYgY2xhc3M9ImF1dGhvciI%CiAgICA8c3BhbiBjbGFzcz0ibGFiZWwiPgogICAgICA6OmF1dGhvckxhYmVsOjoKICAgIDwvc3Bhbj4KICAgIDxzcGFuIGNsYXNzPSJ1c2VybmFtZSI%CiAgICAgIEA6OmF1dGhvclVzZXJuYW1lOjoKICAgIDwvc3Bhbj4KICAgIDxzcGFuIGNsYXNzPSJmYXZvcmVkX2J5Ij4KICAgICAgOjpmYXZvcmVkQnk6OgogICAgPC9zcGFuPgogICAgPHNwYW4gY2xhc3M9ImZhdm9yaXRlIj4KICAgICAgOjppZiAodXNlckV4aXN0cyk6OgogICAgICA8YSBocmVmPSIjIiBvbmNsaWNrPSJNeVBhZ2UudG9nZ2xlRmF2b3JpdGUoOjpwb3N0SWQ6Oik7cmV0dXJuIGZhbHNlOyI%CiAgICAgICAgOjpmYXZvckxhYmVsOjoKICAgICAgPC9hPgogICAgICA6OmVuZDo6CiAgICA8L3NwYW4%CiAgPC9kaXY%CiAgPGRpdiBjbGFzcz0iY29udGVudCI%CiAgICA6OmNvbnRlbnQ6OgogIDwvZGl2Pgo8L2Rpdj4K"},{ name : "Timeline", data : "s2455:PHNlY3Rpb24gY2xhc3M9InRpbWVsaW5lIgogICAgICAgICBsZXZlbD0iOjpsZXZlbDo6IgogICAgICAgICB0aW1lbGluZS1pZD0iOjp0aW1lbGluZUlkOjoiCiAgICAgICAgIHZlcnNpb249Ijo6dGltZWxpbmVWZXJzaW9uOjoiCiAgICAgICAgIDo6aWYgbmV3ZXN0U2NvcmU6OiBuZXdlc3Qtc2NvcmU9Ijo6bmV3ZXN0U2NvcmU6OiIgOjplbmQ6OgogICAgICAgICA6OmlmIG9sZGVzdFNjb3JlOjogb2xkZXN0LXNjb3JlPSI6Om9sZGVzdFNjb3JlOjoiIDo6ZW5kOjoKICAgICAgICAgPgogIDo6Zm9yZWFjaCBwb3N0czo6CiAgPGFydGljbGUgY2xhc3M9InBvc3QiIHNjb3JlPSI6Ol9fY3VycmVudF9fLnNjb3JlOjoiIHBvc3QtaWQ9Ijo6X19jdXJyZW50X18ucG9zdElkOjoiIHZlcnNpb249Ijo6X19jdXJyZW50X18ucG9zdFZlcnNpb246OiI%CiAgICA8ZGl2IGNsYXNzPSJhdmF0YXIiPgogICAgICA8ZGl2IGNsYXNzPSJpY29uIj4KICAgICAgICA8aW1nIHNyYz0iaHR0cDovL3d3dy5ncmF2YXRhci5jb20vYXZhdGFyLzo6X19jdXJyZW50X18uaWNvbjo6P3M9NDAmZD1tbSIgYWx0PSJncmF2YXRvciIvPgogICAgICA8L2Rpdj4KICAgIDwvZGl2PgogICAgPGRpdiBjbGFzcz0iZW50cnkiPgogICAgICA6Ol9fY3VycmVudF9fLmRldGFpbDo6CgogICAgICA6OmlmIChsZXZlbCA9PSAwKTo6CiAgICAgIDxkaXYgY2xhc3M9Im9wZXJhdGlvbiI%CiAgICAgICAgPGEgY2xhc3M9InNob3ctY29tbWVudCIgaHJlZj0iIyIgb25jbGljaz0iTXlQYWdlLnRvZ2dsZUNvbW1lbnRzKHRoaXMpO3JldHVybiBmYWxzZTsiPgogICAgICAgICAgPGltZyBzcmM9Ijo6Y2hhdEljb25Vcmw6OiI%CiAgICAgICAgICA8c3BhbiBjbGFzcz0ic2hvdy1jb21tZW50LWxhYmVsIj7jgrPjg6Hjg7Pjg4jjgpLopovjgosoOjpfX2N1cnJlbnRfXy5jb21tZW50c0xlbmd0aDo6KTwvc3Bhbj4KICAgICAgICA8L2E%CiAgICAgICAgOjppZiB1c2VyRXhpc3RzOjoKICAgICAgICA8c3BhbiBjbGFzcz0idWktZGVsaW1pdGVyLTgiPjwvc3Bhbj4KICAgICAgICA8YSBjbGFzcz0icG9zdC1jb21tZW50IiBocmVmPSIjIiBvbmNsaWNrPSJNeVBhZ2UudG9nZ2xlQ29tbWVudEZvcm0odGhpcyk7cmV0dXJuIGZhbHNlOyI%44Kz44Oh44Oz44OI44GZ44KLPC9hPgogICAgICAgIDo6ZW5kOjoKICAgICAgPC9kaXY%CiAgICAgIDo6ZW5kOjoKCiAgICAgIDo6aWYgdXNlckV4aXN0czo6CiAgICAgIDxkaXYgY2xhc3M9ImNvbW1lbnQtZm9ybSI%CiAgICAgICAgPGZvcm0%CiAgICAgICAgICA8aW5wdXQgdHlwZT0iaGlkZGVuIiBuYW1lPSJwYXJlbnQiIHZhbHVlPSI6Ol9fY3VycmVudF9fLnBvc3RJZDo6Ii8%CiAgICAgICAgICA8dGV4dGFyZWEgbmFtZT0iY29udGVudCI%PC90ZXh0YXJlYT4KICAgICAgICAgIDxpbnB1dCB0eXBlPSJidXR0b24iIHZhbHVlPSLmipXnqL8iIG9uY2xpY2s9Ik15UGFnZS5wb3N0Q29tbWVudCg6Ol9fY3VycmVudF9fLmNvbW1lbnRzSWQ6OiwgJCh0aGlzKS5wYXJlbnQoKSk7cmV0dXJuIGZhbHNlOyIvPgogICAgICAgIDwvZm9ybT4gICAgICAKICAgICAgPC9kaXY%CiAgICAgIDo6ZW5kOjoKICAgICAgCiAgICAgIDxkaXYgY2xhc3M9ImNvbW1lbnRzIiBjb3VudD0iOjpfX2N1cnJlbnRfXy5jb21tZW50c0xlbmd0aDo6Ij4KICAgICAgICA8c2VjdGlvbiBjbGFzcz0idGltZWxpbmUiIGxldmVsPSI6OihsZXZlbCArIDEpOjoiIHRpbWVsaW5lLWlkPSI6Ol9fY3VycmVudF9fLmNvbW1lbnRzSWQ6OiIgdmVyc2lvbj0iMCI%CiAgICAgICAgPC9zZWN0aW9uPiAgICAgICAgCiAgICAgIDwvZGl2PgogICAgPC9kaXY%CiAgPC9hcnRpY2xlPgogIDo6ZW5kOjoKPC9zZWN0aW9uPgo"}];
+haxe.Resource.content = [{ name : "Detail", data : "s748:PGRpdiBjbGFzcz0iZGV0YWlsIiBjb21tZW50LWNvdW50PSI6OmNvbW1lbnRzTGVuZ3RoOjoiIGNvbW1lbnRzLXZlcnNpb249Ijo6Y29tbWVudHNWZXJzaW9uOjoiPgogIDxkaXYgY2xhc3M9ImF1dGhvciI%CiAgICA8c3BhbiBjbGFzcz0ibGFiZWwiPgogICAgICA6OmF1dGhvckxhYmVsOjoKICAgIDwvc3Bhbj4KICAgIDxzcGFuIGNsYXNzPSJ1c2VybmFtZSI%CiAgICAgIEA6OmF1dGhvclVzZXJuYW1lOjoKICAgIDwvc3Bhbj4KICAgIDxzcGFuIGNsYXNzPSJmYXZvcmVkX2J5Ij4KICAgICAgOjpmYXZvcmVkQnk6OgogICAgPC9zcGFuPgogICAgPHNwYW4gY2xhc3M9ImZhdm9yaXRlIj4KICAgICAgOjppZiAodXNlckV4aXN0cyk6OgogICAgICA8YSBocmVmPSIjIiBvbmNsaWNrPSJNeVBhZ2UudG9nZ2xlRmF2b3JpdGUoOjpwb3N0SWQ6Oik7cmV0dXJuIGZhbHNlOyI%CiAgICAgICAgOjpmYXZvckxhYmVsOjoKICAgICAgPC9hPgogICAgICA6OmVuZDo6CiAgICA8L3NwYW4%CiAgPC9kaXY%CiAgPGRpdiBjbGFzcz0iY29udGVudCI%CiAgICA6OmNvbnRlbnQ6OgogIDwvZGl2Pgo8L2Rpdj4K"},{ name : "Timeline", data : "s2454:PHNlY3Rpb24gY2xhc3M9InRpbWVsaW5lIgogICAgICAgICBsZXZlbD0iOjpsZXZlbDo6IgogICAgICAgICB0aW1lbGluZS1pZD0iOjp0aW1lbGluZUlkOjoiCiAgICAgICAgIHZlcnNpb249Ijo6dGltZWxpbmVWZXJzaW9uOjoiCiAgICAgICAgIDo6aWYgKG5ld2VzdFNjb3JlICE9IG51bGwpOjogbmV3ZXN0LXNjb3JlPSI6Om5ld2VzdFNjb3JlOjoiIDo6ZW5kOjoKICAgICAgICAgOjppZiAob2xkZXN0U2NvcmUgIT0gbnVsbCk6OiBvbGRlc3Qtc2NvcmU9Ijo6b2xkZXN0U2NvcmU6OiIgOjplbmQ6OgogICAgICAgICA%CiAgOjpmb3JlYWNoIHBvc3RzOjoKICA8YXJ0aWNsZSBjbGFzcz0icG9zdCIgc2NvcmU9Ijo6X19jdXJyZW50X18uc2NvcmU6OiIgcG9zdC1pZD0iOjpfX2N1cnJlbnRfXy5wb3N0SWQ6OiIgdmVyc2lvbj0iOjpfX2N1cnJlbnRfXy5wb3N0VmVyc2lvbjo6Ij4KICAgIDxkaXYgY2xhc3M9ImF2YXRhciI%CiAgICAgIDxkaXYgY2xhc3M9Imljb24iPgogICAgICAgIDxpbWcgc3JjPSJodHRwOi8vd3d3LmdyYXZhdGFyLmNvbS9hdmF0YXIvOjpfX2N1cnJlbnRfXy5pY29uOjo:cz00MCZkPW1tIiBhbHQ9ImdyYXZhdG9yIi8%CiAgICAgIDwvZGl2PgogICAgPC9kaXY%CiAgICA8ZGl2IGNsYXNzPSJlbnRyeSI%CiAgICAgIDo6X19jdXJyZW50X18uZGV0YWlsOjoKCiAgICAgIDo6aWYgKGxldmVsID09IDApOjoKICAgICAgPGRpdiBjbGFzcz0ib3BlcmF0aW9uIj4KICAgICAgICA8YSBjbGFzcz0ic2hvdy1jb21tZW50IiBocmVmPSIjIiBvbmNsaWNrPSJNeVBhZ2UudG9nZ2xlQ29tbWVudHModGhpcyk7cmV0dXJuIGZhbHNlOyI%CiAgICAgICAgICA8aW1nIHNyYz0iOjpjaGF0SWNvblVybDo6Ij4KICAgICAgICAgIDxzcGFuIGNsYXNzPSJzaG93LWNvbW1lbnQtbGFiZWwiPsOXOjpfX2N1cnJlbnRfXy5jb21tZW50c0xlbmd0aDo6PC9zcGFuPgogICAgICAgIDwvYT4KICAgICAgICA6OmlmIHVzZXJFeGlzdHM6OgogICAgICAgIDxzcGFuIGNsYXNzPSJ1aS1kZWxpbWl0ZXItOCI%PC9zcGFuPgogICAgICAgIDxhIGNsYXNzPSJwb3N0LWNvbW1lbnQiIGhyZWY9IiMiIG9uY2xpY2s9Ik15UGFnZS50b2dnbGVDb21tZW50Rm9ybSh0aGlzKTtyZXR1cm4gZmFsc2U7Ij7jgrPjg6Hjg7Pjg4jjgZnjgos8L2E%CiAgICAgICAgOjplbmQ6OgogICAgICA8L2Rpdj4KICAgICAgOjplbmQ6OgoKICAgICAgOjppZiB1c2VyRXhpc3RzOjoKICAgICAgPGRpdiBjbGFzcz0iY29tbWVudC1mb3JtIj4KICAgICAgICA8Zm9ybT4KICAgICAgICAgIDxpbnB1dCB0eXBlPSJoaWRkZW4iIG5hbWU9InBhcmVudCIgdmFsdWU9Ijo6X19jdXJyZW50X18ucG9zdElkOjoiLz4KICAgICAgICAgIDx0ZXh0YXJlYSBuYW1lPSJjb250ZW50Ij48L3RleHRhcmVhPgogICAgICAgICAgPGlucHV0IHR5cGU9ImJ1dHRvbiIgdmFsdWU9IuaKleeovyIgb25jbGljaz0iTXlQYWdlLnBvc3RDb21tZW50KDo6X19jdXJyZW50X18uY29tbWVudHNJZDo6LCAkKHRoaXMpLnBhcmVudCgpKTtyZXR1cm4gZmFsc2U7Ii8%CiAgICAgICAgPC9mb3JtPiAgICAgIAogICAgICA8L2Rpdj4KICAgICAgOjplbmQ6OgogICAgICAKICAgICAgPGRpdiBjbGFzcz0iY29tbWVudHMiIGNvdW50PSI6Ol9fY3VycmVudF9fLmNvbW1lbnRzTGVuZ3RoOjoiPgogICAgICAgIDxzZWN0aW9uIGNsYXNzPSJ0aW1lbGluZSIgbGV2ZWw9Ijo6KGxldmVsICsgMSk6OiIgdGltZWxpbmUtaWQ9Ijo6X19jdXJyZW50X18uY29tbWVudHNJZDo6IiB2ZXJzaW9uPSIwIj4KICAgICAgICA8L3NlY3Rpb24%ICAgICAgICAKICAgICAgPC9kaXY%CiAgICA8L2Rpdj4KICA8L2FydGljbGU%CiAgOjplbmQ6Ogo8L3NlY3Rpb24%Cg"}];
 js.XMLHttpRequest = window.XMLHttpRequest?XMLHttpRequest:window.ActiveXObject?function() {
 	try {
 		return new ActiveXObject("Msxml2.XMLHTTP");

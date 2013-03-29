@@ -2,8 +2,8 @@
          level="::level::"
          timeline-id="::timelineId::"
          version="::timelineVersion::"
-         ::if newestScore:: newest-score="::newestScore::" ::end::
-         ::if oldestScore:: oldest-score="::oldestScore::" ::end::
+         ::if (newestScore != null):: newest-score="::newestScore::" ::end::
+         ::if (oldestScore != null):: oldest-score="::oldestScore::" ::end::
          >
   ::foreach posts::
   <article class="post" score="::__current__.score::" post-id="::__current__.postId::" version="::__current__.postVersion::">
@@ -19,7 +19,7 @@
       <div class="operation">
         <a class="show-comment" href="#" onclick="MyPage.toggleComments(this);return false;">
           <img src="::chatIconUrl::">
-          <span class="show-comment-label">コメントを見る(::__current__.commentsLength::)</span>
+          <span class="show-comment-label">×::__current__.commentsLength::</span>
         </a>
         ::if userExists::
         <span class="ui-delimiter-8"></span>
