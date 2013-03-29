@@ -687,8 +687,7 @@ MyPage.toggleComments = function(obj) {
 		if(n != null) {
 			var idealVersion = Std.parseInt(n);
 			var timeline = comments.find("> .timeline");
-			var actualVersion = Std.parseInt(timeline.attr("version"));
-			if(actualVersion < idealVersion) MyPage.fillTimeline(timeline,idealVersion);
+			MyPage.fillNewerTimeline(timeline,idealVersion);
 		}
 	}
 	MyPage.updateCommentDisplayText(entry);
@@ -770,12 +769,7 @@ MyPage.fetchTimeline = function(oldTimeline,newestScore,oldestScore,version) {
 			var entry = MyPage.getEntry(oldTimeline);
 			var newTimeline = new $(output);
 			MyPage.mergeTimeline(oldTimeline,newTimeline);
-			if(level == 0) MyPage.loadOpenStates(); else {
-				var count = newTimeline.find("> .post").length;
-				entry.find("> .detail").attr("comment-count",count);
-				MyPage.updateCommentDisplayText(entry);
-				MyPage.subscribePosts();
-			}
+			if(level == 0) MyPage.loadOpenStates(); else MyPage.subscribePosts();
 		});
 	});
 }
@@ -854,7 +848,8 @@ MyPage.loadOpenStates = function() {
 }
 MyPage.startLoad = function(timeline,version) {
 	if(timeline.attr("loading") != null) {
-		timeline.attr("waiting",version);
+		var oldWaiting = MyPage.kickUndefined(timeline.attr("waiting"));
+		if(oldWaiting == null || Std.parseInt(oldWaiting) < version) timeline.attr("waiting",version);
 		return false;
 	}
 	if(version != null) {

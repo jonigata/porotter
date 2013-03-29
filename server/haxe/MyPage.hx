@@ -40,10 +40,7 @@ class MyPage {
             if (n != null) {
                 var idealVersion = Std.parseInt(n);
                 var timeline = comments.find('> .timeline');
-                var actualVersion = Std.parseInt(timeline.attr('version'));
-                if (actualVersion < idealVersion) {
-                    fillTimeline(timeline, idealVersion);
-                }
+                fillNewerTimeline(timeline, idealVersion);
             }
         }
         updateCommentDisplayText(entry);
@@ -178,9 +175,6 @@ class MyPage {
                 if (level == 0) {
                     loadOpenStates();
                 } else {
-                    var count = newTimeline.find('> .post').length;
-                    entry.find('> .detail').attr('comment-count', count);
-                    updateCommentDisplayText(entry);
                     subscribePosts();
                 }
             });
@@ -296,7 +290,10 @@ class MyPage {
 
     static private function startLoad(timeline: Dynamic, version: Int): Bool {
         if (timeline.attr('loading') != null) {
-            timeline.attr('waiting', version);
+            var oldWaiting = kickUndefined(timeline.attr('waiting'));
+            if( oldWaiting == null || Std.parseInt(oldWaiting) < version) {
+                timeline.attr('waiting', version);
+            }
             return false;
         }
 
