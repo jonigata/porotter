@@ -116,6 +116,7 @@ class MyPage {
 
     static function continueRead(obj: Dynamic) {
         new JQuery(obj).remove();
+        
     }
 
     ////////////////////////////////////////////////////////////////
@@ -134,7 +135,7 @@ class MyPage {
             url: "/foo/ajax/v/timeline",
             data: {
                 timeline: timelineId,
-                newest_version: 0,
+                newest_score: 0,
                 count: 3
             },
             dataType: 'jsonp'
@@ -175,6 +176,7 @@ class MyPage {
 
     static private function mergeTimeline(
         oldTimeline: Dynamic, newTimeline: Dynamic) {
+        // O(M+N) M = newTimelineのエントリ数 N = oldTimelineのエントリ数
         var ne: Dynamic = newTimeline.children().eq(0);
         var oldTimelineElements: Array<Dynamic> = oldTimeline.children().get();
         for(ore in oldTimelineElements) {
@@ -183,6 +185,9 @@ class MyPage {
             while(old_score < Std.parseInt(ne.attr('score')) && 0 < ne.length) {
                 ne.insertBefore(oe);
                 ne = ne.next();
+            }
+            if (ne.length == 0) {
+                break;
             }
         }
         var nextne = ne.nextAll();
@@ -278,7 +283,7 @@ class MyPage {
         if (e.is('.entry')) {
             return e;
         } else {
-            return e.parents(".entry").eq(0);
+            return e.closest(".entry");
         }
     }
 

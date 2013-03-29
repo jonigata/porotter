@@ -741,7 +741,7 @@ MyPage.fillTimeline = function(timelineId,version) {
 	var level = Std.parseInt(oldTimeline.attr("level"));
 	if(!MyPage.startLoad(oldTimeline,version)) return;
 	console.log("running ajax(jsonp)");
-	$.ajax({ url : "/foo/ajax/v/timeline", data : { timeline : timelineId, newest_version : 0, count : 3}, dataType : "jsonp"}).done(function(data) {
+	$.ajax({ url : "/foo/ajax/v/timeline", data : { timeline : timelineId, newest_score : 0, count : 3}, dataType : "jsonp"}).done(function(data) {
 		data.level = level;
 		console.log("timeline response receivied");
 		var posts = data.posts;
@@ -788,6 +788,7 @@ MyPage.mergeTimeline = function(oldTimeline,newTimeline) {
 			ne.insertBefore(oe);
 			ne = ne.next();
 		}
+		if(ne.length == 0) break;
 	}
 	var nextne = ne.nextAll();
 	oldTimeline.append(ne);
@@ -858,7 +859,7 @@ MyPage.scrollToElement = function(e) {
 }
 MyPage.getEntry = function(obj) {
 	var e = new $(obj);
-	if(e["is"](".entry")) return e; else return e.parents(".entry").eq(0);
+	if(e["is"](".entry")) return e; else return e.closest(".entry");
 }
 MyPage.updateCommentDisplayText = function() {
 	new $(".comments").each(function(i,e) {
