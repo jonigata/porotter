@@ -703,17 +703,13 @@ MyPage.scrollToEntryTail = function(obj) {
 }
 MyPage.postArticle = function(timelineId,form) {
 	$.ajax({ url : "/foo/ajax/m/newarticle", method : "post", data : { content : new $(form).find("[name=\"content\"]").val(), timeline : timelineId}}).done(function() {
-		MyPage.fillNewerTimeline(MyPage.getTimeline(timelineId),0);
 	});
 	form.find("[name=\"content\"]").val("");
 	form.find("textarea").focus();
 }
 MyPage.postComment = function(timelineId,form) {
 	$.ajax({ url : "/foo/ajax/m/newcomment", method : "post", data : { parent : new $(form).find("[name=\"parent\"]").val(), content : new $(form).find("[name=\"content\"]").val(), timeline : timelineId}}).done(function() {
-		MyPage.fillNewerTimeline(MyPage.getTimeline(timelineId),0);
-		var entry = MyPage.getEntry(form);
-		var comments = entry.find("> .comments");
-		if(!comments["is"](":visible")) MyPage.toggleComments(entry);
+		MyPage.openComments(MyPage.getEntry(form).find("> .comments"));
 	});
 	form.find("[name=\"content\"]").val("");
 	form.find("textarea").focus();
@@ -789,7 +785,6 @@ MyPage.mergeTimeline = function(oldTimeline,newTimeline) {
 				}
 				oldPost.remove();
 			}
-			console.log("insert new element");
 			ne = ne.next();
 			if(ne.length == 0) break;
 		}
@@ -811,16 +806,18 @@ MyPage.updateScore = function(oldTimeline,newTimeline,label,cmp) {
 	if(oldScore == null) oldTimeline.attr(label,newScore); else if(newScore != null) oldTimeline.attr(label,cmp(Std.parseInt(oldTimeline.attr(label)),Std.parseInt(newTimeline.attr(label))));
 }
 MyPage.saveCommentsOpenStates = function() {
+	console.log("saveCommentsOpenStates");
 	MyPage.saveOpenStatesAux("comments");
 }
 MyPage.saveCommentFormOpenStates = function() {
+	console.log("saveCommentFormOpenStates");
 	MyPage.saveOpenStatesAux("comment-form");
 }
 MyPage.saveOpenStatesAux = function(label) {
 	var a = new $("." + label + ":visible").map(function(i,elem) {
 		return Std.parseInt(MyPage.getTimelineIdFromEntryContent(elem));
 	});
-	js.Cookie.set("" + label,JSON.stringify(a.get()),7);
+	js.Cookie.set(label,JSON.stringify(a.get()),7);
 }
 MyPage.loadOpenStates = function() {
 	MyPage.loadOpenStatesAux("comments",function(e) {
@@ -835,7 +832,7 @@ MyPage.loadOpenStates = function() {
 MyPage.loadOpenStatesAux = function(label,f) {
 	var cookie = MyPage.kickUndefined(js.Cookie.get(label));
 	if(cookie == null) return;
-	console.log(cookie);
+	console.log("" + label + " = " + cookie);
 	var rawOpened = $.parseJSON(cookie);
 	var opened = new Hash();
 	var _g = 0;

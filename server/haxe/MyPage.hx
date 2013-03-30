@@ -70,7 +70,6 @@ class MyPage {
                 timeline: timelineId
             }
         }).done(function() {
-            fillNewerTimeline(getTimeline(timelineId), 0);
         });
         form.find('[name="content"]').val('');
         form.find('textarea').focus();
@@ -86,12 +85,7 @@ class MyPage {
                 timeline: timelineId
             }
         }).done(function() {
-            fillNewerTimeline(getTimeline(timelineId), 0);
-            var entry = getEntry(form);
-            var comments = entry.find('> .comments');
-            if (!comments.is(':visible')) {
-                toggleComments(entry);
-            }
+            openComments(getEntry(form).find('> .comments'));
         });
         form.find('[name="content"]').val('');
         form.find('textarea').focus();
@@ -205,7 +199,6 @@ class MyPage {
                     }
                     oldPost.remove();
                 }
-                trace('insert new element');
                 ne = ne.next();
                 if (ne.length == 0) {
                     break;
@@ -250,10 +243,12 @@ class MyPage {
     }
 
     static private function saveCommentsOpenStates() {
+        trace('saveCommentsOpenStates');
         saveOpenStatesAux("comments");
     }
 
     static private function saveCommentFormOpenStates() {
+        trace('saveCommentFormOpenStates');
         saveOpenStatesAux("comment-form");
     }
 
@@ -263,7 +258,7 @@ class MyPage {
                 return Std.parseInt(getTimelineIdFromEntryContent(elem));
             }
         );
-        Cookie.set(Std.format('$label'), JSON.stringify(a.get()), 7);
+        Cookie.set(label, JSON.stringify(a.get()), 7);
     }
 
     static private function loadOpenStates() {
@@ -290,7 +285,7 @@ class MyPage {
             return;
         }
         
-        trace(cookie);
+        trace(Std.format('$label = $cookie'));
         var rawOpened: Array<Int> = JQuery._static.parseJSON(cookie);
         var opened = new Hash<Int>();
         for(v in rawOpened) {

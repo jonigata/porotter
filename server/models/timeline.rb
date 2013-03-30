@@ -50,7 +50,9 @@ class Timeline < RedisMapper::PlatformModel
 
   def on_add_comment(post)
     # bump up
-    self.store.posts.add(version_up, post)
+    if self.store.posts.last_value != post
+      self.store.posts.add(version_up, post)
+    end
   end
 
   private
