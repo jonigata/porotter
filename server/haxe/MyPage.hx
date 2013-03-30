@@ -42,7 +42,7 @@ class MyPage {
         updateCommentDisplayText(entry);
         subscribeTimelines();
         subscribePosts();
-        saveOpenStates();
+        saveCommentsOpenStates();
     }
 
     static function toggleCommentForm(obj: Dynamic) {
@@ -52,6 +52,7 @@ class MyPage {
             scrollToElement(commentForm);
             commentForm.find('textarea').focus();
         }
+        saveCommentFormOpenStates();
     }
 
     static function scrollToEntryTail(obj: Dynamic) {
@@ -224,7 +225,7 @@ class MyPage {
 
         var oldestScore = kickUndefined(oldTimeline.attr('oldest-score'));
         if (oldestScore != '0' && oldestScore != null) {
-            oldTimeline.append(Std.format('<a class="continue-reading" href="#" onclick="MyPage.continueReading(this); return false;">続きを読む</a>'));
+            oldTimeline.append('<a class="continue-reading" href="#" onclick="MyPage.continueReading(this); return false;">続きを読む</a>');
         }
     }
 
@@ -248,14 +249,21 @@ class MyPage {
         }
     }
 
-    static private function saveOpenStates() {
-        var a = new JQuery('.comments:visible').map(
+    static private function saveCommentsOpenStates() {
+        saveOpenStatesAux("comments");
+    }
+
+    static private function saveCommentFormOpenStates() {
+        saveOpenStatesAux("comment-form");
+    }
+
+    static private function saveOpenStatesAux(label: String) {
+        var a = new JQuery(Std.format('.$label:visible')).map(
             function(i: Int, elem: Dynamic) {
-                var e = new JQuery(elem);
-                return Std.parseInt(e.find('> .timeline').attr('timeline-id'));
+                return Std.parseInt(getTimelineIdFromEntryContent(elem));
             }
         );
-        Cookie.set('comments', JSON.stringify(a.get()), 7);
+        Cookie.set(Std.format('$label'), JSON.stringify(a.get()), 7);
     }
 
     static private function loadOpenStates() {
@@ -263,6 +271,11 @@ class MyPage {
             "comments",
             function(e: Dynamic) {
                 openComments(e);
+            });
+        loadOpenStatesAux(
+            "comment-form",
+            function(e: Dynamic) {
+                e.show();
             });
         
         subscribeTimelines();
@@ -273,24 +286,29 @@ class MyPage {
         label: String, f: Dynamic->Void) {
 
         var cookie = kickUndefined(Cookie.get(label));
-        if (cookie != null) {
-            trace(cookie);
-            var rawOpened: Array<Int> = JQuery._static.parseJSON(cookie);
-            var opened = new Hash<Int>();
-            for(v in rawOpened) {
-                opened.set(Std.string(v), v);
-            }
-
-            new JQuery('.comments').each(
-                function(i: Int, elem: Dynamic) {
-                    var e = new JQuery(elem);
-                    var timelineId: String =
-                        e.find('> .timeline').attr('timeline-id');
-                    if (opened.exists(timelineId)) {
-                        f(e);
-                    }
-                });
+        if (cookie == null) {
+            return;
         }
+        
+        trace(cookie);
+        var rawOpened: Array<Int> = JQuery._static.parseJSON(cookie);
+        var opened = new Hash<Int>();
+        for(v in rawOpened) {
+            opened.set(Std.string(v), v);
+        }
+
+        new JQuery(Std.format(".$label")).each(
+            function(i: Int, elem: Dynamic) {
+                var e = new JQuery(elem);
+                var timelineId: String = getTimelineIdFromEntryContent(e);
+                if (opened.exists(timelineId)) {
+                    f(e);
+                }
+            });
+    }
+
+    static private function getTimelineIdFromEntryContent(e: Dynamic) {
+        return getEntry(e).find('> .comments > .timeline').attr('timeline-id');
     }
 
     static private function startLoad(timeline: Dynamic, version: Int): Bool {

@@ -685,7 +685,7 @@ MyPage.toggleComments = function(obj) {
 	MyPage.updateCommentDisplayText(entry);
 	MyPage.subscribeTimelines();
 	MyPage.subscribePosts();
-	MyPage.saveOpenStates();
+	MyPage.saveCommentsOpenStates();
 }
 MyPage.toggleCommentForm = function(obj) {
 	var commentForm = MyPage.getEntry(obj).find("> .comment-form");
@@ -694,6 +694,7 @@ MyPage.toggleCommentForm = function(obj) {
 		MyPage.scrollToElement(commentForm);
 		commentForm.find("textarea").focus();
 	}
+	MyPage.saveCommentFormOpenStates();
 }
 MyPage.scrollToEntryTail = function(obj) {
 	var entry = MyPage.getEntry(obj);
@@ -809,38 +810,48 @@ MyPage.updateScore = function(oldTimeline,newTimeline,label,cmp) {
 	var newScore = MyPage.kickUndefined(newTimeline.attr(label));
 	if(oldScore == null) oldTimeline.attr(label,newScore); else if(newScore != null) oldTimeline.attr(label,cmp(Std.parseInt(oldTimeline.attr(label)),Std.parseInt(newTimeline.attr(label))));
 }
-MyPage.saveOpenStates = function() {
-	var a = new $(".comments:visible").map(function(i,elem) {
-		var e = new $(elem);
-		return Std.parseInt(e.find("> .timeline").attr("timeline-id"));
+MyPage.saveCommentsOpenStates = function() {
+	MyPage.saveOpenStatesAux("comments");
+}
+MyPage.saveCommentFormOpenStates = function() {
+	MyPage.saveOpenStatesAux("comment-form");
+}
+MyPage.saveOpenStatesAux = function(label) {
+	var a = new $("." + label + ":visible").map(function(i,elem) {
+		return Std.parseInt(MyPage.getTimelineIdFromEntryContent(elem));
 	});
-	js.Cookie.set("comments",JSON.stringify(a.get()),7);
+	js.Cookie.set("" + label,JSON.stringify(a.get()),7);
 }
 MyPage.loadOpenStates = function() {
 	MyPage.loadOpenStatesAux("comments",function(e) {
 		MyPage.openComments(e);
+	});
+	MyPage.loadOpenStatesAux("comment-form",function(e) {
+		e.show();
 	});
 	MyPage.subscribeTimelines();
 	MyPage.subscribePosts();
 }
 MyPage.loadOpenStatesAux = function(label,f) {
 	var cookie = MyPage.kickUndefined(js.Cookie.get(label));
-	if(cookie != null) {
-		console.log(cookie);
-		var rawOpened = $.parseJSON(cookie);
-		var opened = new Hash();
-		var _g = 0;
-		while(_g < rawOpened.length) {
-			var v = rawOpened[_g];
-			++_g;
-			opened.set(Std.string(v),v);
-		}
-		new $(".comments").each(function(i,elem) {
-			var e = new $(elem);
-			var timelineId = e.find("> .timeline").attr("timeline-id");
-			if(opened.exists(timelineId)) f(e);
-		});
+	if(cookie == null) return;
+	console.log(cookie);
+	var rawOpened = $.parseJSON(cookie);
+	var opened = new Hash();
+	var _g = 0;
+	while(_g < rawOpened.length) {
+		var v = rawOpened[_g];
+		++_g;
+		opened.set(Std.string(v),v);
 	}
+	new $("." + label).each(function(i,elem) {
+		var e = new $(elem);
+		var timelineId = MyPage.getTimelineIdFromEntryContent(e);
+		if(opened.exists(timelineId)) f(e);
+	});
+}
+MyPage.getTimelineIdFromEntryContent = function(e) {
+	return MyPage.getEntry(e).find("> .comments > .timeline").attr("timeline-id");
 }
 MyPage.startLoad = function(timeline,version) {
 	if(timeline.attr("loading") != null) {
