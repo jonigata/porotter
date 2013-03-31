@@ -35,7 +35,7 @@
           <textarea name="content"></textarea>
           <input type="button" value="投稿" onclick="MyPage.postComment(::__current__.commentsId::, $(this).parent());return false;"/>
         </form>
-        <a href="#" onclick="$('#stamp-chooser').justModal();">スタンプ</a>
+        <a href="#" onclick="MyPage.chooseStamp(this, ::__current__.commentsId::);return false;">スタンプ</a>
       </div>
       ::end::
       

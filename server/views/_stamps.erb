@@ -1,3 +1,5 @@
 <% Dir::glob("#{settings.public_folder}/stamps/*.png").each do |f| %>
-<img src="<%= static_url("stamps/#{File.basename(f)}") %>">
+<a href="#" image="<%= File.basename(f) %>">
+  <img src="<%= static_url("stamps/#{File.basename(f)}") %>">
+</a>
 <% end %>

@@ -105,8 +105,37 @@ class MyPage {
         fillOlderTimeline(new JQuery(obj).closest('.timeline'), null);
     }
 
+    static function chooseStamp(obj: Dynamic, timelineId: Int) {
+        var chooser: Dynamic = new JQuery('#stamp-chooser');
+        chooser.find('a').each(
+            function(i: Int, e: Dynamic) {
+                new JQuery(e).click(
+                    function() {
+                        postStamp(timelineId, new JQuery(obj), new JQuery(e));
+                    });
+            });
+        chooser.justModal();
+    }
+
     ////////////////////////////////////////////////////////////////
     // private functions
+    static private function postStamp(
+        timelineId: Int, source: Dynamic, selected: Dynamic) {
+        var form = source.parent().find('> form');
+        var image = selected.attr('image');
+        JQuery._static.ajax({
+            url: "/foo/ajax/m/stamp",
+            method: "post",
+            data: {
+                parent: form.find('[name="parent"]').val(),
+                content: image,
+                timeline: timelineId
+            }
+        }).done(function() {
+            openComments(getEntry(form).find('> .comments'));
+        });
+    }
+
     static private function fillTimeline(timeline: Dynamic, version: Int) {
         fetchTimeline(timeline, null, null, version);
     }

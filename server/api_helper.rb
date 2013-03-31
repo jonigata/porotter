@@ -35,6 +35,12 @@ module APIHelper
         favor(r.target)
         "OK"
       end
+
+      post '/m/stamp' do
+        r = ensure_params(
+          :parent => [/[0-9]+/, Integer])
+        puts params[:content]
+      end
     end
   end
   
