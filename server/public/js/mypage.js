@@ -833,7 +833,6 @@ MyPage.mergeTimeline = function(oldTimeline,newTimeline) {
 		++_g;
 		ranges.add(v[0],v[1]);
 	}
-	ranges.print();
 	var _g = 0, _g1 = ranges.elems;
 	while(_g < _g1.length) {
 		var v = _g1[_g];
@@ -860,11 +859,9 @@ MyPage.insertContinueReading = function(timeline,score) {
 	timeline.append(link);
 }
 MyPage.saveCommentsOpenStates = function() {
-	console.log("saveCommentsOpenStates");
 	MyPage.saveOpenStatesAux("comments");
 }
 MyPage.saveCommentFormOpenStates = function() {
-	console.log("saveCommentFormOpenStates");
 	MyPage.saveOpenStatesAux("comment-form");
 }
 MyPage.saveOpenStatesAux = function(label) {
@@ -1065,12 +1062,14 @@ Ranges.prototype = {
 		var _g = this;
 		if(this.leq(e,b)) throw "arguments must be b <= e";
 		if(b == e) return;
-		var next = ArrayUtil.find_index(this.elems,function(e1) {
-			return _g.lt(b,e1.b);
+		var next = ArrayUtil.find_index(this.elems,function(r) {
+			return _g.lt(b,r.b);
 		});
 		if(next == null) next = this.elems.length;
 		var range = new Range(b,e);
-		if(0 < next && this.leq(b,this.elems[next - 1].e)) this.elems[next - 1].e = e; else {
+		if(0 < next && this.leq(b,this.elems[next - 1].e)) {
+			if(this.lt(this.elems[next - 1].e,e)) this.elems[next - 1].e = e;
+		} else {
 			this.elems.splice(next,0,range);
 			next++;
 		}

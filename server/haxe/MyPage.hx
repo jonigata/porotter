@@ -258,7 +258,6 @@ class MyPage {
         for(v in tmpRangeArray) {
             ranges.add(v[0], v[1]);
         }
-        ranges.print();
 
         for(v in ranges.elems) {
             if(v.e != 0) {
@@ -286,12 +285,10 @@ class MyPage {
     }
 
     static private function saveCommentsOpenStates() {
-        trace('saveCommentsOpenStates');
         saveOpenStatesAux("comments");
     }
 
     static private function saveCommentFormOpenStates() {
-        trace('saveCommentFormOpenStates');
         saveOpenStatesAux("comment-form");
     }
 
