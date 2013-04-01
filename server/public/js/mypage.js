@@ -798,6 +798,7 @@ MyPage.postArticle = function(timelineId,form) {
 MyPage.postComment = function(timelineId,form) {
 	$.ajax({ url : "/foo/ajax/m/newcomment", method : "post", data : { parent : new $(form).find("[name=\"parent\"]").val(), content : new $(form).find("[name=\"content\"]").val(), timeline : timelineId}}).done(function() {
 		MyPage.openComments(MyPage.getEntry(form).find("> .comments"));
+		MyPage.saveCommentFormOpenStates();
 	});
 	form.find("[name=\"content\"]").val("");
 	form.find("textarea").focus();
@@ -819,6 +820,7 @@ MyPage.chooseStamp = function(obj,timelineId) {
 		e.unbind("click");
 		e.click(function() {
 			MyPage.postStamp(timelineId,new $(obj),new $(e));
+			chooser.close();
 		});
 	});
 	chooser.justModal();
@@ -828,6 +830,7 @@ MyPage.postStamp = function(timelineId,source,selected) {
 	var image = selected.attr("image");
 	$.ajax({ url : "/foo/ajax/m/stamp", method : "post", data : { parent : form.find("[name=\"parent\"]").val(), content : image, timeline : timelineId}}).done(function() {
 		MyPage.openComments(MyPage.getEntry(form).find("> .comments"));
+		MyPage.saveCommentFormOpenStates();
 	});
 }
 MyPage.fillTimeline = function(timeline,version) {

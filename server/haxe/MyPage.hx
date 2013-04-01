@@ -86,6 +86,7 @@ class MyPage {
             }
         }).done(function() {
             openComments(getEntry(form).find('> .comments'));
+            saveCommentFormOpenStates();
         });
         form.find('[name="content"]').val('');
         form.find('textarea').focus();
@@ -118,6 +119,7 @@ class MyPage {
                 e.click(
                     function() {
                         postStamp(timelineId, new JQuery(obj), new JQuery(e));
+                        chooser.close();
                     });
             });
         chooser.justModal();
@@ -139,6 +141,7 @@ class MyPage {
             }
         }).done(function() {
             openComments(getEntry(form).find('> .comments'));
+            saveCommentFormOpenStates();
         });
     }
 
