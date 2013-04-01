@@ -145,7 +145,9 @@ class MyPage {
     }
 
     static private function fillNewerTimeline(timeline: Dynamic, version: Int) {
-        fetchTimeline(timeline, null, timeline.attr('newest-score'), version);
+        var oldestScore =
+            kickUndefined(timeline.children().eq(0).attr('newest-score'));
+        fetchTimeline(timeline, null, oldestScore, version);
     }
     
     static private function getTimeline(timelineId: Int) {
@@ -256,13 +258,14 @@ class MyPage {
         for(v in tmpRangeArray) {
             ranges.add(v[0], v[1]);
         }
+        ranges.print();
 
         for(v in ranges.elems) {
             if(v.e != 0) {
                 insertContinueReading(oldTimeline, v.e);
             }
         }
-        oldTimeline.attr('range', JSON.stringify(ranges.to_array()));
+        oldTimeline.attr('ranges', JSON.stringify(ranges.to_array()));
     }
 
     static private function insertContinueReading(

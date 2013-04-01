@@ -752,7 +752,8 @@ MyPage.fillTimeline = function(timeline,version) {
 	MyPage.fetchTimeline(timeline,null,null,version);
 }
 MyPage.fillNewerTimeline = function(timeline,version) {
-	MyPage.fetchTimeline(timeline,null,timeline.attr("newest-score"),version);
+	var oldestScore = MyPage.kickUndefined(timeline.children().eq(0).attr("newest-score"));
+	MyPage.fetchTimeline(timeline,null,oldestScore,version);
 }
 MyPage.getTimeline = function(timelineId) {
 	return new $("[timeline-id=\"" + timelineId + "\"]");
@@ -832,13 +833,14 @@ MyPage.mergeTimeline = function(oldTimeline,newTimeline) {
 		++_g;
 		ranges.add(v[0],v[1]);
 	}
+	ranges.print();
 	var _g = 0, _g1 = ranges.elems;
 	while(_g < _g1.length) {
 		var v = _g1[_g];
 		++_g;
 		if(v.e != 0) MyPage.insertContinueReading(oldTimeline,v.e);
 	}
-	oldTimeline.attr("range",JSON.stringify(ranges.to_array()));
+	oldTimeline.attr("ranges",JSON.stringify(ranges.to_array()));
 }
 MyPage.insertContinueReading = function(timeline,score) {
 	var link = new $("<a class=\"continue-reading\" href=\"#\" onclick=\"MyPage.continueReading(this);return false;\">続きを読む</a>");
