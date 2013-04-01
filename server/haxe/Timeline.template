@@ -2,8 +2,7 @@
          level="::level::"
          timeline-id="::timelineId::"
          version="::timelineVersion::"
-         ::if (newestScore != null):: newest-score="::newestScore::" ::end::
-         ::if (oldestScore != null):: oldest-score="::oldestScore::" ::end::
+         intervals="::intervals::"
          >
   ::foreach posts::
   <article class="post" score="::__current__.score::" post-id="::__current__.postId::" version="::__current__.postVersion::">

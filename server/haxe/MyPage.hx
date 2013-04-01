@@ -102,7 +102,11 @@ class MyPage {
     }
 
     static function continueReading(obj: Dynamic) {
-        fillOlderTimeline(new JQuery(obj).closest('.timeline'), null);
+        var e = new JQuery(obj);
+        var timeline = e.closest('.timeline');
+        var newestScore = e.attr('newest-score');
+        var oldestScore = kickUndefined(e.attr('oldest-score'));
+        fetchTimeline(timeline, newestScore, oldestScore, null);
     }
 
     static function chooseStamp(obj: Dynamic, timelineId: Int) {
@@ -143,13 +147,11 @@ class MyPage {
     }
 
     static private function fillNewerTimeline(timeline: Dynamic, version: Int) {
-        fetchTimeline(timeline, null, timeline.attr('newest-score'), version);
+        var oldestScore =
+            kickUndefined(timeline.children().eq(0).attr('newest-score'));
+        fetchTimeline(timeline, null, oldestScore, version);
     }
     
-    static private function fillOlderTimeline(timeline: Dynamic, version: Int) {
-        fetchTimeline(timeline, timeline.attr('oldest-score'), null, version);
-    }
-
     static private function getTimeline(timelineId: Int) {
         return new JQuery(Std.format('[timeline-id="$timelineId"]'));
     }
@@ -179,16 +181,17 @@ class MyPage {
         }).done(function(data: Dynamic) {
             data.level = level;
             var posts: Array<Dynamic> = data.posts;
-            for(i in 0...posts.length) {
-                var post: Dynamic = posts[i];
+            for(post in posts) {
                 var favoredBy = "";
                 var srcFavoredBy: Array<String> = post.detail.favoredBy;
-                for(j in 0...srcFavoredBy.length) {
-                    favoredBy += Std.format('<img src="http://www.gravatar.com/avatar/${srcFavoredBy[j]}?s=16&d=mm" alt="gravator"/>');
+                for(vv in srcFavoredBy) {
+                    favoredBy += Std.format('<img src="http://www.gravatar.com/avatar/${vv}?s=16&d=mm" alt="gravator"/>');
                 }
                 post.detail.favoredBy = favoredBy;
                 post.detail = applyTemplate("Detail", post.detail);
             }
+            data.intervals =
+                Std.format("[[${data.newestScore}, ${data.oldestScore}]]");
             finishLoad(oldTimeline, function() {
                 var output = applyTemplate("Timeline", data);
                 var entry = getEntry(oldTimeline);
@@ -215,7 +218,7 @@ class MyPage {
             var oldScore = Std.parseInt(oe.attr('score'));
             var newScore: Int = null;
             while(oldScore <= (newScore = Std.parseInt(ne.attr('score')))) {
-                if (oldScore == Std.parseInt(ne.attr('score'))) {
+                if (oldScore == newScore) {
                     oe.replaceWith(ne);
                 } else {
                     ne.insertBefore(oe);
@@ -244,42 +247,50 @@ class MyPage {
             oldTimeline.append(ne);
             oldTimeline.append(nextne);
         }
-        updateScore(oldTimeline, newTimeline, 'newest-score', Math.max);
-        updateScore(oldTimeline, newTimeline, 'oldest-score', Math.min);
 
-        var oldestScore = kickUndefined(oldTimeline.attr('oldest-score'));
-        if (oldestScore != '0' && oldestScore != null) {
-            oldTimeline.append('<a class="continue-reading" href="#" onclick="MyPage.continueReading(this); return false;">続きを読む</a>');
+        // interval処理
+        var intervals = new Intervals();
+        var oldTimelineIntervalsAttr = oldTimeline.attr('intervals');
+        if (kickUndefined(oldTimelineIntervalsAttr) != null) {
+            intervals.from_array(JQuery._static.parseJSON(oldTimelineIntervalsAttr));
         }
-    }
 
-    static private function updateScore(
-        oldTimeline: Dynamic, newTimeline: Dynamic, label: String,
-        cmp: Float->Float->Float) {
+        var tmpIntervalArray: Array<Array<Int>> =
+            JQuery._static.parseJSON(newTimeline.attr('intervals'));
+        for(v in tmpIntervalArray) {
+            intervals.add(v[0], v[1]);
+        }
 
-        var oldScore = kickUndefined(oldTimeline.attr(label));
-        var newScore = kickUndefined(newTimeline.attr(label));
-
-        if (oldScore == null) {
-            oldTimeline.attr(label, newScore);
-        } else {
-            if (newScore != null) {
-                oldTimeline.attr(
-                    label,
-                    cmp(
-                        Std.parseInt(oldTimeline.attr(label)),
-                        Std.parseInt(newTimeline.attr(label))));
+        for(v in intervals.elems) {
+            if(v.e != 0) {
+                insertContinueReading(oldTimeline, v.e);
             }
         }
+        oldTimeline.attr('intervals', JSON.stringify(intervals.to_array()));
+    }
+
+    static private function insertContinueReading(
+        timeline: Dynamic, score: Int) {
+
+        var link = new JQuery('<a class="continue-reading" href="#" onclick="MyPage.continueReading(this);return false;">続きを読む</a>');
+        link.attr('newest-score', score);
+        var a: Array<Dynamic> = timeline.children().get();
+        for(v in a) {
+            var oldScore = Std.parseInt(new JQuery(v).attr('score'));
+            if (oldScore < score) {
+                link.attr('oldest-score', oldScore);
+                link.insertBefore(v);
+                return;
+            }
+        }
+        timeline.append(link);
     }
 
     static private function saveCommentsOpenStates() {
-        trace('saveCommentsOpenStates');
         saveOpenStatesAux("comments");
     }
 
     static private function saveCommentFormOpenStates() {
-        trace('saveCommentFormOpenStates');
         saveOpenStatesAux("comment-form");
     }
 
@@ -316,7 +327,6 @@ class MyPage {
             return;
         }
         
-        trace(Std.format('$label = $cookie'));
         var rawOpened: Array<Int> = JQuery._static.parseJSON(cookie);
         var opened = new Hash<Int>();
         for(v in rawOpened) {
@@ -340,7 +350,9 @@ class MyPage {
     static private function startLoad(timeline: Dynamic, version: Int): Bool {
         if (timeline.attr('loading') != null) {
             var oldWaiting = kickUndefined(timeline.attr('waiting'));
-            if( oldWaiting == null || Std.parseInt(oldWaiting) < version) {
+            if( version != null &&
+                oldWaiting == null ||
+                Std.parseInt(oldWaiting) < version) {
                 timeline.attr('waiting', version);
             }
             return false;

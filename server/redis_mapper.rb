@@ -21,6 +21,15 @@ end
 
 module RedisMapper
 
+  class Exclusive
+    def initialize(n) @value = n; end
+    attr_reader :value
+  end
+
+  def self.exclusive(n)
+    Exclusive.new(n)
+  end
+
   class Model
     #
     # データ構造マッパ
@@ -411,29 +420,40 @@ module RedisMapper
 
     class ModelOrderedSet < ModelStructureBase
       def range(lower, upper, limit = nil)
-        raise "ordered_set lower score must be Integer or :'-inf'; passed = #{lower.inspect}" unless lower.kind_of?(Integer) || lower == :'-inf'
-        raise "ordered_set upper score must be Integer or :inf or :'+inf'; passed = #{upper.inspect}" unless upper.kind_of?(Integer) || upper == :'+inf' || upper == :inf
-        raise "limit argument must be [offset, count]: passed = #{limit.inspect}" unless limit.nil? || Structure.match(tuple_template(Integer, Integer), limit)
+        validate_lower(lower)
+        validate_upper(upper)
+        validate_limit(limit)
         opt = {:withscores => true}
         opt.merge!(:limit => limit) if limit
+        lower = format_score(lower)
+        upper = format_score(upper)
         redis.zrangebyscore(root_key, lower, upper, opt).map do |value, score|
-          { :score => Integer.from_redis(score), :value => restriction.from_redis(value) }
+          {
+            :score => Integer.from_redis(score),
+            :value => restriction.from_redis(value)
+          }
         end
       end
 
       def revrange(upper, lower, limit = nil)
-        raise "ordered_set lower score must be Integer or :'-inf'; passed = #{lower.inspect}" unless lower.kind_of?(Integer) || lower == :'-inf'
-        raise "ordered_set upper score must be Integer or :inf or :'+inf'; passed = #{upper.inspect}" unless upper.kind_of?(Integer) || upper == :'+inf' || upper == :inf
-        raise "limit argument must be [offset, count]: passed = #{limit.inspect}" unless limit.nil? || Structure.match(tuple_template(Integer, Integer), limit)
+        validate_upper(upper)
+        validate_lower(lower)
+        validate_limit(limit)
         opt = {:withscores => true}
         opt.merge!(:limit => limit) if limit
-        redis.zrevrangebyscore(root_key, upper, lower, opt).map do |value, score|
-          { :score => Integer.from_redis(score), :value => restriction.from_redis(value) }
+        upper = format_score(upper)
+        lower = format_score(lower)
+        redis.zrevrangebyscore(root_key, upper, lower, opt).map do
+          |value, score|
+          {
+            :score => Integer.from_redis(score),
+            :value => restriction.from_redis(value)
+          }
         end
       end
 
       def add(score, value)
-        raise "ordered_set score must be Integer: passed = #{score.inspect}" unless score.kind_of?(Integer)
+        validate_score(score)
         typecheck(value)
         redis.zadd(root_key, score, value.to_redis)
       end
@@ -448,8 +468,8 @@ module RedisMapper
       end
 
       def erase(lower, upper)
-        raise "ordered_set lower score must be Integer: passed = #{lower.inpsect}" unless lower.kind_of?(Integer)
-        raise "ordered_set upper score must be Integer: passed = #{upper.inpsect}" unless upper.kind_of?(Integer)
+        validate_lower(lower)
+        validate_upper(upper)
         redis.zremrangebyscore(root_key, lower, upper);
       end
 
@@ -611,6 +631,29 @@ module RedisMapper
       end
 
       private
+      def format_score(n)
+        return "#{n.value})" if n.kind_of?(Exclusive)
+        n
+      end
+
+      def validate_score(score)
+        raise "ordered_set score must be Integer: passed = #{score.inspect}" unless score.kind_of?(Integer)
+      end        
+
+      def validate_lower(lower)
+        raise "ordered set lower score must be Integer when exclusive" if lower.kind_of?(Exclusive) && !lower.value.kind_of?(Integer)
+        raise "ordered_set lower score must be Integer or :'-inf'; passed = #{lower.inspect}" unless lower.kind_of?(Integer) || lower == :'-inf'
+      end
+
+      def validate_upper(upper)
+        raise "ordered set upper score must be Integer when exclusive" if upper.kind_of?(Exclusive) && !upper.value.kind_of?(Integer)
+        raise "ordered_set upper score must be Integer or :inf or :'+inf'; passed = #{upper.inspect}" unless upper.kind_of?(Integer) || upper == :'+inf' || upper == :inf
+      end
+
+      def validate_limit(limit)
+        raise "limit argument must be [offset, count]: passed = #{limit.inspect}" unless limit.nil? || Structure.match(tuple_template(Integer, Integer), limit)
+      end
+
       def pair(v)
         if v
           [self.score(v), v]
