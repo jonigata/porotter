@@ -22,19 +22,25 @@ class Timeline < RedisMapper::PlatformModel
   end
 
   def fetch(newest_score, oldest_score, count)
-    b = newest_score ? newest_score - 1 : :inf
-    e = oldest_score ? oldest_score + 1 : :'-inf'
+    # [newest_score, oldest_score)の範囲を返す
+    # newest_score, oldest_scoreがnilの場合無限を指す
+    
+    b = newest_score.kick(nil, :inf)
+    e = oldest_score.kick(nil, :'-inf')
 
     posts = self.store.posts
-    a = posts.revrange(b, e, [0, count])
+    a = posts.revrange(b, e, [0, count + 1])
     if a.empty?
       [[], nil, nil]
     else
       res_newest_score = a.first[:score]
       res_oldest_score = a.last[:score]
-      if posts.length_range(0, res_oldest_score - 1) == 0
+      if a.length <= count
         # 続きがない
-        res_oldest_score = 0
+        res_oldest_score = oldest_score || 0
+      else
+        # oldestはexclusive
+        a.pop
       end
       [a, res_newest_score, res_oldest_score]
     end
