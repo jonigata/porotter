@@ -188,7 +188,7 @@ class MyPage {
                 post.detail.favoredBy = favoredBy;
                 post.detail = applyTemplate("Detail", post.detail);
             }
-            data.ranges =
+            data.intervals =
                 Std.format("[[${data.newestScore}, ${data.oldestScore}]]");
             finishLoad(oldTimeline, function() {
                 var output = applyTemplate("Timeline", data);
@@ -246,25 +246,25 @@ class MyPage {
             oldTimeline.append(nextne);
         }
 
-        // range処理
-        var ranges = new Ranges();
-        var oldTimelineRangesAttr = oldTimeline.attr('ranges');
-        if (kickUndefined(oldTimelineRangesAttr) != null) {
-            ranges.from_array(JQuery._static.parseJSON(oldTimelineRangesAttr));
+        // interval処理
+        var intervals = new Intervals();
+        var oldTimelineIntervalsAttr = oldTimeline.attr('intervals');
+        if (kickUndefined(oldTimelineIntervalsAttr) != null) {
+            intervals.from_array(JQuery._static.parseJSON(oldTimelineIntervalsAttr));
         }
 
-        var tmpRangeArray: Array<Array<Int>> =
-            JQuery._static.parseJSON(newTimeline.attr('ranges'));
-        for(v in tmpRangeArray) {
-            ranges.add(v[0], v[1]);
+        var tmpIntervalArray: Array<Array<Int>> =
+            JQuery._static.parseJSON(newTimeline.attr('intervals'));
+        for(v in tmpIntervalArray) {
+            intervals.add(v[0], v[1]);
         }
 
-        for(v in ranges.elems) {
+        for(v in intervals.elems) {
             if(v.e != 0) {
                 insertContinueReading(oldTimeline, v.e);
             }
         }
-        oldTimeline.attr('ranges', JSON.stringify(ranges.to_array()));
+        oldTimeline.attr('intervals', JSON.stringify(intervals.to_array()));
     }
 
     static private function insertContinueReading(

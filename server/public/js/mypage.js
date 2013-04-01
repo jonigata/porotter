@@ -418,6 +418,86 @@ IntIter.prototype = {
 	,min: null
 	,__class__: IntIter
 }
+var Interval = function(b,e) {
+	this.b = b;
+	this.e = e;
+};
+$hxClasses["Interval"] = Interval;
+Interval.__name__ = ["Interval"];
+Interval.prototype = {
+	e: null
+	,b: null
+	,__class__: Interval
+}
+var Intervals = function() {
+	this.elems = new Array();
+};
+$hxClasses["Intervals"] = Intervals;
+Intervals.__name__ = ["Intervals"];
+Intervals.prototype = {
+	elems: null
+	,from_array: function(a) {
+		var _g = 0;
+		while(_g < a.length) {
+			var v = a[_g];
+			++_g;
+			this.add(v[0],v[1]);
+		}
+	}
+	,to_array: function() {
+		var a = [];
+		var _g = 0, _g1 = this.elems;
+		while(_g < _g1.length) {
+			var v = _g1[_g];
+			++_g;
+			a.push([v.b,v.e]);
+		}
+		return a;
+	}
+	,print: function() {
+		var s = "";
+		var _g = 0, _g1 = this.elems;
+		while(_g < _g1.length) {
+			var v = _g1[_g];
+			++_g;
+			s += "" + v.b + "-" + v.e + " ";
+		}
+		console.log(s);
+	}
+	,add: function(b,e) {
+		var _g = this;
+		if(this.leq(e,b)) throw "arguments must be b <= e";
+		if(b == e) return;
+		var next = ArrayUtil.find_index(this.elems,function(r) {
+			return _g.lt(b,r.b);
+		});
+		if(next == null) next = this.elems.length;
+		var interval = new Interval(b,e);
+		if(0 < next && this.leq(b,this.elems[next - 1].e)) {
+			if(this.lt(this.elems[next - 1].e,e)) this.elems[next - 1].e = e;
+		} else {
+			this.elems.splice(next,0,interval);
+			next++;
+		}
+		var base = this.elems[next - 1];
+		var remove_last = next;
+		while(remove_last < this.elems.length && this.leq(this.elems[remove_last].e,base.e)) remove_last++;
+		if(next < remove_last) this.elems.splice(next,remove_last - next);
+		if(next < this.elems.length) {
+			if(this.leq(this.elems[next].b,base.e)) {
+				base.e = this.elems[next].e;
+				this.elems.splice(next,1);
+			}
+		}
+	}
+	,leq: function(x,y) {
+		return x >= y;
+	}
+	,lt: function(x,y) {
+		return x > y;
+	}
+	,__class__: Intervals
+}
 var Lambda = function() { }
 $hxClasses["Lambda"] = Lambda;
 Lambda.__name__ = ["Lambda"];
@@ -780,7 +860,7 @@ MyPage.fetchTimeline = function(oldTimeline,newestScore,oldestScore,version) {
 			post.detail.favoredBy = favoredBy;
 			post.detail = MyPage.applyTemplate("Detail",post.detail);
 		}
-		data.ranges = "[[" + Std.string(data.newestScore) + ", " + Std.string(data.oldestScore) + "]]";
+		data.intervals = "[[" + Std.string(data.newestScore) + ", " + Std.string(data.oldestScore) + "]]";
 		MyPage.finishLoad(oldTimeline,function() {
 			var output = MyPage.applyTemplate("Timeline",data);
 			var entry = MyPage.getEntry(oldTimeline);
@@ -823,23 +903,23 @@ MyPage.mergeTimeline = function(oldTimeline,newTimeline) {
 		oldTimeline.append(ne);
 		oldTimeline.append(nextne);
 	}
-	var ranges = new Ranges();
-	var oldTimelineRangesAttr = oldTimeline.attr("ranges");
-	if(MyPage.kickUndefined(oldTimelineRangesAttr) != null) ranges.from_array($.parseJSON(oldTimelineRangesAttr));
-	var tmpRangeArray = $.parseJSON(newTimeline.attr("ranges"));
+	var intervals = new Intervals();
+	var oldTimelineIntervalsAttr = oldTimeline.attr("intervals");
+	if(MyPage.kickUndefined(oldTimelineIntervalsAttr) != null) intervals.from_array($.parseJSON(oldTimelineIntervalsAttr));
+	var tmpIntervalArray = $.parseJSON(newTimeline.attr("intervals"));
 	var _g = 0;
-	while(_g < tmpRangeArray.length) {
-		var v = tmpRangeArray[_g];
+	while(_g < tmpIntervalArray.length) {
+		var v = tmpIntervalArray[_g];
 		++_g;
-		ranges.add(v[0],v[1]);
+		intervals.add(v[0],v[1]);
 	}
-	var _g = 0, _g1 = ranges.elems;
+	var _g = 0, _g1 = intervals.elems;
 	while(_g < _g1.length) {
 		var v = _g1[_g];
 		++_g;
 		if(v.e != 0) MyPage.insertContinueReading(oldTimeline,v.e);
 	}
-	oldTimeline.attr("ranges",JSON.stringify(ranges.to_array()));
+	oldTimeline.attr("intervals",JSON.stringify(intervals.to_array()));
 }
 MyPage.insertContinueReading = function(timeline,score) {
 	var link = new $("<a class=\"continue-reading\" href=\"#\" onclick=\"MyPage.continueReading(this);return false;\">続きを読む</a>");
@@ -1011,86 +1091,6 @@ MyPage.isUndefined = function(x) {
 MyPage.kickUndefined = function(x) {
 	if(MyPage.isUndefined(x)) return null;
 	return x;
-}
-var Range = function(b,e) {
-	this.b = b;
-	this.e = e;
-};
-$hxClasses["Range"] = Range;
-Range.__name__ = ["Range"];
-Range.prototype = {
-	e: null
-	,b: null
-	,__class__: Range
-}
-var Ranges = function() {
-	this.elems = new Array();
-};
-$hxClasses["Ranges"] = Ranges;
-Ranges.__name__ = ["Ranges"];
-Ranges.prototype = {
-	elems: null
-	,from_array: function(a) {
-		var _g = 0;
-		while(_g < a.length) {
-			var v = a[_g];
-			++_g;
-			this.add(v[0],v[1]);
-		}
-	}
-	,to_array: function() {
-		var a = [];
-		var _g = 0, _g1 = this.elems;
-		while(_g < _g1.length) {
-			var v = _g1[_g];
-			++_g;
-			a.push([v.b,v.e]);
-		}
-		return a;
-	}
-	,print: function() {
-		var s = "";
-		var _g = 0, _g1 = this.elems;
-		while(_g < _g1.length) {
-			var v = _g1[_g];
-			++_g;
-			s += "" + v.b + "-" + v.e + " ";
-		}
-		console.log(s);
-	}
-	,add: function(b,e) {
-		var _g = this;
-		if(this.leq(e,b)) throw "arguments must be b <= e";
-		if(b == e) return;
-		var next = ArrayUtil.find_index(this.elems,function(r) {
-			return _g.lt(b,r.b);
-		});
-		if(next == null) next = this.elems.length;
-		var range = new Range(b,e);
-		if(0 < next && this.leq(b,this.elems[next - 1].e)) {
-			if(this.lt(this.elems[next - 1].e,e)) this.elems[next - 1].e = e;
-		} else {
-			this.elems.splice(next,0,range);
-			next++;
-		}
-		var base = this.elems[next - 1];
-		var remove_last = next;
-		while(remove_last < this.elems.length && this.leq(this.elems[remove_last].e,base.e)) remove_last++;
-		if(next < remove_last) this.elems.splice(next,remove_last - next);
-		if(next < this.elems.length) {
-			if(this.leq(this.elems[next].b,base.e)) {
-				base.e = this.elems[next].e;
-				this.elems.splice(next,1);
-			}
-		}
-	}
-	,leq: function(x,y) {
-		return x >= y;
-	}
-	,lt: function(x,y) {
-		return x > y;
-	}
-	,__class__: Ranges
 }
 var Reflect = function() { }
 $hxClasses["Reflect"] = Reflect;
@@ -2539,7 +2539,7 @@ Bool.__ename__ = ["Bool"];
 var Class = $hxClasses.Class = { __name__ : ["Class"]};
 var Enum = { };
 var Void = $hxClasses.Void = { __ename__ : ["Void"]};
-haxe.Resource.content = [{ name : "Detail", data : "s748:PGRpdiBjbGFzcz0iZGV0YWlsIiBjb21tZW50LWNvdW50PSI6OmNvbW1lbnRzTGVuZ3RoOjoiIGNvbW1lbnRzLXZlcnNpb249Ijo6Y29tbWVudHNWZXJzaW9uOjoiPgogIDxkaXYgY2xhc3M9ImF1dGhvciI%CiAgICA8c3BhbiBjbGFzcz0ibGFiZWwiPgogICAgICA6OmF1dGhvckxhYmVsOjoKICAgIDwvc3Bhbj4KICAgIDxzcGFuIGNsYXNzPSJ1c2VybmFtZSI%CiAgICAgIEA6OmF1dGhvclVzZXJuYW1lOjoKICAgIDwvc3Bhbj4KICAgIDxzcGFuIGNsYXNzPSJmYXZvcmVkX2J5Ij4KICAgICAgOjpmYXZvcmVkQnk6OgogICAgPC9zcGFuPgogICAgPHNwYW4gY2xhc3M9ImZhdm9yaXRlIj4KICAgICAgOjppZiAodXNlckV4aXN0cyk6OgogICAgICA8YSBocmVmPSIjIiBvbmNsaWNrPSJNeVBhZ2UudG9nZ2xlRmF2b3JpdGUoOjpwb3N0SWQ6Oik7cmV0dXJuIGZhbHNlOyI%CiAgICAgICAgOjpmYXZvckxhYmVsOjoKICAgICAgPC9hPgogICAgICA6OmVuZDo6CiAgICA8L3NwYW4%CiAgPC9kaXY%CiAgPGRpdiBjbGFzcz0iY29udGVudCI%CiAgICA6OmNvbnRlbnQ6OgogIDwvZGl2Pgo8L2Rpdj4K"},{ name : "Timeline", data : "s2431:PHNlY3Rpb24gY2xhc3M9InRpbWVsaW5lIgogICAgICAgICBsZXZlbD0iOjpsZXZlbDo6IgogICAgICAgICB0aW1lbGluZS1pZD0iOjp0aW1lbGluZUlkOjoiCiAgICAgICAgIHZlcnNpb249Ijo6dGltZWxpbmVWZXJzaW9uOjoiCiAgICAgICAgIHJhbmdlcz0iOjpyYW5nZXM6OiIKICAgICAgICAgPgogIDo6Zm9yZWFjaCBwb3N0czo6CiAgPGFydGljbGUgY2xhc3M9InBvc3QiIHNjb3JlPSI6Ol9fY3VycmVudF9fLnNjb3JlOjoiIHBvc3QtaWQ9Ijo6X19jdXJyZW50X18ucG9zdElkOjoiIHZlcnNpb249Ijo6X19jdXJyZW50X18ucG9zdFZlcnNpb246OiI%CiAgICA8ZGl2IGNsYXNzPSJhdmF0YXIiPgogICAgICA8ZGl2IGNsYXNzPSJpY29uIj4KICAgICAgICA8aW1nIHNyYz0iaHR0cDovL3d3dy5ncmF2YXRhci5jb20vYXZhdGFyLzo6X19jdXJyZW50X18uaWNvbjo6P3M9NDAmZD1tbSIgYWx0PSJncmF2YXRvciIvPgogICAgICA8L2Rpdj4KICAgIDwvZGl2PgogICAgPGRpdiBjbGFzcz0iZW50cnkiPgogICAgICA6Ol9fY3VycmVudF9fLmRldGFpbDo6CgogICAgICA6OmlmIChsZXZlbCA9PSAwKTo6CiAgICAgIDxkaXYgY2xhc3M9Im9wZXJhdGlvbiI%CiAgICAgICAgPGEgY2xhc3M9InNob3ctY29tbWVudCIgaHJlZj0iIyIgb25jbGljaz0iTXlQYWdlLnRvZ2dsZUNvbW1lbnRzKHRoaXMpO3JldHVybiBmYWxzZTsiPgogICAgICAgICAgPGltZyBzcmM9Ijo6Y2hhdEljb25Vcmw6OiI%CiAgICAgICAgICA8c3BhbiBjbGFzcz0ic2hvdy1jb21tZW50LWxhYmVsIj7Dlzo6X19jdXJyZW50X18uY29tbWVudHNMZW5ndGg6Ojwvc3Bhbj4KICAgICAgICA8L2E%CiAgICAgICAgOjppZiB1c2VyRXhpc3RzOjoKICAgICAgICA8c3BhbiBjbGFzcz0idWktZGVsaW1pdGVyLTgiPjwvc3Bhbj4KICAgICAgICA8YSBjbGFzcz0icG9zdC1jb21tZW50IiBocmVmPSIjIiBvbmNsaWNrPSJNeVBhZ2UudG9nZ2xlQ29tbWVudEZvcm0odGhpcyk7cmV0dXJuIGZhbHNlOyI%44Kz44Oh44Oz44OI44GZ44KLPC9hPgogICAgICAgIDo6ZW5kOjoKICAgICAgPC9kaXY%CiAgICAgIDo6ZW5kOjoKCiAgICAgIDo6aWYgdXNlckV4aXN0czo6CiAgICAgIDxkaXYgY2xhc3M9ImNvbW1lbnQtZm9ybSI%CiAgICAgICAgPGZvcm0%CiAgICAgICAgICA8aW5wdXQgdHlwZT0iaGlkZGVuIiBuYW1lPSJwYXJlbnQiIHZhbHVlPSI6Ol9fY3VycmVudF9fLnBvc3RJZDo6Ii8%CiAgICAgICAgICA8dGV4dGFyZWEgbmFtZT0iY29udGVudCI%PC90ZXh0YXJlYT4KICAgICAgICAgIDxpbnB1dCB0eXBlPSJidXR0b24iIHZhbHVlPSLmipXnqL8iIG9uY2xpY2s9Ik15UGFnZS5wb3N0Q29tbWVudCg6Ol9fY3VycmVudF9fLmNvbW1lbnRzSWQ6OiwgJCh0aGlzKS5wYXJlbnQoKSk7cmV0dXJuIGZhbHNlOyIvPgogICAgICAgIDwvZm9ybT4KICAgICAgICA8YSBocmVmPSIjIiBvbmNsaWNrPSJNeVBhZ2UuY2hvb3NlU3RhbXAodGhpcywgOjpfX2N1cnJlbnRfXy5jb21tZW50c0lkOjopO3JldHVybiBmYWxzZTsiPuOCueOCv%ODs%ODlzwvYT4KICAgICAgPC9kaXY%CiAgICAgIDo6ZW5kOjoKICAgICAgCiAgICAgIDxkaXYgY2xhc3M9ImNvbW1lbnRzIiBjb3VudD0iOjpfX2N1cnJlbnRfXy5jb21tZW50c0xlbmd0aDo6Ij4KICAgICAgICA8c2VjdGlvbiBjbGFzcz0idGltZWxpbmUiIGxldmVsPSI6OihsZXZlbCArIDEpOjoiIHRpbWVsaW5lLWlkPSI6Ol9fY3VycmVudF9fLmNvbW1lbnRzSWQ6OiIgdmVyc2lvbj0iMCI%CiAgICAgICAgPC9zZWN0aW9uPiAgICAgICAgCiAgICAgIDwvZGl2PgogICAgPC9kaXY%CiAgPC9hcnRpY2xlPgogIDo6ZW5kOjoKPC9zZWN0aW9uPgo"}];
+haxe.Resource.content = [{ name : "Detail", data : "s748:PGRpdiBjbGFzcz0iZGV0YWlsIiBjb21tZW50LWNvdW50PSI6OmNvbW1lbnRzTGVuZ3RoOjoiIGNvbW1lbnRzLXZlcnNpb249Ijo6Y29tbWVudHNWZXJzaW9uOjoiPgogIDxkaXYgY2xhc3M9ImF1dGhvciI%CiAgICA8c3BhbiBjbGFzcz0ibGFiZWwiPgogICAgICA6OmF1dGhvckxhYmVsOjoKICAgIDwvc3Bhbj4KICAgIDxzcGFuIGNsYXNzPSJ1c2VybmFtZSI%CiAgICAgIEA6OmF1dGhvclVzZXJuYW1lOjoKICAgIDwvc3Bhbj4KICAgIDxzcGFuIGNsYXNzPSJmYXZvcmVkX2J5Ij4KICAgICAgOjpmYXZvcmVkQnk6OgogICAgPC9zcGFuPgogICAgPHNwYW4gY2xhc3M9ImZhdm9yaXRlIj4KICAgICAgOjppZiAodXNlckV4aXN0cyk6OgogICAgICA8YSBocmVmPSIjIiBvbmNsaWNrPSJNeVBhZ2UudG9nZ2xlRmF2b3JpdGUoOjpwb3N0SWQ6Oik7cmV0dXJuIGZhbHNlOyI%CiAgICAgICAgOjpmYXZvckxhYmVsOjoKICAgICAgPC9hPgogICAgICA6OmVuZDo6CiAgICA8L3NwYW4%CiAgPC9kaXY%CiAgPGRpdiBjbGFzcz0iY29udGVudCI%CiAgICA6OmNvbnRlbnQ6OgogIDwvZGl2Pgo8L2Rpdj4K"},{ name : "Timeline", data : "s2439:PHNlY3Rpb24gY2xhc3M9InRpbWVsaW5lIgogICAgICAgICBsZXZlbD0iOjpsZXZlbDo6IgogICAgICAgICB0aW1lbGluZS1pZD0iOjp0aW1lbGluZUlkOjoiCiAgICAgICAgIHZlcnNpb249Ijo6dGltZWxpbmVWZXJzaW9uOjoiCiAgICAgICAgIGludGVydmFscz0iOjppbnRlcnZhbHM6OiIKICAgICAgICAgPgogIDo6Zm9yZWFjaCBwb3N0czo6CiAgPGFydGljbGUgY2xhc3M9InBvc3QiIHNjb3JlPSI6Ol9fY3VycmVudF9fLnNjb3JlOjoiIHBvc3QtaWQ9Ijo6X19jdXJyZW50X18ucG9zdElkOjoiIHZlcnNpb249Ijo6X19jdXJyZW50X18ucG9zdFZlcnNpb246OiI%CiAgICA8ZGl2IGNsYXNzPSJhdmF0YXIiPgogICAgICA8ZGl2IGNsYXNzPSJpY29uIj4KICAgICAgICA8aW1nIHNyYz0iaHR0cDovL3d3dy5ncmF2YXRhci5jb20vYXZhdGFyLzo6X19jdXJyZW50X18uaWNvbjo6P3M9NDAmZD1tbSIgYWx0PSJncmF2YXRvciIvPgogICAgICA8L2Rpdj4KICAgIDwvZGl2PgogICAgPGRpdiBjbGFzcz0iZW50cnkiPgogICAgICA6Ol9fY3VycmVudF9fLmRldGFpbDo6CgogICAgICA6OmlmIChsZXZlbCA9PSAwKTo6CiAgICAgIDxkaXYgY2xhc3M9Im9wZXJhdGlvbiI%CiAgICAgICAgPGEgY2xhc3M9InNob3ctY29tbWVudCIgaHJlZj0iIyIgb25jbGljaz0iTXlQYWdlLnRvZ2dsZUNvbW1lbnRzKHRoaXMpO3JldHVybiBmYWxzZTsiPgogICAgICAgICAgPGltZyBzcmM9Ijo6Y2hhdEljb25Vcmw6OiI%CiAgICAgICAgICA8c3BhbiBjbGFzcz0ic2hvdy1jb21tZW50LWxhYmVsIj7Dlzo6X19jdXJyZW50X18uY29tbWVudHNMZW5ndGg6Ojwvc3Bhbj4KICAgICAgICA8L2E%CiAgICAgICAgOjppZiB1c2VyRXhpc3RzOjoKICAgICAgICA8c3BhbiBjbGFzcz0idWktZGVsaW1pdGVyLTgiPjwvc3Bhbj4KICAgICAgICA8YSBjbGFzcz0icG9zdC1jb21tZW50IiBocmVmPSIjIiBvbmNsaWNrPSJNeVBhZ2UudG9nZ2xlQ29tbWVudEZvcm0odGhpcyk7cmV0dXJuIGZhbHNlOyI%44Kz44Oh44Oz44OI44GZ44KLPC9hPgogICAgICAgIDo6ZW5kOjoKICAgICAgPC9kaXY%CiAgICAgIDo6ZW5kOjoKCiAgICAgIDo6aWYgdXNlckV4aXN0czo6CiAgICAgIDxkaXYgY2xhc3M9ImNvbW1lbnQtZm9ybSI%CiAgICAgICAgPGZvcm0%CiAgICAgICAgICA8aW5wdXQgdHlwZT0iaGlkZGVuIiBuYW1lPSJwYXJlbnQiIHZhbHVlPSI6Ol9fY3VycmVudF9fLnBvc3RJZDo6Ii8%CiAgICAgICAgICA8dGV4dGFyZWEgbmFtZT0iY29udGVudCI%PC90ZXh0YXJlYT4KICAgICAgICAgIDxpbnB1dCB0eXBlPSJidXR0b24iIHZhbHVlPSLmipXnqL8iIG9uY2xpY2s9Ik15UGFnZS5wb3N0Q29tbWVudCg6Ol9fY3VycmVudF9fLmNvbW1lbnRzSWQ6OiwgJCh0aGlzKS5wYXJlbnQoKSk7cmV0dXJuIGZhbHNlOyIvPgogICAgICAgIDwvZm9ybT4KICAgICAgICA8YSBocmVmPSIjIiBvbmNsaWNrPSJNeVBhZ2UuY2hvb3NlU3RhbXAodGhpcywgOjpfX2N1cnJlbnRfXy5jb21tZW50c0lkOjopO3JldHVybiBmYWxzZTsiPuOCueOCv%ODs%ODlzwvYT4KICAgICAgPC9kaXY%CiAgICAgIDo6ZW5kOjoKICAgICAgCiAgICAgIDxkaXYgY2xhc3M9ImNvbW1lbnRzIiBjb3VudD0iOjpfX2N1cnJlbnRfXy5jb21tZW50c0xlbmd0aDo6Ij4KICAgICAgICA8c2VjdGlvbiBjbGFzcz0idGltZWxpbmUiIGxldmVsPSI6OihsZXZlbCArIDEpOjoiIHRpbWVsaW5lLWlkPSI6Ol9fY3VycmVudF9fLmNvbW1lbnRzSWQ6OiIgdmVyc2lvbj0iMCI%CiAgICAgICAgPC9zZWN0aW9uPiAgICAgICAgCiAgICAgIDwvZGl2PgogICAgPC9kaXY%CiAgPC9hcnRpY2xlPgogIDo6ZW5kOjoKPC9zZWN0aW9uPgo"}];
 js.XMLHttpRequest = window.XMLHttpRequest?XMLHttpRequest:window.ActiveXObject?function() {
 	try {
 		return new ActiveXObject("Msxml2.XMLHTTP");

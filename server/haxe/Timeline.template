@@ -2,7 +2,7 @@
          level="::level::"
          timeline-id="::timelineId::"
          version="::timelineVersion::"
-         ranges="::ranges::"
+         intervals="::intervals::"
          >
   ::foreach posts::
   <article class="post" score="::__current__.score::" post-id="::__current__.postId::" version="::__current__.postVersion::">
