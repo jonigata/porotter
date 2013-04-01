@@ -22,6 +22,15 @@ class ArrayUtil {
         }
         return null;
     }
+
+    static public function find_index<T>(a:Array<T>, f:T->Bool): Null<Int> {
+        for(i in 0...a.length) {
+            if (f(a[i])) {
+                return i;
+            }
+        }
+        return null;
+    }
 }
 
 

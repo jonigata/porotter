@@ -25,6 +25,14 @@ ArrayUtil.find = function(a,f) {
 	}
 	return null;
 }
+ArrayUtil.find_index = function(a,f) {
+	var _g1 = 0, _g = a.length;
+	while(_g1 < _g) {
+		var i = _g1++;
+		if(f(a[i])) return i;
+	}
+	return null;
+}
 var DateTools = function() { }
 $hxClasses["DateTools"] = DateTools;
 DateTools.__name__ = ["DateTools"];
@@ -718,7 +726,11 @@ MyPage.toggleFavorite = function(postId) {
 	$.ajax({ url : "/foo/ajax/m/favor", method : "post", data : { target : postId}});
 }
 MyPage.continueReading = function(obj) {
-	MyPage.fillOlderTimeline(new $(obj).closest(".timeline"),null);
+	var e = new $(obj);
+	var timeline = e.closest(".timeline");
+	var newestScore = e.attr("newest-score");
+	var oldestScore = MyPage.kickUndefined(e.attr("oldest-score"));
+	MyPage.fetchTimeline(timeline,newestScore,oldestScore,null);
 }
 MyPage.chooseStamp = function(obj,timelineId) {
 	var chooser = new $("#stamp-chooser");
@@ -742,9 +754,6 @@ MyPage.fillTimeline = function(timeline,version) {
 MyPage.fillNewerTimeline = function(timeline,version) {
 	MyPage.fetchTimeline(timeline,null,timeline.attr("newest-score"),version);
 }
-MyPage.fillOlderTimeline = function(timeline,version) {
-	MyPage.fetchTimeline(timeline,timeline.attr("oldest-score"),null,version);
-}
 MyPage.getTimeline = function(timelineId) {
 	return new $("[timeline-id=\"" + timelineId + "\"]");
 }
@@ -755,20 +764,22 @@ MyPage.fetchTimeline = function(oldTimeline,newestScore,oldestScore,version) {
 	$.ajax({ url : "/foo/ajax/v/timeline", data : { timeline : timelineId, newest_score : MyPage.kickUndefined(newestScore), oldest_score : MyPage.kickUndefined(oldestScore), count : 3}, dataType : "jsonp"}).done(function(data) {
 		data.level = level;
 		var posts = data.posts;
-		var _g1 = 0, _g = posts.length;
-		while(_g1 < _g) {
-			var i = _g1++;
-			var post = posts[i];
+		var _g = 0;
+		while(_g < posts.length) {
+			var post = posts[_g];
+			++_g;
 			var favoredBy = "";
 			var srcFavoredBy = post.detail.favoredBy;
-			var _g3 = 0, _g2 = srcFavoredBy.length;
-			while(_g3 < _g2) {
-				var j = _g3++;
-				favoredBy += "<img src=\"http://www.gravatar.com/avatar/" + srcFavoredBy[j] + "?s=16&d=mm\" alt=\"gravator\"/>";
+			var _g1 = 0;
+			while(_g1 < srcFavoredBy.length) {
+				var vv = srcFavoredBy[_g1];
+				++_g1;
+				favoredBy += "<img src=\"http://www.gravatar.com/avatar/" + vv + "?s=16&d=mm\" alt=\"gravator\"/>";
 			}
 			post.detail.favoredBy = favoredBy;
 			post.detail = MyPage.applyTemplate("Detail",post.detail);
 		}
+		data.ranges = "[[" + Std.string(data.newestScore) + ", " + Std.string(data.oldestScore) + "]]";
 		MyPage.finishLoad(oldTimeline,function() {
 			var output = MyPage.applyTemplate("Timeline",data);
 			var entry = MyPage.getEntry(oldTimeline);
@@ -790,7 +801,7 @@ MyPage.mergeTimeline = function(oldTimeline,newTimeline) {
 		var oldScore = Std.parseInt(oe.attr("score"));
 		var newScore = null;
 		while(oldScore <= (newScore = Std.parseInt(ne.attr("score")))) {
-			if(oldScore == Std.parseInt(ne.attr("score"))) oe.replaceWith(ne); else {
+			if(oldScore == newScore) oe.replaceWith(ne); else {
 				ne.insertBefore(oe);
 				var postId = ne.attr("post-id");
 				var oldPost = ne.nextAll("[post-id=" + postId + "]");
@@ -811,15 +822,40 @@ MyPage.mergeTimeline = function(oldTimeline,newTimeline) {
 		oldTimeline.append(ne);
 		oldTimeline.append(nextne);
 	}
-	MyPage.updateScore(oldTimeline,newTimeline,"newest-score",Math.max);
-	MyPage.updateScore(oldTimeline,newTimeline,"oldest-score",Math.min);
-	var oldestScore = MyPage.kickUndefined(oldTimeline.attr("oldest-score"));
-	if(oldestScore != "0" && oldestScore != null) oldTimeline.append("<a class=\"continue-reading\" href=\"#\" onclick=\"MyPage.continueReading(this); return false;\">続きを読む</a>");
+	var ranges = new Ranges();
+	var oldTimelineRangesAttr = oldTimeline.attr("ranges");
+	if(MyPage.kickUndefined(oldTimelineRangesAttr) != null) ranges.from_array($.parseJSON(oldTimelineRangesAttr));
+	var tmpRangeArray = $.parseJSON(newTimeline.attr("ranges"));
+	var _g = 0;
+	while(_g < tmpRangeArray.length) {
+		var v = tmpRangeArray[_g];
+		++_g;
+		ranges.add(v[0],v[1]);
+	}
+	var _g = 0, _g1 = ranges.elems;
+	while(_g < _g1.length) {
+		var v = _g1[_g];
+		++_g;
+		if(v.e != 0) MyPage.insertContinueReading(oldTimeline,v.e);
+	}
+	oldTimeline.attr("range",JSON.stringify(ranges.to_array()));
 }
-MyPage.updateScore = function(oldTimeline,newTimeline,label,cmp) {
-	var oldScore = MyPage.kickUndefined(oldTimeline.attr(label));
-	var newScore = MyPage.kickUndefined(newTimeline.attr(label));
-	if(oldScore == null) oldTimeline.attr(label,newScore); else if(newScore != null) oldTimeline.attr(label,cmp(Std.parseInt(oldTimeline.attr(label)),Std.parseInt(newTimeline.attr(label))));
+MyPage.insertContinueReading = function(timeline,score) {
+	var link = new $("<a class=\"continue-reading\" href=\"#\" onclick=\"MyPage.continueReading(this);return false;\">続きを読む</a>");
+	link.attr("newest-score",score);
+	var a = timeline.children().get();
+	var _g = 0;
+	while(_g < a.length) {
+		var v = a[_g];
+		++_g;
+		var oldScore = Std.parseInt(new $(v).attr("score"));
+		if(oldScore < score) {
+			link.attr("oldest-score",oldScore);
+			link.insertBefore(v);
+			return;
+		}
+	}
+	timeline.append(link);
 }
 MyPage.saveCommentsOpenStates = function() {
 	console.log("saveCommentsOpenStates");
@@ -848,7 +884,6 @@ MyPage.loadOpenStates = function() {
 MyPage.loadOpenStatesAux = function(label,f) {
 	var cookie = MyPage.kickUndefined(js.Cookie.get(label));
 	if(cookie == null) return;
-	console.log("" + label + " = " + cookie);
 	var rawOpened = $.parseJSON(cookie);
 	var opened = new Hash();
 	var _g = 0;
@@ -869,7 +904,7 @@ MyPage.getTimelineIdFromEntryContent = function(e) {
 MyPage.startLoad = function(timeline,version) {
 	if(timeline.attr("loading") != null) {
 		var oldWaiting = MyPage.kickUndefined(timeline.attr("waiting"));
-		if(oldWaiting == null || Std.parseInt(oldWaiting) < version) timeline.attr("waiting",version);
+		if(version != null && oldWaiting == null || Std.parseInt(oldWaiting) < version) timeline.attr("waiting",version);
 		return false;
 	}
 	if(version != null) {
@@ -977,6 +1012,84 @@ MyPage.isUndefined = function(x) {
 MyPage.kickUndefined = function(x) {
 	if(MyPage.isUndefined(x)) return null;
 	return x;
+}
+var Range = function(b,e) {
+	this.b = b;
+	this.e = e;
+};
+$hxClasses["Range"] = Range;
+Range.__name__ = ["Range"];
+Range.prototype = {
+	e: null
+	,b: null
+	,__class__: Range
+}
+var Ranges = function() {
+	this.elems = new Array();
+};
+$hxClasses["Ranges"] = Ranges;
+Ranges.__name__ = ["Ranges"];
+Ranges.prototype = {
+	elems: null
+	,from_array: function(a) {
+		var _g = 0;
+		while(_g < a.length) {
+			var v = a[_g];
+			++_g;
+			this.add(v[0],v[1]);
+		}
+	}
+	,to_array: function() {
+		var a = [];
+		var _g = 0, _g1 = this.elems;
+		while(_g < _g1.length) {
+			var v = _g1[_g];
+			++_g;
+			a.push([v.b,v.e]);
+		}
+		return a;
+	}
+	,print: function() {
+		var s = "";
+		var _g = 0, _g1 = this.elems;
+		while(_g < _g1.length) {
+			var v = _g1[_g];
+			++_g;
+			s += "" + v.b + "-" + v.e + " ";
+		}
+		console.log(s);
+	}
+	,add: function(b,e) {
+		var _g = this;
+		if(this.leq(e,b)) throw "arguments must be b <= e";
+		if(b == e) return;
+		var next = ArrayUtil.find_index(this.elems,function(e1) {
+			return _g.lt(b,e1.b);
+		});
+		if(next == null) next = this.elems.length;
+		var range = new Range(b,e);
+		if(0 < next && this.leq(b,this.elems[next - 1].e)) this.elems[next - 1].e = e; else {
+			this.elems.splice(next,0,range);
+			next++;
+		}
+		var base = this.elems[next - 1];
+		var remove_last = next;
+		while(remove_last < this.elems.length && this.leq(this.elems[remove_last].e,base.e)) remove_last++;
+		if(next < remove_last) this.elems.splice(next,remove_last - next);
+		if(next < this.elems.length) {
+			if(this.leq(this.elems[next].b,base.e)) {
+				base.e = this.elems[next].e;
+				this.elems.splice(next,1);
+			}
+		}
+	}
+	,leq: function(x,y) {
+		return x >= y;
+	}
+	,lt: function(x,y) {
+		return x > y;
+	}
+	,__class__: Ranges
 }
 var Reflect = function() { }
 $hxClasses["Reflect"] = Reflect;
@@ -2425,7 +2538,7 @@ Bool.__ename__ = ["Bool"];
 var Class = $hxClasses.Class = { __name__ : ["Class"]};
 var Enum = { };
 var Void = $hxClasses.Void = { __ename__ : ["Void"]};
-haxe.Resource.content = [{ name : "Detail", data : "s748:PGRpdiBjbGFzcz0iZGV0YWlsIiBjb21tZW50LWNvdW50PSI6OmNvbW1lbnRzTGVuZ3RoOjoiIGNvbW1lbnRzLXZlcnNpb249Ijo6Y29tbWVudHNWZXJzaW9uOjoiPgogIDxkaXYgY2xhc3M9ImF1dGhvciI%CiAgICA8c3BhbiBjbGFzcz0ibGFiZWwiPgogICAgICA6OmF1dGhvckxhYmVsOjoKICAgIDwvc3Bhbj4KICAgIDxzcGFuIGNsYXNzPSJ1c2VybmFtZSI%CiAgICAgIEA6OmF1dGhvclVzZXJuYW1lOjoKICAgIDwvc3Bhbj4KICAgIDxzcGFuIGNsYXNzPSJmYXZvcmVkX2J5Ij4KICAgICAgOjpmYXZvcmVkQnk6OgogICAgPC9zcGFuPgogICAgPHNwYW4gY2xhc3M9ImZhdm9yaXRlIj4KICAgICAgOjppZiAodXNlckV4aXN0cyk6OgogICAgICA8YSBocmVmPSIjIiBvbmNsaWNrPSJNeVBhZ2UudG9nZ2xlRmF2b3JpdGUoOjpwb3N0SWQ6Oik7cmV0dXJuIGZhbHNlOyI%CiAgICAgICAgOjpmYXZvckxhYmVsOjoKICAgICAgPC9hPgogICAgICA6OmVuZDo6CiAgICA8L3NwYW4%CiAgPC9kaXY%CiAgPGRpdiBjbGFzcz0iY29udGVudCI%CiAgICA6OmNvbnRlbnQ6OgogIDwvZGl2Pgo8L2Rpdj4K"},{ name : "Timeline", data : "s2598:PHNlY3Rpb24gY2xhc3M9InRpbWVsaW5lIgogICAgICAgICBsZXZlbD0iOjpsZXZlbDo6IgogICAgICAgICB0aW1lbGluZS1pZD0iOjp0aW1lbGluZUlkOjoiCiAgICAgICAgIHZlcnNpb249Ijo6dGltZWxpbmVWZXJzaW9uOjoiCiAgICAgICAgIDo6aWYgKG5ld2VzdFNjb3JlICE9IG51bGwpOjogbmV3ZXN0LXNjb3JlPSI6Om5ld2VzdFNjb3JlOjoiIDo6ZW5kOjoKICAgICAgICAgOjppZiAob2xkZXN0U2NvcmUgIT0gbnVsbCk6OiBvbGRlc3Qtc2NvcmU9Ijo6b2xkZXN0U2NvcmU6OiIgOjplbmQ6OgogICAgICAgICA%CiAgOjpmb3JlYWNoIHBvc3RzOjoKICA8YXJ0aWNsZSBjbGFzcz0icG9zdCIgc2NvcmU9Ijo6X19jdXJyZW50X18uc2NvcmU6OiIgcG9zdC1pZD0iOjpfX2N1cnJlbnRfXy5wb3N0SWQ6OiIgdmVyc2lvbj0iOjpfX2N1cnJlbnRfXy5wb3N0VmVyc2lvbjo6Ij4KICAgIDxkaXYgY2xhc3M9ImF2YXRhciI%CiAgICAgIDxkaXYgY2xhc3M9Imljb24iPgogICAgICAgIDxpbWcgc3JjPSJodHRwOi8vd3d3LmdyYXZhdGFyLmNvbS9hdmF0YXIvOjpfX2N1cnJlbnRfXy5pY29uOjo:cz00MCZkPW1tIiBhbHQ9ImdyYXZhdG9yIi8%CiAgICAgIDwvZGl2PgogICAgPC9kaXY%CiAgICA8ZGl2IGNsYXNzPSJlbnRyeSI%CiAgICAgIDo6X19jdXJyZW50X18uZGV0YWlsOjoKCiAgICAgIDo6aWYgKGxldmVsID09IDApOjoKICAgICAgPGRpdiBjbGFzcz0ib3BlcmF0aW9uIj4KICAgICAgICA8YSBjbGFzcz0ic2hvdy1jb21tZW50IiBocmVmPSIjIiBvbmNsaWNrPSJNeVBhZ2UudG9nZ2xlQ29tbWVudHModGhpcyk7cmV0dXJuIGZhbHNlOyI%CiAgICAgICAgICA8aW1nIHNyYz0iOjpjaGF0SWNvblVybDo6Ij4KICAgICAgICAgIDxzcGFuIGNsYXNzPSJzaG93LWNvbW1lbnQtbGFiZWwiPsOXOjpfX2N1cnJlbnRfXy5jb21tZW50c0xlbmd0aDo6PC9zcGFuPgogICAgICAgIDwvYT4KICAgICAgICA6OmlmIHVzZXJFeGlzdHM6OgogICAgICAgIDxzcGFuIGNsYXNzPSJ1aS1kZWxpbWl0ZXItOCI%PC9zcGFuPgogICAgICAgIDxhIGNsYXNzPSJwb3N0LWNvbW1lbnQiIGhyZWY9IiMiIG9uY2xpY2s9Ik15UGFnZS50b2dnbGVDb21tZW50Rm9ybSh0aGlzKTtyZXR1cm4gZmFsc2U7Ij7jgrPjg6Hjg7Pjg4jjgZnjgos8L2E%CiAgICAgICAgOjplbmQ6OgogICAgICA8L2Rpdj4KICAgICAgOjplbmQ6OgoKICAgICAgOjppZiB1c2VyRXhpc3RzOjoKICAgICAgPGRpdiBjbGFzcz0iY29tbWVudC1mb3JtIj4KICAgICAgICA8Zm9ybT4KICAgICAgICAgIDxpbnB1dCB0eXBlPSJoaWRkZW4iIG5hbWU9InBhcmVudCIgdmFsdWU9Ijo6X19jdXJyZW50X18ucG9zdElkOjoiLz4KICAgICAgICAgIDx0ZXh0YXJlYSBuYW1lPSJjb250ZW50Ij48L3RleHRhcmVhPgogICAgICAgICAgPGlucHV0IHR5cGU9ImJ1dHRvbiIgdmFsdWU9IuaKleeovyIgb25jbGljaz0iTXlQYWdlLnBvc3RDb21tZW50KDo6X19jdXJyZW50X18uY29tbWVudHNJZDo6LCAkKHRoaXMpLnBhcmVudCgpKTtyZXR1cm4gZmFsc2U7Ii8%CiAgICAgICAgPC9mb3JtPgogICAgICAgIDxhIGhyZWY9IiMiIG9uY2xpY2s9Ik15UGFnZS5jaG9vc2VTdGFtcCh0aGlzLCA6Ol9fY3VycmVudF9fLmNvbW1lbnRzSWQ6Oik7cmV0dXJuIGZhbHNlOyI%44K544K:44Oz44OXPC9hPgogICAgICA8L2Rpdj4KICAgICAgOjplbmQ6OgogICAgICAKICAgICAgPGRpdiBjbGFzcz0iY29tbWVudHMiIGNvdW50PSI6Ol9fY3VycmVudF9fLmNvbW1lbnRzTGVuZ3RoOjoiPgogICAgICAgIDxzZWN0aW9uIGNsYXNzPSJ0aW1lbGluZSIgbGV2ZWw9Ijo6KGxldmVsICsgMSk6OiIgdGltZWxpbmUtaWQ9Ijo6X19jdXJyZW50X18uY29tbWVudHNJZDo6IiB2ZXJzaW9uPSIwIj4KICAgICAgICA8L3NlY3Rpb24%ICAgICAgICAKICAgICAgPC9kaXY%CiAgICA8L2Rpdj4KICA8L2FydGljbGU%CiAgOjplbmQ6Ogo8L3NlY3Rpb24%Cg"}];
+haxe.Resource.content = [{ name : "Detail", data : "s748:PGRpdiBjbGFzcz0iZGV0YWlsIiBjb21tZW50LWNvdW50PSI6OmNvbW1lbnRzTGVuZ3RoOjoiIGNvbW1lbnRzLXZlcnNpb249Ijo6Y29tbWVudHNWZXJzaW9uOjoiPgogIDxkaXYgY2xhc3M9ImF1dGhvciI%CiAgICA8c3BhbiBjbGFzcz0ibGFiZWwiPgogICAgICA6OmF1dGhvckxhYmVsOjoKICAgIDwvc3Bhbj4KICAgIDxzcGFuIGNsYXNzPSJ1c2VybmFtZSI%CiAgICAgIEA6OmF1dGhvclVzZXJuYW1lOjoKICAgIDwvc3Bhbj4KICAgIDxzcGFuIGNsYXNzPSJmYXZvcmVkX2J5Ij4KICAgICAgOjpmYXZvcmVkQnk6OgogICAgPC9zcGFuPgogICAgPHNwYW4gY2xhc3M9ImZhdm9yaXRlIj4KICAgICAgOjppZiAodXNlckV4aXN0cyk6OgogICAgICA8YSBocmVmPSIjIiBvbmNsaWNrPSJNeVBhZ2UudG9nZ2xlRmF2b3JpdGUoOjpwb3N0SWQ6Oik7cmV0dXJuIGZhbHNlOyI%CiAgICAgICAgOjpmYXZvckxhYmVsOjoKICAgICAgPC9hPgogICAgICA6OmVuZDo6CiAgICA8L3NwYW4%CiAgPC9kaXY%CiAgPGRpdiBjbGFzcz0iY29udGVudCI%CiAgICA6OmNvbnRlbnQ6OgogIDwvZGl2Pgo8L2Rpdj4K"},{ name : "Timeline", data : "s2431:PHNlY3Rpb24gY2xhc3M9InRpbWVsaW5lIgogICAgICAgICBsZXZlbD0iOjpsZXZlbDo6IgogICAgICAgICB0aW1lbGluZS1pZD0iOjp0aW1lbGluZUlkOjoiCiAgICAgICAgIHZlcnNpb249Ijo6dGltZWxpbmVWZXJzaW9uOjoiCiAgICAgICAgIHJhbmdlcz0iOjpyYW5nZXM6OiIKICAgICAgICAgPgogIDo6Zm9yZWFjaCBwb3N0czo6CiAgPGFydGljbGUgY2xhc3M9InBvc3QiIHNjb3JlPSI6Ol9fY3VycmVudF9fLnNjb3JlOjoiIHBvc3QtaWQ9Ijo6X19jdXJyZW50X18ucG9zdElkOjoiIHZlcnNpb249Ijo6X19jdXJyZW50X18ucG9zdFZlcnNpb246OiI%CiAgICA8ZGl2IGNsYXNzPSJhdmF0YXIiPgogICAgICA8ZGl2IGNsYXNzPSJpY29uIj4KICAgICAgICA8aW1nIHNyYz0iaHR0cDovL3d3dy5ncmF2YXRhci5jb20vYXZhdGFyLzo6X19jdXJyZW50X18uaWNvbjo6P3M9NDAmZD1tbSIgYWx0PSJncmF2YXRvciIvPgogICAgICA8L2Rpdj4KICAgIDwvZGl2PgogICAgPGRpdiBjbGFzcz0iZW50cnkiPgogICAgICA6Ol9fY3VycmVudF9fLmRldGFpbDo6CgogICAgICA6OmlmIChsZXZlbCA9PSAwKTo6CiAgICAgIDxkaXYgY2xhc3M9Im9wZXJhdGlvbiI%CiAgICAgICAgPGEgY2xhc3M9InNob3ctY29tbWVudCIgaHJlZj0iIyIgb25jbGljaz0iTXlQYWdlLnRvZ2dsZUNvbW1lbnRzKHRoaXMpO3JldHVybiBmYWxzZTsiPgogICAgICAgICAgPGltZyBzcmM9Ijo6Y2hhdEljb25Vcmw6OiI%CiAgICAgICAgICA8c3BhbiBjbGFzcz0ic2hvdy1jb21tZW50LWxhYmVsIj7Dlzo6X19jdXJyZW50X18uY29tbWVudHNMZW5ndGg6Ojwvc3Bhbj4KICAgICAgICA8L2E%CiAgICAgICAgOjppZiB1c2VyRXhpc3RzOjoKICAgICAgICA8c3BhbiBjbGFzcz0idWktZGVsaW1pdGVyLTgiPjwvc3Bhbj4KICAgICAgICA8YSBjbGFzcz0icG9zdC1jb21tZW50IiBocmVmPSIjIiBvbmNsaWNrPSJNeVBhZ2UudG9nZ2xlQ29tbWVudEZvcm0odGhpcyk7cmV0dXJuIGZhbHNlOyI%44Kz44Oh44Oz44OI44GZ44KLPC9hPgogICAgICAgIDo6ZW5kOjoKICAgICAgPC9kaXY%CiAgICAgIDo6ZW5kOjoKCiAgICAgIDo6aWYgdXNlckV4aXN0czo6CiAgICAgIDxkaXYgY2xhc3M9ImNvbW1lbnQtZm9ybSI%CiAgICAgICAgPGZvcm0%CiAgICAgICAgICA8aW5wdXQgdHlwZT0iaGlkZGVuIiBuYW1lPSJwYXJlbnQiIHZhbHVlPSI6Ol9fY3VycmVudF9fLnBvc3RJZDo6Ii8%CiAgICAgICAgICA8dGV4dGFyZWEgbmFtZT0iY29udGVudCI%PC90ZXh0YXJlYT4KICAgICAgICAgIDxpbnB1dCB0eXBlPSJidXR0b24iIHZhbHVlPSLmipXnqL8iIG9uY2xpY2s9Ik15UGFnZS5wb3N0Q29tbWVudCg6Ol9fY3VycmVudF9fLmNvbW1lbnRzSWQ6OiwgJCh0aGlzKS5wYXJlbnQoKSk7cmV0dXJuIGZhbHNlOyIvPgogICAgICAgIDwvZm9ybT4KICAgICAgICA8YSBocmVmPSIjIiBvbmNsaWNrPSJNeVBhZ2UuY2hvb3NlU3RhbXAodGhpcywgOjpfX2N1cnJlbnRfXy5jb21tZW50c0lkOjopO3JldHVybiBmYWxzZTsiPuOCueOCv%ODs%ODlzwvYT4KICAgICAgPC9kaXY%CiAgICAgIDo6ZW5kOjoKICAgICAgCiAgICAgIDxkaXYgY2xhc3M9ImNvbW1lbnRzIiBjb3VudD0iOjpfX2N1cnJlbnRfXy5jb21tZW50c0xlbmd0aDo6Ij4KICAgICAgICA8c2VjdGlvbiBjbGFzcz0idGltZWxpbmUiIGxldmVsPSI6OihsZXZlbCArIDEpOjoiIHRpbWVsaW5lLWlkPSI6Ol9fY3VycmVudF9fLmNvbW1lbnRzSWQ6OiIgdmVyc2lvbj0iMCI%CiAgICAgICAgPC9zZWN0aW9uPiAgICAgICAgCiAgICAgIDwvZGl2PgogICAgPC9kaXY%CiAgPC9hcnRpY2xlPgogIDo6ZW5kOjoKPC9zZWN0aW9uPgo"}];
 js.XMLHttpRequest = window.XMLHttpRequest?XMLHttpRequest:window.ActiveXObject?function() {
 	try {
 		return new ActiveXObject("Msxml2.XMLHTTP");
