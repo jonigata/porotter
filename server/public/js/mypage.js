@@ -722,8 +722,10 @@ MyPage.continueReading = function(obj) {
 }
 MyPage.chooseStamp = function(obj,timelineId) {
 	var chooser = new $("#stamp-chooser");
-	chooser.find("a").each(function(i,e) {
-		new $(e).click(function() {
+	chooser.find("a").each(function(i,elem) {
+		var e = new $(elem);
+		e.unbind("click");
+		e.click(function() {
 			MyPage.postStamp(timelineId,new $(obj),new $(e));
 		});
 	});

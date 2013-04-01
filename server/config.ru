@@ -15,6 +15,7 @@ require './models/timeline.rb'
 
 URL_PREFIX='/foo'
 
+require './plugin_service'
 require './web_server_helper'
 require './api_helper'
 require './app'

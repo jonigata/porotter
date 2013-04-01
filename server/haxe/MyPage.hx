@@ -108,8 +108,10 @@ class MyPage {
     static function chooseStamp(obj: Dynamic, timelineId: Int) {
         var chooser: Dynamic = new JQuery('#stamp-chooser');
         chooser.find('a').each(
-            function(i: Int, e: Dynamic) {
-                new JQuery(e).click(
+            function(i: Int, elem: Dynamic) {
+                var e = new JQuery(elem);
+                e.unbind('click');
+                e.click(
                     function() {
                         postStamp(timelineId, new JQuery(obj), new JQuery(e));
                     });

@@ -44,9 +44,14 @@ module WebServerHelper
   def self.included(klass)
     klass.class_eval do
       configure :development do
+        Dir.glob("#{File.dirname(__FILE__)}/plugins/*.rb") do |file|
+          require file
+        end
+
         register Sinatra::Reloader
         also_reload "#{File.dirname(__FILE__)}/*.rb"
         also_reload "#{File.dirname(__FILE__)}/models/*.rb"
+        also_reload "#{File.dirname(__FILE__)}/plugins/*.rb"
       end
 
       enable :sessions
