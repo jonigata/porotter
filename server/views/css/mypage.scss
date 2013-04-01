@@ -132,6 +132,22 @@ body {
             .comment-form {
                 display: none;
                 margin-top: 4px;
+
+                .left {
+                    float: left;
+                    textarea {
+                        width: 240px;
+                        height: 32px;
+                    }
+                }
+                .right {
+                    margin-left: 320px;
+                    a {
+                        line-height: 32px;
+                        vertical-align: middle;
+                    }
+                }
+                @include clearfix;
             }
         }
     }
