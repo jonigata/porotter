@@ -129,7 +129,7 @@ class MyPage {
     // private functions
     static private function postStamp(
         timelineId: Int, source: Dynamic, selected: Dynamic) {
-        var form = source.closest('.comment-form').find('> .left > form');
+        var form = source.closest('.comment-form').find('> form');
         var image = selected.attr('image');
         JQuery._static.ajax({
             url: "/foo/ajax/m/stamp",

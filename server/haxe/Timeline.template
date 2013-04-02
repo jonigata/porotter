@@ -29,16 +29,12 @@
 
       ::if userExists::
       <div class="comment-form">
-        <div class="left">
-          <form>
-            <input type="hidden" name="parent" value="::__current__.postId::"/>
-            <textarea name="content"></textarea>
-            <input type="button" value="投稿" onclick="MyPage.postComment(::__current__.commentsId::, $(this).parent());return false;"/>
-          </form>
-        </div>
-        <div class="right">
+        <form>
+          <input type="hidden" name="parent" value="::__current__.postId::"/>
+          <textarea name="content"></textarea><br/>
+          <input type="button" value="投稿" onclick="MyPage.postComment(::__current__.commentsId::, $(this).parent());return false;"/>
           <a href="#" onclick="MyPage.chooseStamp(this, ::__current__.commentsId::);return false;">スタンプ</a>
-        </div>
+        </form>
       </div>
       ::end::
       

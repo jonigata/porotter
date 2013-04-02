@@ -5,11 +5,17 @@
 
   <body>
     <%= erb :_preamble %>
-    <%= erb :_owner, :locals => { :timeline => timeline } %>
 
-    <div id="root">
-      <section class="timeline" level="0" timeline-id="<%= timeline.store.id %>" version="0">
-      </section>
+    <div class="workspace">
+      <div class="ribbon-outer" id="root">
+        <section class="ribbon">
+          <div class="ribbon-inner" id="root">
+            <%= erb :_newarticle, :locals => { :timeline => timeline }  %>
+            <section class="timeline" level="0" timeline-id="<%= timeline.store.id %>" version="0">
+            </section>
+          </div>
+        </section>
+      </div>
     </div>
   </body>
 </html>

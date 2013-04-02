@@ -1,10 +1,10 @@
 <header>
-  <h1>ぽろったー</h1>
-  <p class="subtitle">ぽろったーは、リアルタイムに配信される情報にコメントを付けながら交流できるシステムです。</p>
-  <p>
+  <div class="headline">
+    <span>ぽろったー</span>
     <a href="https://github.com/jonigata/porotter">github</a>
-    <div id="stamp-chooser">
-      <%= erb :_stamps %>
-    </div>
-  </p>
+    <a href="<%= local_url('/preferences') %>">個人設定</a>
+  </div>
+  <div id="stamp-chooser">
+    <%= erb :_stamps %>
+  </div>
 </header>
