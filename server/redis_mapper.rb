@@ -962,6 +962,30 @@ RUBY
       end
     end
   end
+
+  module Singleton
+    def self.included(klass)
+      klass.class_eval do
+        def self.singleton
+          key = "#{self.klass_snakecase}:singleton"
+          if self.redis.setnx(key, 0)
+            self.new_instance do |instance|
+              self.redis.set(key, instance.store.id)
+              puts "singleton created"
+            end
+          else
+            id = self.redis.get(key).to_i
+            if id == 0 
+              sleep 0.1
+              id = self.redis.get(key).to_i
+              raise "perhaps singleton creator is dead." 
+            end
+            self.attach_if_exist(id)
+          end
+        end
+      end
+    end
+  end
   
 end
 
