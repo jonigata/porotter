@@ -6,6 +6,10 @@ class Spotter < RedisMapper::PlatformModel
     end
   end
 
+  def add_member(member)
+    self.store.members.add(member)
+  end
+
   property  :access_rank,   Symbol      # :public, :closed, :private
   property  :members,       Group
 end

@@ -12,6 +12,8 @@ require './models/user.rb'
 require './models/users.rb'
 require './models/post.rb'
 require './models/timeline.rb'
+require './models/board.rb'
+require './models/spotter.rb'
 
 URL_PREFIX='/foo'
 

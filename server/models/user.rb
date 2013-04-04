@@ -28,6 +28,7 @@ class User < RedisMapper::PlatformModel
           user.store.watchers.add(user.store.my_posts)
           user.store.watchers.add(user.store.primary_timeline)
           user.add_article("最初の投稿です")
+          user.store.board = Board.create(:private)
 
           Users.singleton.add_user(user)
         end
