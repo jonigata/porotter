@@ -47,26 +47,26 @@ class User < RedisMapper::PlatformModel
     self.store.hashed_password == Misc.hash_pw(self.store.salt, password)
   end
 
-  def add_article(content)
-    Post.create(self, content).tap do |post|
+  def add_article(type, content)
+    Post.create(self, type, content).tap do |post|
       self.store.watchers.each do |tl|
         tl.add_post(post)
       end
     end
   end
 
-  def add_comment(parent, content)
-    parent.add_comment(self, content)
+  def add_comment(parent, type, content)
+    parent.add_comment(self, type, content)
   end
 
   def toggle_favorite(post)
     self.store.favorites ||= Timeline.create
     if !favors?(post)
       self.store.favorites.add_post(post)
-      post.favor(self)
+      post.favored_by(self)
     else
       self.store.favorites.remove_post(post)
-      post.unfavor(self)
+      post.unfavored_by(self)
     end
   end
 

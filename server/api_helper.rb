@@ -26,7 +26,7 @@ module APIHelper
       post '/m/newcomment' do
         r = ensure_params(
           :parent => [/[0-9]+/, Integer])
-        post_new_comment(r.parent, params[:content])
+        post_new_comment(r.parent, :Tweet, params[:content])
       end
 
       post '/m/favor' do
@@ -39,7 +39,7 @@ module APIHelper
       post '/m/stamp' do
         r = ensure_params(
           :parent => [/[0-9]+/, Integer])
-        puts params[:content]
+        post_new_comment(r.parent, :Stamp, params[:content])
       end
     end
   end
@@ -56,12 +56,12 @@ module APIHelper
   end
 
   def post_new_article(content)
-    @user.add_article(content).store.id.to_s
+    @user.add_article(:Tweet, content).store.id.to_s
   end
 
-  def post_new_comment(parent_id, content)
+  def post_new_comment(parent_id, type, content)
     parent = Post.attach_if_exist(parent_id) or raise
-    @user.add_comment(parent, params[:content]).store.id.to_s
+    @user.add_comment(parent, type, params[:content]).store.id.to_s
   end
 
   def favor(target_id)
@@ -84,19 +84,11 @@ module APIHelper
     end
   end
 
-  def display_post_content(content)
-    if content == ''
-      "<span class='deleted'>この投稿は削除されています</span>"
-    else
-      Sanitize.clean(content).gsub(URI.regexp) do |uri|
-        "<a class='external-link' href='#{uri}' target='_blank'>#{uri}</a>"
-      end
-    end
-  end
-
   def make_detail_data(post)
     comments = post.store.comments;
     author = post.store.author
+    content = PlugIns.module_eval(post.type.to_s).display(
+      PluginService.new(settings), post)
     {
       :commentsId => comments.store.id,
       :commentsLength => comments.length,
@@ -109,7 +101,7 @@ module APIHelper
       :userExists => (@user ? true : false),
       :postId => post.store.id,
       :favorLabel => @user ? (@user.favors?(post) ? 'そうでもない' : 'そうかも') : '',
-      :content => display_post_content(post.store.content)
+      :content => content
     }
   end
 

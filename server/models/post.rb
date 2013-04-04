@@ -1,17 +1,22 @@
 class Post < RedisMapper::PlatformModel
-  def self.create(user, content)
+  def self.create(author, type, content)
     self.new_instance do |post|
+      post.store.type = type
       post.store.version = 1
-      post.store.author = user
+      post.store.author = author
       post.store.content = content
       post.store.created_at = post.store.updated_at = Time.now
       post.store.comments = Timeline.create
     end
   end
 
-  def add_comment(author, content)
+  def type
+    self.store.type.kick(nil, :Tweet)
+  end
+
+  def add_comment(author, type, content)
     version_up
-    Post.create(author, content).tap do |post|
+    Post.create(author, type, content).tap do |post|
       self.store.comments.add_post(post)
       self.store.watched_by.each do |timeline|
         timeline.on_add_comment(self)
@@ -19,12 +24,12 @@ class Post < RedisMapper::PlatformModel
     end
   end
 
-  def favor(user)
+  def favored_by(user)
     version_up
     self.store.favored_by.add(user)
   end
 
-  def unfavor(user)
+  def unfavored_by(user)
     version_up
     self.store.favored_by.remove(user)
   end
@@ -40,6 +45,7 @@ class Post < RedisMapper::PlatformModel
     end
   end
 
+  property  :type,          Symbol
   property  :version,       Integer
   property  :author,        User
   property  :content,       String

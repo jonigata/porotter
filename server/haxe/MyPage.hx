@@ -86,6 +86,7 @@ class MyPage {
             }
         }).done(function() {
             openComments(getEntry(form).find('> .comments'));
+            saveCommentFormOpenStates();
         });
         form.find('[name="content"]').val('');
         form.find('textarea').focus();
@@ -112,10 +113,13 @@ class MyPage {
     static function chooseStamp(obj: Dynamic, timelineId: Int) {
         var chooser: Dynamic = new JQuery('#stamp-chooser');
         chooser.find('a').each(
-            function(i: Int, e: Dynamic) {
-                new JQuery(e).click(
+            function(i: Int, elem: Dynamic) {
+                var e = new JQuery(elem);
+                e.unbind('click');
+                e.click(
                     function() {
                         postStamp(timelineId, new JQuery(obj), new JQuery(e));
+                        chooser.close();
                     });
             });
         chooser.justModal();
@@ -125,7 +129,7 @@ class MyPage {
     // private functions
     static private function postStamp(
         timelineId: Int, source: Dynamic, selected: Dynamic) {
-        var form = source.parent().find('> form');
+        var form = source.closest('.comment-form').find('> .left > form');
         var image = selected.attr('image');
         JQuery._static.ajax({
             url: "/foo/ajax/m/stamp",
@@ -137,6 +141,7 @@ class MyPage {
             }
         }).done(function() {
             openComments(getEntry(form).find('> .comments'));
+            saveCommentFormOpenStates();
         });
     }
 

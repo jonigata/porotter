@@ -21,6 +21,7 @@
             };
             overlay.click(close_modal);
             $(o.closeButton).click(close_modal);
+            this.close = close_modal;
 
             // show overlay
             overlay.css({
