@@ -19,8 +19,7 @@ class Porotter < Sinatra::Base
   end
 
   get '/' do
-    # erb :mypage
-    erb :allpage
+    erb :mypage, :locals => { :board => @user.store.board }
   end
 
   get "/user/all" do

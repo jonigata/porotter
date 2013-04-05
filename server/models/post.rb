@@ -11,16 +11,14 @@ class Post < RedisMapper::PlatformModel
   end
 
   def type
-    self.store.type.kick(nil, :Tweet)
+    self.store.type
   end
 
-  def add_comment(author, type, content)
+  def add_comment(post)
     version_up
-    Post.create(author, type, content).tap do |post|
-      self.store.comments.add_post(post)
-      self.store.watched_by.each do |timeline|
-        timeline.on_add_comment(self)
-      end
+    self.store.comments.add_post(post)
+    self.store.watched_by.each do |timeline|
+      timeline.on_post_modified(self)
     end
   end
 

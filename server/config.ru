@@ -11,9 +11,11 @@ RedisMapper::PlatformModel.set_redis(Redis.new)
 require './models/user.rb'
 require './models/users.rb'
 require './models/post.rb'
-require './models/timeline.rb'
-require './models/board.rb'
+require './models/group.rb'
 require './models/spotter.rb'
+require './models/timeline.rb'
+require './models/ribbon.rb'
+require './models/board.rb'
 
 URL_PREFIX='/foo'
 

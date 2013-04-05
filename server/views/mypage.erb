@@ -1,15 +1,25 @@
 <!doctype html>
 <html lang="ja">
-  <%= timeline = @user.store.primary_timeline %>
-  <%= erb :_head, :locals => { :timeline => timeline } %>
+  <%= timelines = board.store.ribbons.map { |x| x.store.id } %>
+  <%= erb :_head, :locals => { :timelines => timelines } %>
 
   <body>
     <%= erb :_preamble %>
-    <%= erb :_owner, :locals => { :timeline => timeline } %>
 
-    <div id="root">
-      <section class="timeline" level="0" timeline-id="<%= timeline.store.id %>" version="0">
-      </section>
+    <div class="workspace">
+      <% board.list_ribbons.each do |ribbon| %>
+      <div class="ribbon-outer">
+        <section class="ribbon">
+          <div class="ribbon-inner">
+            <% if ribbon.store.write_target %>
+            <%=  erb :_newarticle, :locals => { :timeline => timeline }  %>
+            <% end %>
+            <section class="timeline" level="0" timeline-id="<%= ribbon.store.read_source.store.id %>" version="0">
+            </section>
+          </div>
+        </section>
+      </div>
+      <% end %>
     </div>
   </body>
 </html>

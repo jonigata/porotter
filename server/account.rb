@@ -21,6 +21,7 @@ class Account < Sinatra::Base
       session["user_id"] = user.store.id
       redirect parent_url("/")
     rescue SignUpError => e
+      puts e.backtrace
       puts e
       render_login_page(nil, e.to_s)
     end

@@ -696,13 +696,17 @@ module RedisMapper
       def write_property(k, v, restriction)
         raise "type mismatch: #{v.inspect} for #{restriction.name}" unless
           restriction.contains?(v)
-        self.class.redis.set(property_key(k), v.to_redis)
+        v.to_redis.tap do |vv|
+          self.class.redis.set(property_key(k), vv)
+        end
       end
 
       def write_property_nx(k, v, restriction)
         raise "type mismatch: #{v.inspect} for #{restriction.name}" unless
           restriction.contains?(v)
-        self.class.redis.setnx(property_key(k), v.to_redis)
+        v.to_redis.tap do |vv|
+          self.class.redis.setnx(property_key(k), vv)
+        end
       end
 
       def restriction(k)

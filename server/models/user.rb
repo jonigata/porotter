@@ -12,6 +12,8 @@ class User < RedisMapper::PlatformModel
         username !~ /^\w+$/
       raise "That username is taken." if username == 'all'
 
+      global_timeline = Users.singleton.store.global_timeline
+
       self.make_index(:username, username) do 
         self.new_instance do |user|
           user.store.username = username
@@ -21,20 +23,25 @@ class User < RedisMapper::PlatformModel
           user.store.salt = salt
           user.store.hashed_password = Misc.hash_pw(salt, password)
 
-          user.store.my_posts = Timeline.create
-          user.store.primary_timeline = Timeline.create
-          user.store.favorites = Timeline.create
-          user.store.watchers.add(Users.singleton.store.global_timeline)
-          user.store.watchers.add(user.store.my_posts)
-          user.store.watchers.add(user.store.primary_timeline)
-          user.add_article("最初の投稿です")
-          user.store.board = Board.create(:private)
+          board = Board.create(user, 'マイボード', :private, :private)
+          user.store.board = board
+            
+          my_posts = Timeline.create(user, 'あなたの投稿', :public, :private)
+          user.store.my_posts = my_posts
+          global_timeline.watch(my_posts)
+
+          favorites = Timeline.create(user, 'お気に入り', :public, :private)
+          user.store.favorites = favorites
+
+          board.import(global_timeline, my_posts)
+          board.import(my_posts, nil)
+          board.import(favorites, nil)
+
+          my_posts.add_post(Post.create(self, :Tweet, "最初の投稿です"))
 
           Users.singleton.add_user(user)
         end
       end or raise "That username is taken."
-    rescue => e
-      raise SignUpError, e
     end
   end
 
@@ -48,31 +55,29 @@ class User < RedisMapper::PlatformModel
     self.store.hashed_password == Misc.hash_pw(self.store.salt, password)
   end
 
-  def add_article(type, content)
+  def add_article(ribbon, type, content)
     Post.create(self, type, content).tap do |post|
-      self.store.watchers.each do |tl|
-        tl.add_post(post)
-      end
+      ribbon.add_article(post)
     end
   end
 
-  def add_comment(parent, type, content)
-    parent.add_comment(self, type, content)
+  def add_comment(ribbon, parent, type, content)
+    Post.create(self, type, content).tap do |post|
+      ribbon.add_comment(parent, post)
+    end
   end
 
-  def toggle_favorite(post)
-    self.store.favorites ||= Timeline.create
-    if !favors?(post)
-      self.store.favorites.add_post(post)
-      post.favored_by(self)
-    else
-      self.store.favorites.remove_post(post)
-      post.unfavored_by(self)
-    end
+  def favor(post)
+    self.store.favorites.add_post(post)
+    post.favored_by(self)
+  end
+
+  def unfavor(post)
+    self.store.favorites.remove_post(post)
+    post.unfavored_by(self)
   end
 
   def favors?(post)
-    self.store.favorites ||= Timeline.create
     self.store.favorites.member?(post)
   end
 
@@ -85,7 +90,6 @@ class User < RedisMapper::PlatformModel
   property      :hashed_password,   String
   list_property :notifications,     Integer
   property      :my_posts,          Timeline # 自分の投稿
-  property      :primary_timeline,  Timeline # 自分のホームページに出るTL
   property      :favorites,         Timeline # 自分のお気に入り
-  set_property  :watchers,          Timeline # 自分の投稿をウォッチしてるTL
+  property      :board,             Board
 end

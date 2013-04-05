@@ -1,17 +1,25 @@
 # -*- coding: utf-8 -*-
 
 class Board < RedisMapper::PlatformModel
-  def self.create(access_rank)
+  def self.create(owner, label, read_permission, write_permission)
     self.new_instance.tap do |board|
-      board.store.spotter = Spotter.create(access_rank)
+      board.store.owner = owner
+      board.store.label = label
+      board.store.spotter = Spotter.create(read_permission, write_permission)
     end
   end
 
-  def add_member(member)
-    self.store.spotter.add_member(member)
+  def import(read_source, write_target)
+    self.store.ribbons.add(Ribbon.new(self, read_source, write_target))
   end
 
+  delegate :add_member              do self.store.spotter end
+  delegate :add_ribbon, :add        do self.store.ribbons end
+  delegate :remove_ribbon, :remove  do self.store.ribbons end
+  delegate :list_ribbons, :to_a     do self.store.ribbons end
+
   property      :owner,     User
+  property      :label,     String
+  property      :spotter,   Spotter
   list_property :ribbons,   Ribbon
-  property      :sentry,    Spotter
 end

@@ -2,6 +2,17 @@
 
 require 'ostruct'
 
+class Module
+  def delegate(method, target_method=nil, &block)
+    self.class_eval do
+      target_method ||= method
+      define_method(method) do |*args|
+        self.instance_eval(&block).__send__(target_method, *args)
+      end
+    end
+  end
+end
+
 class Object
   def self.from_s(s)
     s
@@ -129,3 +140,4 @@ class Hash
     OpenStruct.new(r).freeze
   end
 end
+

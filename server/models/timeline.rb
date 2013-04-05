@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 
 class Timeline < RedisMapper::PlatformModel
-  def self.create
+  def self.create(owner, label, read_permission, write_permission)
     self.new_instance.tap do |timeline|
+      timeline.store.owner = owner
+      timeline.store.label = label
+      timeline.store.spotter =
+        Spotter.create(read_permission, write_permission)
       timeline.store.version = 1
     end
   end
@@ -54,11 +58,15 @@ class Timeline < RedisMapper::PlatformModel
     self.store.posts.empty?
   end
 
-  def on_add_comment(post)
+  def on_post_modified(post)
     # bump up
     if self.store.posts.last_value != post
       self.store.posts.add(version_up, post)
     end
+  end
+
+  def watch(target)
+    target.store.watchers.add(self)
   end
 
   private
@@ -68,6 +76,10 @@ class Timeline < RedisMapper::PlatformModel
     end
   end    
 
+  property              :owner,     User
+  property              :label,     String
+  property              :spotter,   Spotter
   property              :version,   Integer
   ordered_set_property  :posts,     Post
+  set_property          :watchers,  Timeline
 end
