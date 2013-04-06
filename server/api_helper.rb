@@ -1,58 +1,61 @@
 # -*- coding: utf-8 -*-
 
 module APIHelper
+  INT_PARAM           = [/[0-9]+/, Integer]
+  NULLABLE_INT_PARAM  = [/[0-9]+/, nullable(Integer)]
+
   def self.included(klass)
     klass.class_eval do
       get '/v/timeline' do
         r = ensure_params(
-          :ribbon => [/[0-9]+/, Integer],
-          :timeline => [/[0-9]+/, Integer],
-          :newest_score => [/[0-9]+/, nullable(Integer)],
-          :oldest_score => [/[0-9]+/, nullable(Integer)],
-          :count => [/[0-9]+/, Integer])
+          :ribbon => INT_PARAM,
+          :timeline => INT_PARAM,
+          :newest_score => NULLABLE_INT_PARAM,
+          :oldest_score => NULLABLE_INT_PARAM,
+          :count => INT_PARAM)
         get_timeline(
           r.ribbon, r.timeline, r.newest_score, r.oldest_score, r.count)
       end
 
       get '/v/detail' do
         r = ensure_params(
-          :ribbon => [/[0-9]+/, Integer],
-          :post => [/[0-9]+/, Integer])
+          :ribbon => INT_PARAM,
+          :post => INT_PARAM)
         get_detail(r.ribbon, r.post)
       end
 
       post '/m/newarticle' do
-        r = ensure_params(:ribbon => [/[0-9]+/, Integer])
+        r = ensure_params(:ribbon => INT_PARAM)
         post_new_article(r.ribbon, params[:content])
       end
 
       post '/m/newcomment' do
         r = ensure_params(
-          :ribbon => [/[0-9]+/, Integer],
-          :parent => [/[0-9]+/, Integer])
+          :ribbon => INT_PARAM,
+          :parent => INT_PARAM)
         post_new_comment(r.ribbon, r.parent, :Tweet, params[:content])
       end
 
       post '/m/favor' do
         r = ensure_params(
-          :ribbon => [/[0-9]+/, Integer],
-          :target => [/[0-9]+/, Integer])
+          :ribbon => INT_PARAM,
+          :target => INT_PARAM)
         favor(r.ribbon, r.target)
         "OK"
       end
 
       post '/m/unfavor' do
         r = ensure_params(
-          :ribbon => [/[0-9]+/, Integer],
-          :target => [/[0-9]+/, Integer])
+          :ribbon => INT_PARAM,
+          :target => INT_PARAM)
         unfavor(r.ribbon, r.target)
         "OK"
       end
 
       post '/m/stamp' do
         r = ensure_params(
-          :ribbon => [/[0-9]+/, Integer],
-          :parent => [/[0-9]+/, Integer])
+          :ribbon => INT_PARAM,
+          :parent => INT_PARAM)
         post_new_comment(r.ribbon, r.parent, :Stamp, params[:content])
       end
     end
