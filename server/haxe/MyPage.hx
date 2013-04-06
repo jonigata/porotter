@@ -26,8 +26,11 @@ class MyPage {
     static function testIt() {
     }
 
-    static function init(timelineId: Int) {
-        fillTimeline(getTimeline(timelineId), null);
+    static function init() {
+        new JQuery('[timeline-id]').each(
+            function(i: Int, elem: Dynamic) {
+                fillTimeline(new JQuery(elem), null);
+            });
         startWatch();
     }
 
@@ -61,13 +64,13 @@ class MyPage {
         entry.find('> .comment-form').find('textarea').focus();
     }
 
-    static function postArticle(timelineId: Int, form: Dynamic) {
+    static function postArticle(ribbonId: Int, form: Dynamic) {
         JQuery._static.ajax({
             url: "/foo/ajax/m/newarticle",
             method: "post",
             data: {
                 content: new JQuery(form).find('[name="content"]').val(),
-                timeline: timelineId
+                ribbon: ribbonId
             }
         }).done(function() {
         });
@@ -75,13 +78,14 @@ class MyPage {
         form.find('textarea').focus();
     }
 
-    static function postComment(timelineId: Int,form: Dynamic) {
+    static function postComment(ribbonId: Int, timelineId: Int,form: Dynamic) {
         JQuery._static.ajax({
             url: "/foo/ajax/m/newcomment",
             method: "post",
             data: {
                 parent: new JQuery(form).find('[name="parent"]').val(),
                 content: new JQuery(form).find('[name="content"]').val(),
+                ribbon: ribbonId,
                 timeline: timelineId
             }
         }).done(function() {
@@ -92,11 +96,23 @@ class MyPage {
         form.find('textarea').focus();
     }
 
-    static function toggleFavorite(postId: Int) {
+    static function favor(ribbonId: Int, postId: Int) {
         JQuery._static.ajax({
             url: "/foo/ajax/m/favor",
             method: "post",
             data: {
+                ribbon: ribbonId,
+                target: postId
+            }
+        });
+    }
+
+    static function unfavor(ribbonId: Int, postId: Int) {
+        JQuery._static.ajax({
+            url: "/foo/ajax/m/unfavor",
+            method: "post",
+            data: {
+                ribbon: ribbonId,
                 target: postId
             }
         });
@@ -110,7 +126,7 @@ class MyPage {
         fetchTimeline(timeline, newestScore, oldestScore, null);
     }
 
-    static function chooseStamp(obj: Dynamic, timelineId: Int) {
+    static function chooseStamp(obj: Dynamic, ribbonId: Int, timelineId: Int) {
         var chooser: Dynamic = new JQuery('#stamp-chooser');
         chooser.find('a').each(
             function(i: Int, elem: Dynamic) {
@@ -118,7 +134,11 @@ class MyPage {
                 e.unbind('click');
                 e.click(
                     function() {
-                        postStamp(timelineId, new JQuery(obj), new JQuery(e));
+                        postStamp(
+                            ribbonId,
+                            timelineId,
+                            new JQuery(obj),
+                            new JQuery(e));
                         chooser.close();
                     });
             });
@@ -128,16 +148,17 @@ class MyPage {
     ////////////////////////////////////////////////////////////////
     // private functions
     static private function postStamp(
-        timelineId: Int, source: Dynamic, selected: Dynamic) {
+        ribbonId: Int, timelineId: Int, source: Dynamic, selected: Dynamic) {
         var form = source.closest('.comment-form').find('> form');
         var image = selected.attr('image');
         JQuery._static.ajax({
             url: "/foo/ajax/m/stamp",
             method: "post",
             data: {
+                ribbon: ribbonId,
+                timeline: timelineId,
                 parent: form.find('[name="parent"]').val(),
-                content: image,
-                timeline: timelineId
+                content: image
             }
         }).done(function() {
             openComments(getEntry(form).find('> .comments'));
@@ -146,6 +167,7 @@ class MyPage {
     }
 
     static private function fillTimeline(timeline: Dynamic, version: Int) {
+        trace(timeline);
         fetchTimeline(timeline, null, null, version);
     }
 
@@ -164,7 +186,8 @@ class MyPage {
         newestScore: Dynamic,
         oldestScore: Dynamic,
         version: Int) {
-        
+
+        var ribbonId = Std.parseInt(oldTimeline.attr('ribbon-id'));
         var timelineId = Std.parseInt(oldTimeline.attr('timeline-id'));
         var level = Std.parseInt(oldTimeline.attr('level'));
 
@@ -175,6 +198,7 @@ class MyPage {
         JQuery._static.ajax({ 
             url: "/foo/ajax/v/timeline",
             data: {
+                ribbon: ribbonId,
                 timeline: timelineId,
                 newest_score: kickUndefined(newestScore),
                 oldest_score: kickUndefined(oldestScore),
@@ -211,6 +235,10 @@ class MyPage {
 
     static private function mergeTimeline(
         oldTimeline: Dynamic, newTimeline: Dynamic) {
+
+        if (newTimeline.children().length == 0) {
+            return;
+        }
 
         oldTimeline.find('> .continue-reading').remove();
 
@@ -261,6 +289,7 @@ class MyPage {
         var tmpIntervalArray: Array<Array<Int>> =
             JQuery._static.parseJSON(newTimeline.attr('intervals'));
         for(v in tmpIntervalArray) {
+            trace(v);
             intervals.add(v[0], v[1]);
         }
 
@@ -443,29 +472,34 @@ class MyPage {
     }
 
     static function updateDetail(postId: Int, version: Int) {
-        var post = new JQuery(Std.format('[post-id="$postId"]'));
-        var level = Std.parseInt(post.parent().attr('level'));
+        var posts = new JQuery(Std.format('[post-id="$postId"]'));
+        posts.each(
+            function(i: Int, e: Dynamic) {
+                var post = new JQuery(e);
+                var ribbonId = post.closest('.ribbon').attr('ribbon-id');
+                var level = Std.parseInt(post.parent().attr('level'));
 
-        JQuery._static.ajax({
-            url: "/foo/ajax/v/detail",
-            data: {
-                post: postId,
-                level: level
-            },
-            dataType: 'jsonp'
-        }).done(function(data: Dynamic) {
-            var favoredBy = "";
-            for(i in 0...data.favoredBy.length) {
-                favoredBy += Std.format('<img src="http://www.gravatar.com/avatar/${data.favoredBy[i]}?s=16&d=mm" alt="gravator"/>');
-            }
-            data.favoredBy = favoredBy;
+                JQuery._static.ajax({
+                    url: "/foo/ajax/v/detail",
+                    data: {
+                        ribbon: ribbonId,
+                        post: postId,
+                        level: level
+                    },
+                    dataType: 'jsonp'
+                }).done(function(data: Dynamic) {
+                    var favoredBy = "";
+                    for(i in 0...data.favoredBy.length) {
+                        favoredBy += Std.format('<img src="http://www.gravatar.com/avatar/${data.favoredBy[i]}?s=16&d=mm" alt="gravator"/>');
+                    }
+                    data.favoredBy = favoredBy;
 
-            var output = applyTemplate("Detail", data);
-            var entry = post.find('> .entry');
-            entry.find('> .detail').replaceWith(output);
-            updateCommentDisplayText(entry);
-        });
-
+                    var output = applyTemplate("Detail", data);
+                    var entry = post.find('> .entry');
+                    entry.find('> .detail').replaceWith(output);
+                    updateCommentDisplayText(entry);
+                });
+            });
     }
 
     static private function applyTemplate(codename: String, data: Dynamic): String {

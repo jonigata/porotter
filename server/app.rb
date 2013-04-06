@@ -19,6 +19,7 @@ class Porotter < Sinatra::Base
   end
 
   get '/' do
+    p @user.store.board
     erb :mypage, :locals => { :board => @user.store.board }
   end
 

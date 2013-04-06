@@ -750,7 +750,7 @@ module RedisMapper
     end
 
     def self.contains?(v)
-      v.kind_of?(self) || v.kind_of?(Integer)
+      v.nil? || v.kind_of?(self) || v.kind_of?(Integer)
     end
 
     def self.from_redis(s)
@@ -975,6 +975,7 @@ RUBY
           if self.redis.setnx(key, 0)
             self.new_instance do |instance|
               self.redis.set(key, instance.store.id)
+              self.on_create(instance)
               puts "singleton created"
             end
           else

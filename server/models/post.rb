@@ -1,12 +1,14 @@
+# -*- coding: utf-8 -*-
 class Post < RedisMapper::PlatformModel
-  def self.create(author, type, content)
+  def self.create(author, type, content, has_comments)
     self.new_instance do |post|
       post.store.type = type
       post.store.version = 1
       post.store.author = author
       post.store.content = content
       post.store.created_at = post.store.updated_at = Time.now
-      post.store.comments = Timeline.create
+      post.store.comments =
+        has_comments ? Timeline.create(author, 'コメント') : nil
     end
   end
 
@@ -17,7 +19,7 @@ class Post < RedisMapper::PlatformModel
   def add_comment(post)
     version_up
     self.store.comments.add_post(post)
-    self.store.watched_by.each do |timeline|
+    self.store.refered_by.each do |timeline|
       timeline.on_post_modified(self)
     end
   end
@@ -32,8 +34,8 @@ class Post < RedisMapper::PlatformModel
     self.store.favored_by.remove(user)
   end
 
-  def watched_by(timeline)
-    self.store.watched_by.add(timeline)
+  def refered_by(timeline)
+    self.store.refered_by.add(timeline)
   end
 
   private
@@ -51,5 +53,5 @@ class Post < RedisMapper::PlatformModel
   property  :updated_at,    Time
   property  :comments,      Timeline
   set_property :favored_by, User
-  set_property :watched_by, Timeline
+  set_property :refered_by, Timeline
 end

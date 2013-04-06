@@ -5,8 +5,8 @@ class Board < RedisMapper::PlatformModel; end
 class Ribbon < RedisMapper::PlatformModel
   def self.create(owner, read_source, write_target)
     self.new_instance.tap do |ribbon|
-      ribbon.read_source = read_source
-      ribbon.write_target = write_target
+      ribbon.store.read_source = read_source
+      ribbon.store.write_target = write_target
     end
   end
 
@@ -18,11 +18,12 @@ class Ribbon < RedisMapper::PlatformModel
   end
 
   def add_comment(parent, post)
-    timeline = self.store.write_target
-    return nil unless timeline
     parent.add_comment(post)
     post
   end
+
+  delegate :read_source     do self.store end
+  delegate :write_target    do self.store end
 
   property  :owner,         Board
   property  :read_source,   Timeline

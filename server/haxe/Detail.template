@@ -11,9 +11,15 @@
     </span>
     <span class="favorite">
       ::if (userExists)::
-      <a href="#" onclick="MyPage.toggleFavorite(::postId::);return false;">
-        ::favorLabel::
+      ::if (favored)::
+      <a href="#" onclick="MyPage.unfavor(::ribbonId::, ::postId::);return false;">
+        そうでもない
       </a>
+      ::else::
+      <a href="#" onclick="MyPage.favor(::ribbonId::, ::postId::);return false;">
+        そうかも
+      </a>
+      ::end::
       ::end::
     </span>
   </div>

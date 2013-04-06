@@ -10,7 +10,7 @@ class Board < RedisMapper::PlatformModel
   end
 
   def import(read_source, write_target)
-    self.store.ribbons.add(Ribbon.new(self, read_source, write_target))
+    self.store.ribbons.push(Ribbon.create(self, read_source, write_target))
   end
 
   delegate :add_member              do self.store.spotter end

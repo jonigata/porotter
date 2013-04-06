@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
+
 class SignUpError < Exception; end
 
+class Board < RedisMapper::PlatformModel; end
 class Timeline < RedisMapper::PlatformModel; end
 
 class User < RedisMapper::PlatformModel
@@ -25,19 +27,20 @@ class User < RedisMapper::PlatformModel
 
           board = Board.create(user, 'マイボード', :private, :private)
           user.store.board = board
+          p board
             
-          my_posts = Timeline.create(user, 'あなたの投稿', :public, :private)
+          my_posts = Timeline.create(user, 'あなたの投稿')
           user.store.my_posts = my_posts
           global_timeline.watch(my_posts)
 
-          favorites = Timeline.create(user, 'お気に入り', :public, :private)
+          favorites = Timeline.create(user, 'お気に入り')
           user.store.favorites = favorites
 
           board.import(global_timeline, my_posts)
           board.import(my_posts, nil)
           board.import(favorites, nil)
 
-          my_posts.add_post(Post.create(self, :Tweet, "最初の投稿です"))
+          my_posts.add_post(Post.create(user, :Tweet, "最初の投稿です", true))
 
           Users.singleton.add_user(user)
         end
@@ -56,28 +59,29 @@ class User < RedisMapper::PlatformModel
   end
 
   def add_article(ribbon, type, content)
-    Post.create(self, type, content).tap do |post|
-      ribbon.add_article(post)
-    end
+    # TODO ribbonチェック
+    ribbon.add_article(Post.create(self, type, content, true))
   end
 
   def add_comment(ribbon, parent, type, content)
-    Post.create(self, type, content).tap do |post|
-      ribbon.add_comment(parent, post)
-    end
+    # TODO ribbonチェック
+    ribbon.add_comment(parent, Post.create(self, type, content, false))
   end
 
-  def favor(post)
+  def favor(ribbon, post)
+    # TODO ribbonチェック
     self.store.favorites.add_post(post)
     post.favored_by(self)
   end
 
-  def unfavor(post)
+  def unfavor(ribbon, post)
+    # TODO ribbonチェック
     self.store.favorites.remove_post(post)
     post.unfavored_by(self)
   end
 
   def favors?(post)
+    # TODO ribbonチェック
     self.store.favorites.member?(post)
   end
 

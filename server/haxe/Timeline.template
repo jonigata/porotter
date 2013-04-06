@@ -1,5 +1,6 @@
 <section class="timeline"
          level="::level::"
+         ribbon-id="::ribbonId::"
          timeline-id="::timelineId::"
          version="::timelineVersion::"
          intervals="::intervals::"
@@ -32,14 +33,14 @@
         <form>
           <input type="hidden" name="parent" value="::__current__.postId::"/>
           <textarea name="content"></textarea><br/>
-          <input type="button" value="投稿" onclick="MyPage.postComment(::__current__.commentsId::, $(this).parent());return false;"/>
-          <a href="#" onclick="MyPage.chooseStamp(this, ::__current__.commentsId::);return false;">スタンプ</a>
+          <input type="button" value="投稿" onclick="MyPage.postComment(::ribbonId::, ::__current__.commentsId::, $(this).parent());return false;"/>
+          <a href="#" onclick="MyPage.chooseStamp(this, ::ribbonId::, ::__current__.commentsId::);return false;">スタンプ</a>
         </form>
       </div>
       ::end::
       
       <div class="comments" count="::__current__.commentsLength::">
-        <section class="timeline" level="::(level + 1)::" timeline-id="::__current__.commentsId::" version="0">
+        <section class="timeline" level="::(level + 1)::" ribbon-id="::ribbonId::" timeline-id="::__current__.commentsId::" version="0">
         </section>        
       </div>
     </div>

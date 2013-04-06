@@ -1,19 +1,20 @@
 # -*- coding: utf-8 -*-
 
 class Timeline < RedisMapper::PlatformModel
-  def self.create(owner, label, read_permission, write_permission)
+  def self.create(owner, label)
     self.new_instance.tap do |timeline|
       timeline.store.owner = owner
       timeline.store.label = label
-      timeline.store.spotter =
-        Spotter.create(read_permission, write_permission)
       timeline.store.version = 1
     end
   end
 
   def add_post(post)
     self.store.posts.add(version_up, post)
-    post.watched_by(self)
+    post.refered_by(self)
+    self.store.watchers.each do |watcher|
+      watcher.add_post(post)
+    end
   end
 
   def remove_post(post)
@@ -78,7 +79,6 @@ class Timeline < RedisMapper::PlatformModel
 
   property              :owner,     User
   property              :label,     String
-  property              :spotter,   Spotter
   property              :version,   Integer
   ordered_set_property  :posts,     Post
   set_property          :watchers,  Timeline
