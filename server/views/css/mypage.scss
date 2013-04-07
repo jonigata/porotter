@@ -28,6 +28,12 @@
     -ms-box-sizing: border-box;
 }
 
+@mixin box-shadow {
+    box-shadow: 0px 0px 4px rgba(0,0,0,0.7);
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,0.7);
+    -moz-box-shadow: 0 0px 4px rgba(0,0,0,0.7);
+}
+
 @mixin action-link {
     a {
         color: #337;
@@ -37,6 +43,15 @@
         color: #22F;
         text-decoration: underline;
     }
+}
+
+@mixin dialog {
+    @include border-radius;
+    @include box-shadow;
+
+    background: #FFF;
+    padding: 30px; 
+    display: none;
 }
 
 html {
@@ -219,24 +234,19 @@ header {
 }
 
 #stamp-chooser {
+    @include dialog;
+ 
     max-width: 600px;
-    padding: 30px; 
-    display: none;
-
-    background: #FFF;
-    border-radius: 5px;
-    -moz-border-radius: 5px;
-    -webkit-border-radius: 5px;
-
-    box-shadow: 0px 0px 4px rgba(0,0,0,0.7);
-    -webkit-box-shadow: 0 0 4px rgba(0,0,0,0.7);
-    -moz-box-shadow: 0 0px 4px rgba(0,0,0,0.7);
 
     p {
         color: #666;
         text-shadow: none; 
     }
 }
+
+#make-board {
+    @include dialog;
+}    
 
 #choose-board {
     float: right;

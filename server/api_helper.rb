@@ -3,6 +3,7 @@
 module APIHelper
   INT_PARAM           = [/[0-9]+/, Integer]
   NULLABLE_INT_PARAM  = [/[0-9]+/, nullable(Integer)]
+  IDNAME_PARAM        = [/[0-9a-zA-Z_]+/, String]
 
   def self.included(klass)
     klass.class_eval do
@@ -58,6 +59,13 @@ module APIHelper
           :parent => INT_PARAM)
         post_new_comment(r.ribbon, r.parent, :Stamp, params[:content])
       end
+
+      post '/m/newboard' do
+        r = ensure_params(
+          :name => IDNAME_PARAM)
+        make_new_board(r.name, params[:label])
+        redirect parent_url("/users/#{@user.store.username}/#{r.name}")
+      end
     end
   end
   
@@ -100,6 +108,10 @@ module APIHelper
     ribbon = Ribbon.attach_if_exist(ribbon_id)
     post = Post.attach_if_exist(target_id) or raise
     @user.unfavor(ribbon, post)
+  end
+
+  def make_new_board(name,label)
+    @user.add_board(name, label)
   end
 
   def ensure_params(h)
@@ -167,7 +179,5 @@ module APIHelper
       end,
     }
   end
-
-
 end
 

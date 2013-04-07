@@ -830,6 +830,10 @@ MyPage.chooseStamp = function(obj,ribbonId,timelineId) {
 	});
 	chooser.justModal();
 }
+MyPage.makeBoard = function() {
+	var dialog = new $("#make-board");
+	dialog.justModal();
+}
 MyPage.postStamp = function(ribbonId,timelineId,source,selected) {
 	var form = source.closest(".comment-form").find("> form");
 	var image = selected.attr("image");
@@ -1042,9 +1046,6 @@ MyPage.subscribePosts = function() {
 		});
 		MyPage.io.push("watch-post",{ targets : targets.get()});
 	}
-}
-MyPage.getTimeline = function(timelineId) {
-	return;
 }
 MyPage.updateTimeline = function(timelineId,version) {
 	new $("[timeline-id=\"" + timelineId + "\"]").each(function(i,elem) {

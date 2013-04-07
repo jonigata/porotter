@@ -34,10 +34,14 @@ module WebServerHelper
     };
   end
 
+  def go_to_login_page
+    redirect parent_url("/account/login"), 303
+  end
+
   def ensure_login_user_except(namespaces)
     @user = User.attach_if_exist(session['user_id'])
     if !@user && !namespaces.member?(request.path_info.split('/')[1])
-      redirect parent_url("/account/login"), 303
+      go_to_login_page
     end
   end
 

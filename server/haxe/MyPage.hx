@@ -145,6 +145,11 @@ class MyPage {
         chooser.justModal();
     }
 
+    static function makeBoard() {
+        var dialog: Dynamic = new JQuery('#make-board');
+        dialog.justModal();
+    }
+
     ////////////////////////////////////////////////////////////////
     // private functions
     static private function postStamp(

@@ -28,7 +28,6 @@ class User < RedisMapper::PlatformModel
           board = Board.create(
             user, 'myboard', 'マイボード', :private, :private)
           user.store.boards['myboard'] = board
-          user.store.current_board = board
           p board
             
           my_posts = Timeline.create(user, 'あなたの投稿')
@@ -87,10 +86,9 @@ class User < RedisMapper::PlatformModel
     self.store.favorites.member?(post)
   end
 
-  def new_board(label)
-    board = Board.create(user, label, :private, :private)
-    user.store.boards.push(board)
-    user.store.current_board = board
+  def add_board(name, label)
+    board = Board.create(self, name, label, :private, :private)
+    self.store.boards[name] = board
   end
 
   def find_board(idname)
@@ -107,6 +105,5 @@ class User < RedisMapper::PlatformModel
   list_property         :notifications,     Integer
   property              :my_posts,          Timeline # 自分の投稿
   property              :favorites,         Timeline # 自分のお気に入り
-  property              :current_board,     Board
   dictionary_property   :boards,            String, Board
 end

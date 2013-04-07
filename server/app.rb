@@ -24,10 +24,8 @@ class Porotter < Sinatra::Base
   end
 
   get '/users/*/*' do |username, boardname|
-    target = User.store_class.find_by_username(username) or halt 403
-    board = target.find_board(boardname) or halt 403
-    p target
-    p board
+    target = User.store_class.find_by_username(username) or go_to_login_page
+    board = target.find_board(boardname) or go_to_login_page
     erb :board, :locals => { :current_board => board, :boards => @user.store.boards }
   end
 end
