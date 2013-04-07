@@ -2,8 +2,8 @@
   <div class="headline">
     <span>ぽろったー</span>/<span><%= current_board.store.label %></span>
     <a href="https://github.com/jonigata/porotter">github</a>
-    <a href="<%= local_url('/preferences') %>">個人設定</a>
     <% if @user %>
+    <a href="<%= local_url('/preferences') %>">個人設定</a>
     <a href="#" data-dropdown="#board-chooser" id="choose-board">ボード選択</a>
     <% end %>
   </div>

@@ -839,15 +839,11 @@ MyPage.postStamp = function(ribbonId,timelineId,source,selected) {
 	});
 }
 MyPage.fillTimeline = function(timeline,version) {
-	console.log(timeline);
 	MyPage.fetchTimeline(timeline,null,null,version);
 }
 MyPage.fillNewerTimeline = function(timeline,version) {
 	var oldestScore = MyPage.kickUndefined(timeline.children().eq(0).attr("newest-score"));
 	MyPage.fetchTimeline(timeline,null,oldestScore,version);
-}
-MyPage.getTimeline = function(timelineId) {
-	return new $("[timeline-id=\"" + timelineId + "\"]");
 }
 MyPage.fetchTimeline = function(oldTimeline,newestScore,oldestScore,version) {
 	var ribbonId = Std.parseInt(oldTimeline.attr("ribbon-id"));
@@ -924,7 +920,6 @@ MyPage.mergeTimeline = function(oldTimeline,newTimeline) {
 	while(_g < tmpIntervalArray.length) {
 		var v = tmpIntervalArray[_g];
 		++_g;
-		console.log(v);
 		intervals.add(v[0],v[1]);
 	}
 	var _g = 0, _g1 = intervals.elems;
@@ -1048,8 +1043,13 @@ MyPage.subscribePosts = function() {
 		MyPage.io.push("watch-post",{ targets : targets.get()});
 	}
 }
+MyPage.getTimeline = function(timelineId) {
+	return;
+}
 MyPage.updateTimeline = function(timelineId,version) {
-	MyPage.fillNewerTimeline(MyPage.getTimeline(timelineId),version);
+	new $("[timeline-id=\"" + timelineId + "\"]").each(function(i,elem) {
+		MyPage.fillNewerTimeline(new $(elem),version);
+	});
 }
 MyPage.updateDetail = function(postId,version) {
 	var posts = new $("[post-id=\"" + postId + "\"]");

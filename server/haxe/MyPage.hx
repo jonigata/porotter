@@ -167,7 +167,6 @@ class MyPage {
     }
 
     static private function fillTimeline(timeline: Dynamic, version: Int) {
-        trace(timeline);
         fetchTimeline(timeline, null, null, version);
     }
 
@@ -175,10 +174,6 @@ class MyPage {
         var oldestScore =
             kickUndefined(timeline.children().eq(0).attr('newest-score'));
         fetchTimeline(timeline, null, oldestScore, version);
-    }
-    
-    static private function getTimeline(timelineId: Int) {
-        return new JQuery(Std.format('[timeline-id="$timelineId"]'));
     }
     
     static private function fetchTimeline(
@@ -289,7 +284,6 @@ class MyPage {
         var tmpIntervalArray: Array<Array<Int>> =
             JQuery._static.parseJSON(newTimeline.attr('intervals'));
         for(v in tmpIntervalArray) {
-            trace(v);
             intervals.add(v[0], v[1]);
         }
 
@@ -468,7 +462,10 @@ class MyPage {
     }
 
     static private function updateTimeline(timelineId: Int, version: Int) {
-        fillNewerTimeline(getTimeline(timelineId), version);
+        new JQuery(Std.format('[timeline-id="$timelineId"]')).each(
+            function(i: Int, elem: Dynamic) {
+                fillNewerTimeline(new JQuery(elem), version);
+            });
     }
 
     static function updateDetail(postId: Int, version: Int) {
