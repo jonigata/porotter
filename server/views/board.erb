@@ -3,7 +3,7 @@
   <%= erb :_head %>
 
   <body>
-    <%= erb :_preamble, :locals => { :current_board => current_board, :boards => boards } %>
+    <%= erb :_preamble, :locals => { :owner => owner, :current_board => current_board, :boards => boards } %>
 
     <div class="workspace">
       <% current_board.list_ribbons.each do |ribbon| %>

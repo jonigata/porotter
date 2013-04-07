@@ -1,9 +1,13 @@
 <header>
   <div class="headline">
-    <span>ぽろったー</span>/<span><%= current_board.store.label %></span>
-    <a href="https://github.com/jonigata/porotter">github</a>
-    <% if @user %>
+    <span><%= owner.store.label %></span>/<span><%= current_board.store.label %></span>
+    <% if @user == owner %>
     <a href="<%= local_url('/preferences') %>">個人設定</a>
+    <a href="<%= local_url('/logout') %>">ログアウト</a>
+    <% end %>
+    <a href="https://github.com/jonigata/porotter">github</a>
+
+    <% if @user == owner %>
     <a href="#" data-dropdown="#board-chooser" id="choose-board">ボード選択</a>
     <% end %>
   </div>
@@ -15,14 +19,9 @@
     <%= erb :_makeboard %>
   </div>
   <div id="board-chooser" class="dropdown dropdown-tip dropdown-anchor-right">
-    <ul class="dropdown-menu">
-      <% boards.values.each do |board| %>
-      <li><a href="<%= local_url("/users/#{@user.store.username}/#{board.store.name}") %>"><%= board.store.label %></a></li>
-      <% end %>
-      <li class="dropdown-divider"></li>
-      <li><a href="#" onclick="MyPage.makeBoard();return false;">新規作成</a></li>
-      <li><a href="#5">インポート</a></li>
-    </ul>
+    <% if @user == owner %>
+    <%=  erb :_chooseboard, :locals => { :boards => boards } %>
+    <% end %>
   </div>
   <% end %>
 </header>
