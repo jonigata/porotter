@@ -834,6 +834,13 @@ MyPage.makeBoard = function() {
 	var dialog = new $("#make-board");
 	dialog.justModal();
 }
+MyPage.closeRibbon = function(obj) {
+	var ribbon = new $(obj).closest(".ribbon");
+	var ribbonId = ribbon.attr("ribbon-id");
+	$.ajax({ url : "/foo/ajax/m/closeribbon", method : "post", data : { ribbon : ribbonId}}).done(function() {
+		ribbon.closest(".ribbon-outer").remove();
+	});
+}
 MyPage.postStamp = function(ribbonId,timelineId,source,selected) {
 	var form = source.closest(".comment-form").find("> form");
 	var image = selected.attr("image");

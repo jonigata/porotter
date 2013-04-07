@@ -58,6 +58,7 @@ module APIHelper
           :ribbon => INT_PARAM,
           :parent => INT_PARAM)
         post_new_comment(r.ribbon, r.parent, :Stamp, params[:content])
+        "OK"
       end
 
       post '/m/newboard' do
@@ -65,6 +66,13 @@ module APIHelper
           :name => IDNAME_PARAM)
         make_new_board(r.name, params[:label])
         redirect parent_url("/users/#{@user.store.username}/#{r.name}")
+      end
+
+      post '/m/closeribbon' do
+        r = ensure_params(
+          :ribbon => INT_PARAM)
+        close_ribbon(r.ribbon)
+        "OK"
       end
     end
   end
@@ -88,30 +96,35 @@ module APIHelper
   end
 
   def post_new_article(ribbon_id, content)
-    ribbon = Ribbon.attach_if_exist(ribbon_id)
+    ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
     @user.add_article(ribbon, :Tweet, content).store.id.to_s
   end
 
   def post_new_comment(ribbon_id, parent_id, type, content)
-    ribbon = Ribbon.attach_if_exist(ribbon_id)
+    ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
     parent = Post.attach_if_exist(parent_id) or raise
     @user.add_comment(ribbon, parent, type, params[:content]).store.id.to_s
   end
 
   def favor(ribbon_id, target_id)
-    ribbon = Ribbon.attach_if_exist(ribbon_id)
+    ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
     post = Post.attach_if_exist(target_id) or raise
     @user.favor(ribbon, post)
   end
 
   def unfavor(ribbon_id, target_id)
-    ribbon = Ribbon.attach_if_exist(ribbon_id)
+    ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
     post = Post.attach_if_exist(target_id) or raise
     @user.unfavor(ribbon, post)
   end
 
   def make_new_board(name,label)
     @user.add_board(name, label)
+  end
+
+  def close_ribbon(ribbon_id)
+    ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
+    @user.remove_ribbon(ribbon)
   end
 
   def ensure_params(h)

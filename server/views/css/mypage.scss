@@ -112,8 +112,15 @@ header {
                 textarea {
                     width: 240px;
                 }
-                h1 {
-                    margin: 4px;
+                .ribbon-header {
+                    h1 {
+                        margin: 4px;
+                        float: left;
+                    }
+                    .close-button {
+                        float: right;
+                    }
+                    @include clearfix;
                 }
             }
 

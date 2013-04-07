@@ -10,7 +10,10 @@
       <div class="ribbon-outer">
         <section class="ribbon" ribbon-id="<%= ribbon.store.id %>">
           <div class="ribbon-inner">
-            <h1><%= ribbon.read_source.store.label %></h1>
+            <div class="ribbon-header">
+              <h1><%= ribbon.read_source.store.label %></h1>
+              <div class="close-button" onclick="MyPage.closeRibbon(this);return false;">×</div>
+            </div>
             <% if ribbon.write_target %>
             <%=  erb :_newarticle, :locals => { :ribbon => ribbon }  %>
             <% end %>

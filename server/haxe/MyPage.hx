@@ -150,6 +150,21 @@ class MyPage {
         dialog.justModal();
     }
 
+    static function closeRibbon(obj: Dynamic) {
+        var ribbon = new JQuery(obj).closest('.ribbon');
+        var ribbonId = ribbon.attr('ribbon-id');
+
+        JQuery._static.ajax({
+            url: "/foo/ajax/m/closeribbon",
+            method: "post",
+            data: {
+                ribbon: ribbonId
+            }
+        }).done(function() {
+            ribbon.closest('.ribbon-outer').remove();
+        });
+    }        
+
     ////////////////////////////////////////////////////////////////
     // private functions
     static private function postStamp(

@@ -95,6 +95,11 @@ class User < RedisMapper::PlatformModel
     self.store.boards[idname]
   end
 
+  def remove_ribbon(ribbon)
+    # TODO: ribbonチェック
+    ribbon.store.owner.remove_ribbon(ribbon)
+  end
+
   index_accessor :username
 
   property              :username,          String
