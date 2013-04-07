@@ -25,8 +25,10 @@ class User < RedisMapper::PlatformModel
           user.store.salt = salt
           user.store.hashed_password = Misc.hash_pw(salt, password)
 
-          board = Board.create(user, 'マイボード', :private, :private)
-          user.store.board = board
+          board = Board.create(
+            user, 'myboard', 'マイボード', :private, :private)
+          user.store.boards['myboard'] = board
+          user.store.current_board = board
           p board
             
           my_posts = Timeline.create(user, 'あなたの投稿')
@@ -59,41 +61,52 @@ class User < RedisMapper::PlatformModel
   end
 
   def add_article(ribbon, type, content)
-    # TODO ribbonチェック
+    # TODO: ribbonチェック
     ribbon.add_article(Post.create(self, type, content, true))
   end
 
   def add_comment(ribbon, parent, type, content)
-    # TODO ribbonチェック
+    # TODO: ribbonチェック
     ribbon.add_comment(parent, Post.create(self, type, content, false))
   end
 
   def favor(ribbon, post)
-    # TODO ribbonチェック
+    # TODO: ribbonチェック
     self.store.favorites.add_post(post)
     post.favored_by(self)
   end
 
   def unfavor(ribbon, post)
-    # TODO ribbonチェック
+    # TODO: ribbonチェック
     self.store.favorites.remove_post(post)
     post.unfavored_by(self)
   end
 
   def favors?(post)
-    # TODO ribbonチェック
+    # TODO: ribbonチェック
     self.store.favorites.member?(post)
+  end
+
+  def new_board(label)
+    board = Board.create(user, label, :private, :private)
+    user.store.boards.push(board)
+    user.store.current_board = board
+  end
+
+  def find_board(idname)
+    self.store.boards[idname]
   end
 
   index_accessor :username
 
-  property      :username,          String
-  property      :label,             String
-  property      :email,             String
-  property      :salt,              String
-  property      :hashed_password,   String
-  list_property :notifications,     Integer
-  property      :my_posts,          Timeline # 自分の投稿
-  property      :favorites,         Timeline # 自分のお気に入り
-  property      :board,             Board
+  property              :username,          String
+  property              :label,             String
+  property              :email,             String
+  property              :salt,              String
+  property              :hashed_password,   String
+  list_property         :notifications,     Integer
+  property              :my_posts,          Timeline # 自分の投稿
+  property              :favorites,         Timeline # 自分のお気に入り
+  property              :current_board,     Board
+  dictionary_property   :boards,            String, Board
 end

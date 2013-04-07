@@ -775,8 +775,12 @@ module RedisMapper
       def self.id_seed_key
         "id_seed"
       end
+      def self.exist?(target_id)
+        redis.get("object:id:" + target_id.to_s) == "#{subclass.lastname}"
+      end
       def self.new_instance(&block)
         self.attach(redis.incr self.id_seed_key).tap do |o|
+          redis.set("object:id:" + o.store.id.to_s, "#{subclass.lastname}")
           if block_given?
             yield o
           end
@@ -872,7 +876,7 @@ module RedisMapper
     end
 
     def self.attach_if_exist(id)
-      id && id != 0 ? self.attach(id) : nil
+      id && id != 0 && self.exist?(id) ? self.attach(id) : nil
     end
 
     def self.cache_property(*names)

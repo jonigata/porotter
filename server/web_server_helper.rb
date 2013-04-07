@@ -37,7 +37,7 @@ module WebServerHelper
   def ensure_login_user_except(namespaces)
     @user = User.attach_if_exist(session['user_id'])
     if !@user && !namespaces.member?(request.path_info.split('/')[1])
-      redirect "#{URL_PREFIX}/account/login", 303
+      redirect parent_url("/account/login"), 303
     end
   end
 

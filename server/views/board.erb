@@ -3,10 +3,10 @@
   <%= erb :_head %>
 
   <body>
-    <%= erb :_preamble %>
+    <%= erb :_preamble, :locals => { :current_board => current_board, :boards => boards } %>
 
     <div class="workspace">
-      <% board.list_ribbons.each do |ribbon| %>
+      <% current_board.list_ribbons.each do |ribbon| %>
       <div class="ribbon-outer">
         <section class="ribbon" ribbon-id="<%= ribbon.store.id %>">
           <div class="ribbon-inner">

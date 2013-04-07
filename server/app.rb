@@ -5,9 +5,9 @@ require 'sinatra/rocketio'
 require_relative 'notifiee'
 
 class Porotter < Sinatra::Base
-  register Sinatra::Namespace
   register Sinatra::RocketIO
 
+  helpers Sinatra::Jsonp
   helpers WebServerHelper
 
   configure do
@@ -15,20 +15,19 @@ class Porotter < Sinatra::Base
   end
 
   before do
-    ensure_login_user_except(['user'])
+    ensure_login_user_except(['users'])
   end
 
   get '/' do
-    p @user.store.board
-    erb :mypage, :locals => { :board => @user.store.board }
+    p @user.store.username
+    redirect local_url("/users/#{@user.store.username}/myboard");
   end
 
-  get "/user/all" do
-    erb :allpage
-  end
-
-  get '/user/*' do |username|
-    target = User.store_class.find_by_username(username) or halt 404
-    erb :userpage, :locals => { :target => target }
+  get '/users/*/*' do |username, boardname|
+    target = User.store_class.find_by_username(username) or halt 403
+    board = target.find_board(boardname) or halt 403
+    p target
+    p board
+    erb :board, :locals => { :current_board => board, :boards => @user.store.boards }
   end
 end
