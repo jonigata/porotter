@@ -1,0 +1,8 @@
+<div class="ribbon-header">
+  <h1><%= ribbon.read_source.store.label %></h1>
+
+  <div class="close-button" onclick="MyPage.closeRibbon(this);return false;">×</div>
+  <% if ribbon.secret? %>
+  <img class="secret-indicator" width="24" height="24" src="<%= static_url("images/lock.png") %>">
+  <% end %>
+</div>

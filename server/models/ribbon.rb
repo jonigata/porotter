@@ -3,9 +3,10 @@
 class Board < RedisMapper::PlatformModel; end
 
 class Ribbon < RedisMapper::PlatformModel
-  def self.create(owner, read_source, write_target)
+  def self.create(owner, read_source, write_target, spotter)
     self.new_instance.tap do |ribbon|
       ribbon.store.owner = owner
+      ribbon.store.spotter = spotter
       ribbon.store.read_source = read_source
       ribbon.store.write_target = write_target
     end
@@ -24,7 +25,8 @@ class Ribbon < RedisMapper::PlatformModel
   end
 
   def secret?
-    self.store.spotter.secret?
+    spotter = self.store.spotter or return false
+    spotter.secret?
   end
 
   delegate :read_source     do self.store end

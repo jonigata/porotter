@@ -2,6 +2,7 @@
 
 class SignUpError < Exception; end
 
+class Group < RedisMapper::PlatformModel; end
 class Board < RedisMapper::PlatformModel; end
 class Timeline < RedisMapper::PlatformModel; end
 
@@ -25,8 +26,12 @@ class User < RedisMapper::PlatformModel
           user.store.salt = salt
           user.store.hashed_password = Misc.hash_pw(salt, password)
 
+          private_group = Group.create
+          private_group.add_member(user)
+          user.store.private_group = private_group
+
           board = Board.create(
-            user, 'myboard', 'マイボード', :private, :private)
+            user, 'myboard', 'マイボード', private_group, private_group)
           user.store.boards['myboard'] = board
           p board
             
@@ -87,7 +92,8 @@ class User < RedisMapper::PlatformModel
   end
 
   def add_board(name, label)
-    board = Board.create(self, name, label, :private, :private)
+    private_group = self.store.private_group
+    board = Board.create(self, name, label, private_group, private_group)
     self.store.boards[name] = board
   end
 
@@ -116,4 +122,5 @@ class User < RedisMapper::PlatformModel
   property              :my_posts,          Timeline # 自分の投稿
   property              :favorites,         Timeline # 自分のお気に入り
   dictionary_property   :boards,            String, Board
+  property              :private_group,     Group   # 自分だけのグループ
 end

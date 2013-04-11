@@ -11,14 +11,14 @@ class Board < RedisMapper::PlatformModel
   end
 
   def import(read_source, write_target)
-    self.store.ribbons.push(Ribbon.create(self, read_source, write_target))
+    self.store.ribbons.push(
+      Ribbon.create(self, read_source, write_target, self.store.spotter))
   end
 
   def remove_ribbon(ribbon)
     ribbons.remove(ribbon)
   end
 
-  delegate :add_member              do self.store.spotter end
   delegate :add_ribbon, :add        do self.store.ribbons end
   delegate :remove_ribbon, :remove  do self.store.ribbons end
   delegate :list_ribbons, :to_a     do self.store.ribbons end
