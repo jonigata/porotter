@@ -58,7 +58,8 @@ html {
     width: 100%;
     height: 100%;
     body {
-        background: #8D511C;
+        color: #3c2022;
+        background: #BF805C;
         margin: 0;
         padding: 0;
         width: 100%;
@@ -73,7 +74,7 @@ header {
     .headline {
         @include border-box;
         height: 24px;
-        background: #F09629;
+        background: #eab176;
         padding: 2px 8px 4px 8px;
     }
 }
@@ -100,7 +101,7 @@ header {
             @include border-box;
             padding: 8px;
             width: 360px;
-            background: #cc9966;
+            background: #f1d0a4;
             height: 100%;
             overflow: hidden;
 
