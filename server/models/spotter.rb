@@ -21,6 +21,10 @@ class Spotter < RedisMapper::PlatformModel
     end
   end
 
+  def secret?
+    self.store.read_permission != :public
+  end
+
   property  :read_permission,   Symbol      # :public, :closed, :private
   property  :write_permission,  Symbol
   property  :members,           Group

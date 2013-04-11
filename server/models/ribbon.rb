@@ -23,6 +23,10 @@ class Ribbon < RedisMapper::PlatformModel
     post
   end
 
+  def secret?
+    self.store.spotter.secret?
+  end
+
   delegate :read_source     do self.store end
   delegate :write_target    do self.store end
 
