@@ -3,17 +3,20 @@
   <head>
     <meta charset="utf-8">
     <title>ぽろったー</title>
-    <!-- <link rel="stylesheet" <%= href("css/login.css") %>> -->
+    <link rel="stylesheet" href="<%= static_url("css/bootstrap.css") %>">
+    <link rel="stylesheet" href="<%= static_url("css/flat-ui.css") %>">
   </head>
 
-  <body>
-    <header>
-      <h1>ぽろったー</h1>
-      <p class="subtitle">ぽろったーは、リアルタイムに配信される情報にコメントを付けながら交流できるシステムです。</p>
+  <body class="container-fluid">
+    <header class="row-fluid">
+      <div class="hero-unit">
+        <h1>ぽろったー</h1>
+        <p class="subtitle">ぽろったーは、リアルタイムに配信される情報にコメントを付けながら交流できるシステムです。</p>
+      </div>
     </header>
 
-    <section>
-      <section class="box">
+    <section class="row-fluid">
+      <section class="span6 palette palette-clouds">
         <h1>Login</h1>
         
         <% if login_error %>
@@ -26,18 +29,18 @@
           <table>
             <tr>
               <td>username</td>
-              <td><input name="username" /></td>
+              <td><input type="text" name="username" /></td>
             </tr>
             <tr>
               <td>password</td>
               <td><input type="password" name="password" /></td>
             </tr>
           </table>
-          <input type="submit" value="Log in" />
+          <input type="submit" value="Log in" class="btn btn-primary"/>
         </form>
       </section>
 
-      <section class="box last">
+      <section class="span6 palette palette-clouds">
         <h1>Sign up</h1>
         
         <% if signup_error %>
@@ -50,7 +53,7 @@
           <table>
             <tr>
               <td>username</td>
-              <td><input name="username" value="<%= params[:username] %>"/></td>
+              <td><input type="text" name="username" value="<%= params[:username] %>"/></td>
             </tr>
             <tr>
               <td>password</td>
@@ -61,10 +64,9 @@
               <td><input type="password" name="password_confirmation" /></td>
             </tr>
           </table>
-          <input type="submit" value="Create an account">
+          <input type="submit" value="Create an account" class="btn btn-primary">
         </form>
-      </div>
-
+      </section>
     </section>
   </body>
 </html>

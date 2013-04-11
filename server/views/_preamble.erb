@@ -2,13 +2,14 @@
   <div class="headline">
     <span><%= owner.store.label %></span>/<span><%= current_board.store.label %></span>
     <% if @user == owner %>
+    <a href="#" data-dropdown="#ribbon-menu" id="ribbon-menu-trigger">リボン</a>
     <a href="<%= local_url('/preferences') %>">個人設定</a>
     <a href="<%= local_url('/logout') %>">ログアウト</a>
     <% end %>
     <a href="https://github.com/jonigata/porotter">github</a>
 
     <% if @user == owner %>
-    <a href="#" data-dropdown="#board-chooser" id="choose-board">ボード選択</a>
+    <a href="#" data-dropdown="#board-menu" id="board-menu-trigger">ボード選択</a>
     <% end %>
   </div>
   <div id="stamp-chooser">
@@ -18,9 +19,20 @@
   <div id="make-board">
     <%= erb :_makeboard %>
   </div>
-  <div id="board-chooser" class="dropdown dropdown-tip dropdown-anchor-right">
+  <div id="make-ribbon">
+    <%= erb :_makeribbon, :locals => { :current_board => current_board } %>
+  </div>
+  <div id="board-menu" class="dropdown dropdown-tip dropdown-anchor-right">
     <% if @user == owner %>
     <%=  erb :_chooseboard, :locals => { :boards => boards } %>
+    <% end %>
+  </div>
+  <div id="ribbon-menu" class="dropdown dropdown-tip">
+    <% if @user == owner %>
+    <ul class="dropdown-menu">
+      <li><a href="#" onclick="MyPage.makeRibbon();return false;">新規作成</a></li>
+      <li><a href="#" onclick="MyPage.makeRibbon();return false;">復活</a></li>
+    </ul>
     <% end %>
   </div>
   <% end %>

@@ -841,6 +841,10 @@ MyPage.closeRibbon = function(obj) {
 		ribbon.closest(".ribbon-outer").remove();
 	});
 }
+MyPage.makeRibbon = function() {
+	var dialog = new $("#make-ribbon");
+	dialog.justModal();
+}
 MyPage.postStamp = function(ribbonId,timelineId,source,selected) {
 	var form = source.closest(".comment-form").find("> form");
 	var image = selected.attr("image");

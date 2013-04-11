@@ -27,6 +27,7 @@ class Ribbon < RedisMapper::PlatformModel
   delegate :write_target    do self.store end
 
   property  :owner,         Board
+  property  :spotter,       Spotter
   property  :read_source,   Timeline
   property  :write_target,  Timeline
 end

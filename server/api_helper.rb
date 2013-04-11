@@ -68,6 +68,13 @@ module APIHelper
         redirect parent_url("/users/#{@user.store.username}/#{r.name}")
       end
 
+      post '/m/newribbon' do
+        r = ensure_params(
+          :board => INT_PARAM)
+        board_name = make_new_ribbon(r.board, params[:label])
+        redirect parent_url("/users/#{@user.store.username}/#{board_name}")
+      end
+
       post '/m/closeribbon' do
         r = ensure_params(
           :ribbon => INT_PARAM)
@@ -118,8 +125,14 @@ module APIHelper
     @user.unfavor(ribbon, post)
   end
 
-  def make_new_board(name,label)
+  def make_new_board(name, label)
     @user.add_board(name, label)
+  end
+
+  def make_new_ribbon(board_id, label)
+    board = Board.attach_if_exist(board_id) or false
+    @user.add_ribbon(board, label)
+    board.store.name
   end
 
   def close_ribbon(ribbon_id)

@@ -165,6 +165,11 @@ class MyPage {
         });
     }        
 
+    static function makeRibbon() {
+        var dialog: Dynamic = new JQuery('#make-ribbon');
+        dialog.justModal();
+    }
+
     ////////////////////////////////////////////////////////////////
     // private functions
     static private function postStamp(

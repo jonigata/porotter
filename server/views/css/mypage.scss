@@ -255,6 +255,10 @@ header {
     @include dialog;
 }    
 
-#choose-board {
+#make-ribbon {
+    @include dialog;
+}    
+
+#board-menu-trigger {
     float: right;
 }

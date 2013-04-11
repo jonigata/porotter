@@ -95,6 +95,11 @@ class User < RedisMapper::PlatformModel
     self.store.boards[idname]
   end
 
+  def add_ribbon(board, label)
+    timeline = Timeline.create(self, label)
+    board.import(timeline, timeline)
+  end
+
   def remove_ribbon(ribbon)
     # TODO: ribbonチェック
     ribbon.store.owner.remove_ribbon(ribbon)
