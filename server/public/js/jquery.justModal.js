@@ -41,6 +41,7 @@
                 "top":o.top+"px"
             });
             modal.fadeTo(200,1);
+            modal.find('.first').focus();
             return this;
         }
     });
