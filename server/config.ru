@@ -8,14 +8,7 @@ Encoding.default_internal = "UTF-8"
 require './redis_mapper.rb'
 RedisMapper::PlatformModel.set_redis(Redis.new)
 
-require './models/user.rb'
-require './models/users.rb'
-require './models/post.rb'
-require './models/group.rb'
-require './models/spotter.rb'
-require './models/timeline.rb'
-require './models/ribbon.rb'
-require './models/board.rb'
+require './domain_models.rb'
 
 URL_PREFIX='/foo'
 

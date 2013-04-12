@@ -7,6 +7,33 @@ class Board < RedisMapper::PlatformModel; end
 class Timeline < RedisMapper::PlatformModel; end
 
 class User < RedisMapper::PlatformModel
+  def self.create_global(password)
+    # init_platformから１度だけ呼び出される
+    username = 'global'
+
+    begin
+      self.make_index(:username, username) do 
+        self.new_instance do |user|
+          user.store.username = username
+          salt = Misc.new_salt
+          user.store.label = user.store.username
+          user.store.email = ''
+          user.store.salt = salt
+          user.store.hashed_password = Misc.hash_pw(salt, password)
+
+          board = Board.create(user, 'global', 'グローバル', nil, nil)
+          user.store.boards['global'] = board
+            
+          global_timeline = Users.singleton.store.global_timeline
+          board.import(global_timeline, nil)
+
+          Users.singleton.add_user(user)
+        end
+      end or raise "That username is taken."
+    end
+
+  end
+
   def self.create(username, password)
     begin
       raise "Username must be at least 3 characters" if username.length < 3
@@ -33,7 +60,6 @@ class User < RedisMapper::PlatformModel
           board = Board.create(
             user, 'myboard', 'マイボード', private_group, private_group)
           user.store.boards['myboard'] = board
-          p board
             
           my_posts = Timeline.create(user, 'あなたの投稿')
           user.store.my_posts = my_posts
