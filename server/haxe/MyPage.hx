@@ -170,6 +170,18 @@ class MyPage {
         dialog.justModal();
     }
 
+    static function editPermissions(ribbonId: Int, isPublic: Bool) {
+        var dialog: Dynamic = new JQuery('#edit-permission');
+        dialog.find('[name="ribbon"]').val(ribbonId);
+        if (isPublic) {
+            dialog.find('[name="permission"][value="public"]').attr('checked', 'checked');
+        } else {
+            dialog.find('[name="permission"][value="private"]').attr('checked', 'checked');
+        }
+
+        dialog.justModal();
+    }
+
     ////////////////////////////////////////////////////////////////
     // private functions
     static private function postStamp(

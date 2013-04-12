@@ -81,6 +81,14 @@ module APIHelper
         close_ribbon(r.ribbon)
         "OK"
       end
+
+      post '/m/editpermission' do
+        r = ensure_params(
+          :ribbon => INT_PARAM,
+          :permission => [/(private|public)/, Symbol])
+        board_name = edit_permission(r.ribbon, r.permission)
+        redirect parent_url("/users/#{@user.store.username}/#{board_name}")
+      end
     end
   end
   
@@ -138,6 +146,12 @@ module APIHelper
   def close_ribbon(ribbon_id)
     ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
     @user.remove_ribbon(ribbon)
+  end
+
+  def edit_permission(ribbon_id, permission)
+    ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
+    @user.edit_permission(ribbon, permission)
+    ribbon.store.owner.store.name
   end
 
   def ensure_params(h)

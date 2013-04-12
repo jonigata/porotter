@@ -845,6 +845,12 @@ MyPage.makeRibbon = function() {
 	var dialog = new $("#make-ribbon");
 	dialog.justModal();
 }
+MyPage.editPermissions = function(ribbonId,isPublic) {
+	var dialog = new $("#edit-permission");
+	dialog.find("[name=\"ribbon\"]").val(ribbonId);
+	if(isPublic) dialog.find("[name=\"permission\"][value=\"public\"]").attr("checked","checked"); else dialog.find("[name=\"permission\"][value=\"private\"]").attr("checked","checked");
+	dialog.justModal();
+}
 MyPage.postStamp = function(ribbonId,timelineId,source,selected) {
 	var form = source.closest(".comment-form").find("> form");
 	var image = selected.attr("image");

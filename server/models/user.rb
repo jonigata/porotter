@@ -135,6 +135,18 @@ class User < RedisMapper::PlatformModel
     ribbon.store.owner.remove_ribbon(ribbon)
   end
 
+  def edit_permission(ribbon, permission)
+    # TODO: ribbonチェック
+    p permission
+    case permission
+    when :public
+      ribbon.set_spotter(nil)
+    when :private
+      private_group = self.store.private_group
+      ribbon.set_spotter(Spotter.create(private_group, private_group))
+    end
+  end
+
   index_accessor :username
 
   property              :username,          String

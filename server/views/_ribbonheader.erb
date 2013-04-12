@@ -3,6 +3,8 @@
 
   <img class="close-button" src="<%= static_url("images/remove.png") %>" onclick="MyPage.closeRibbon(this);return false;">
   <% if ribbon.secret? %>
-  <img class="secret-indicator" width="24" height="24" src="<%= static_url("images/lock.png") %>">
+  <img class="secret-indicator" src="<%= static_url("images/private.png") %>" onclick="MyPage.editPermissions(<%= ribbon.store.id %>, false);return false;">
+  <% else %>
+  <img class="secret-indicator" src="<%= static_url("images/public.png") %>" onclick="MyPage.editPermissions(<%= ribbon.store.id %>, true);return false;">
   <% end %>
 </div>
