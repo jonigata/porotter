@@ -19,6 +19,11 @@ class Board < RedisMapper::PlatformModel
     ribbons.remove(ribbon)
   end
 
+  def secret?
+    spotter = self.store.spotter or return false
+    spotter.secret?
+  end
+
   delegate :add_ribbon, :add        do self.store.ribbons end
   delegate :remove_ribbon, :remove  do self.store.ribbons end
   delegate :list_ribbons, :to_a     do self.store.ribbons end

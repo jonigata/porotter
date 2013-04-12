@@ -66,6 +66,10 @@ html {
     }
     header {
         height: 0;
+        .secret-indicator {
+            width: 14px;
+            height: 14px;
+        }
     }
 }
 

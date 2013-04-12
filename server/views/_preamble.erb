@@ -3,6 +3,11 @@
     <div class="navbar-inner">
       <div class="container">
         <a class="brand" href="#">
+          <% if current_board.secret? %>
+          <img class="secret-indicator" src="<%= static_url("images/private.png") %>">
+          <% else %>
+          <img class="secret-indicator" src="<%= static_url("images/public.png") %>">
+          <% end %>
           <span><%= owner.store.label %></span>/<span><%= current_board.store.label %></span>
         </a>
         <ul class="nav">
