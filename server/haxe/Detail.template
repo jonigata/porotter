@@ -1,8 +1,8 @@
 <div class="detail" comment-count="::commentsLength::" comments-version="::commentsVersion::">
   <div class="author">
-    <span class="label">
+    <strong>
       ::authorLabel::
-    </span>
+    </strong>
     <span class="username">
       @::authorUsername::
     </span>

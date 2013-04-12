@@ -1,16 +1,37 @@
 <header>
-  <div class="headline">
-    <span><%= owner.store.label %></span>/<span><%= current_board.store.label %></span>
-    <% if @user == owner %>
-    <a href="#" data-dropdown="#ribbon-menu" id="ribbon-menu-trigger">リボン</a>
-    <a href="<%= local_url('/preferences') %>">個人設定</a>
-    <a href="<%= local_url('/logout') %>">ログアウト</a>
-    <% end %>
-    <a href="https://github.com/jonigata/porotter">github</a>
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <a class="brand" href="#">
+          <span><%= owner.store.label %></span>/<span><%= current_board.store.label %></span>
+        </a>
+        <ul class="nav">
+          <% if @user == owner %>
+          <li class="dropdown">
+            <a class="dropdown-toggle" data-toggle="dropdown" href="#">リボン<span class="caret"></span></a>
+            <% if @user == owner %>
+            <ul class="dropdown-menu">
+              <li><a href="#" onclick="MyPage.makeRibbon();return false;">新規作成</a></li>
+              <li><a href="#" onclick="MyPage.makeRibbon();return false;">復活</a></li>
+            </ul>
+            <% end %>
+          </li>
+          <li><a href="<%= local_url('/preferences') %>">個人設定</a></li>
+          <li><a href="<%= local_url('/logout') %>">ログアウト</a></li>
+          <% end %>
+          <li><a href="https://github.com/jonigata/porotter">github</a></li>
+        </ul>
 
-    <% if @user == owner %>
-    <a href="#" data-dropdown="#board-menu" id="board-menu-trigger">ボード選択</a>
-    <% end %>
+        <% if @user == owner %>
+        <ul class="nav pull-right">
+          <li class="dropdown">
+            <a class="dropdown-toggle" data-toggle="dropdown" href="#">ボード選択<span class="caret"></span></a>
+            <%=  erb :_chooseboard, :locals => { :boards => boards } %>
+          </li>
+        </ul>
+        <% end %>
+      </div>
+    </div>
   </div>
   <div id="stamp-chooser">
     <%= erb :_stamps %>
@@ -21,19 +42,6 @@
   </div>
   <div id="make-ribbon">
     <%= erb :_makeribbon, :locals => { :current_board => current_board } %>
-  </div>
-  <div id="board-menu" class="dropdown dropdown-tip dropdown-anchor-right">
-    <% if @user == owner %>
-    <%=  erb :_chooseboard, :locals => { :boards => boards } %>
-    <% end %>
-  </div>
-  <div id="ribbon-menu" class="dropdown dropdown-tip">
-    <% if @user == owner %>
-    <ul class="dropdown-menu">
-      <li><a href="#" onclick="MyPage.makeRibbon();return false;">新規作成</a></li>
-      <li><a href="#" onclick="MyPage.makeRibbon();return false;">復活</a></li>
-    </ul>
-    <% end %>
   </div>
   <% end %>
 </header>

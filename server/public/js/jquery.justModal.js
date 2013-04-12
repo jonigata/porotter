@@ -10,7 +10,7 @@
             var o = $.extend(defaults,options);
 
             // add overlay
-            var overlay = $("<div id='lean_overlay'></div>");
+            var overlay = $("<div id='lean-overlay'></div>");
             $("body").append(overlay);
 
             // setup close function

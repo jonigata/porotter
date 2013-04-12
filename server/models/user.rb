@@ -11,25 +11,23 @@ class User < RedisMapper::PlatformModel
     # init_platformから１度だけ呼び出される
     username = 'global'
 
-    begin
-      self.make_index(:username, username) do 
-        self.new_instance do |user|
-          user.store.username = username
-          salt = Misc.new_salt
-          user.store.label = user.store.username
-          user.store.email = ''
-          user.store.salt = salt
-          user.store.hashed_password = Misc.hash_pw(salt, password)
+    self.make_index(:username, username) do 
+      self.new_instance do |user|
+        user.store.username = username
+        salt = Misc.new_salt
+        user.store.label = user.store.username
+        user.store.email = ''
+        user.store.salt = salt
+        user.store.hashed_password = Misc.hash_pw(salt, password)
 
-          board = Board.create(user, 'global', 'グローバル', nil, nil)
-          user.store.boards['global'] = board
-            
-          global_timeline = Users.singleton.store.global_timeline
-          board.import(global_timeline, nil)
+        board = Board.create(user, 'global', 'グローバル', nil, nil)
+        user.store.boards['global'] = board
+        
+        global_timeline = Users.singleton.store.global_timeline
+        board.import(global_timeline, nil)
 
-          Users.singleton.add_user(user)
-        end
-      end or raise "That username is taken."
+        Users.singleton.add_user(user)
+      end
     end
 
   end

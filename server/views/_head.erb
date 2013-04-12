@@ -2,17 +2,19 @@
   <meta charset="utf-8">
   <title>ぽろったー</title>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>    
+  <script src="<%= static_url("js/bootstrap-dropdown.js") %>"></script>
   <script src="<%= static_url("js/jquery.cookie.js") %>"></script>
   <script src="<%= static_url("js/jquery.justModal.js") %>"></script>
-  <script src="<%= static_url("js/jquery.dropdown.js") %>"></script>
   <script src="<%= static_url("js/mypage.js") %>"></script>
   <script src="<%= rocketio_js %>"></script>
-  <link rel="stylesheet" href="<%= static_url("css/mypage.css") %>">
-  <link rel="stylesheet" href="<%= static_url("css/jquery.dropdown.css") %>">
+
+  <link rel="stylesheet" href="<%= static_url("css/bootstrap.css") %>">
+  <link rel="stylesheet" href="<%= static_url("css/board.css") %>">
 
   <script>
     $(function() {
       MyPage.init();
+      $('.dropdown-toggle').dropdown();
     });
   </script>
 </head>

@@ -33,8 +33,8 @@
         <form>
           <input type="hidden" name="parent" value="::__current__.postId::"/>
           <textarea name="content"></textarea><br/>
-          <input type="button" value="投稿" onclick="MyPage.postComment(::ribbonId::, ::__current__.commentsId::, $(this).parent());return false;"/>
-          <a href="#" onclick="MyPage.chooseStamp(this, ::ribbonId::, ::__current__.commentsId::);return false;">スタンプ</a>
+          <input class="btn btn-primary" type="button" value="投稿" onclick="MyPage.postComment(::ribbonId::, ::__current__.commentsId::, $(this).parent());return false;"/>
+          <a class="btn btn-info" href="#" onclick="MyPage.chooseStamp(this, ::ribbonId::, ::__current__.commentsId::);return false;">スタンプ</a>
         </form>
       </div>
       ::end::
