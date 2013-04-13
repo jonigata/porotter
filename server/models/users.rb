@@ -11,6 +11,10 @@ class Users < RedisMapper::PlatformModel
     self.store.users.add(user)
   end
 
+  def list
+    self.store.users.to_a
+  end
+
   set_property  :users, User
   property      :global_timeline, Timeline
 end

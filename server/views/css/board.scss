@@ -131,7 +131,7 @@ html {
 .timeline {
     max-height: 100%;
     .post {
-        border-top: 1px dashed #DDD;
+        border-top: 1px dashed #ccc;
         padding-top: 5px;
         padding-bottom: 5px;
 
@@ -241,6 +241,10 @@ html {
 }
 
 #make-board {
+    @include dialog;
+}    
+
+#share-board {
     @include dialog;
 }    
 

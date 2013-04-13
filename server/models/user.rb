@@ -20,7 +20,7 @@ class User < RedisMapper::PlatformModel
         user.store.salt = salt
         user.store.hashed_password = Misc.hash_pw(salt, password)
 
-        board = Board.create(user, 'global', 'グローバル', nil, nil)
+        board = Board.create(user, 'global', '井戸端会議', nil, nil)
         user.store.boards['global'] = board
         
         global_timeline = Users.singleton.store.global_timeline

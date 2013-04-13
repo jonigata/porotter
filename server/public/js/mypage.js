@@ -834,6 +834,63 @@ MyPage.makeBoard = function() {
 	var dialog = new $("#make-board");
 	dialog.justModal();
 }
+MyPage.shareBoard = function(ownername) {
+	var dialog = new $("#share-board");
+	var userSelect = dialog.find("[name=\"user\"]");
+	var boardSelect = dialog.find("[name=\"board\"]");
+	var submit = dialog.find("[type=\"submit\"]");
+	userSelect.attr("disabled","disabled");
+	userSelect.html("");
+	boardSelect.attr("disabled","disabled");
+	boardSelect.html("");
+	submit.attr("disabled","disabled");
+	dialog.justModal();
+	$.ajax({ url : "/foo/ajax/v/userlist", method : "get"}).done(function(data) {
+		userSelect.append("<option value=\"0\">所有者を選択</option>");
+		var users = $.parseJSON(data);
+		var _g = 0;
+		while(_g < users.length) {
+			var v = users[_g];
+			++_g;
+			var userId = v[0];
+			var username = v[1];
+			var userlabel = v[2];
+			if(ownername == username) continue;
+			userSelect.append("<option value=\"" + userId + "\">" + username + " - " + userlabel + "</option>");
+		}
+		userSelect.change(function(e) {
+			MyPage.listBoard(new $(e.target).find(":selected").val());
+		});
+		userSelect.removeAttr("disabled");
+	});
+}
+MyPage.listBoard = function(userId) {
+	var dialog = new $("#share-board");
+	var boardSelect = dialog.find("[name=\"board\"]");
+	var submit = dialog.find("[type=\"submit\"]");
+	boardSelect.html("");
+	boardSelect.attr("disabled","disabled");
+	submit.attr("disabled","disabled");
+	if(userId == 0) return;
+	$.ajax({ url : "/foo/ajax/v/boardlist?user=" + userId, method : "get"}).done(function(data) {
+		boardSelect.append("<option value=\"0\">ボードを選択</option>");
+		var boards = $.parseJSON(data);
+		var _g = 0;
+		while(_g < boards.length) {
+			var v = boards[_g];
+			++_g;
+			var boardId = v[0];
+			var boardname = v[1];
+			var boardlabel = v[2];
+			boardSelect.append("<option value=\"" + boardId + "\">" + boardname + " - " + boardlabel + "</option>");
+		}
+		boardSelect.change(function(e) {
+			var boardId = new $(e.target).find(":selected").val();
+			if(boardId == 0) submit.attr("disabled","disabled"); else submit.removeAttr("disabled");
+		});
+		boardSelect.removeAttr("disabled");
+	});
+}
 MyPage.closeRibbon = function(obj) {
 	var ribbon = new $(obj).closest(".ribbon");
 	var ribbonId = ribbon.attr("ribbon-id");
@@ -1120,6 +1177,9 @@ MyPage.openComments = function(comments) {
 }
 MyPage.closeComments = function(comments) {
 	comments.hide();
+}
+MyPage.getThis = function() {
+	return $(this);
 }
 MyPage.isUndefined = function(x) {
 	return "undefined" === typeof x;

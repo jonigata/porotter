@@ -25,6 +25,20 @@ module APIHelper
         get_detail(r.ribbon, r.post)
       end
 
+      get '/v/userlist' do
+        get_userlist
+      end
+
+      get '/v/grouplist' do
+        get_grouplist
+      end
+
+      get '/v/boardlist' do
+        r = ensure_params(
+          :user => INT_PARAM)
+        get_boardlist(r.user)
+      end
+
       post '/m/newarticle' do
         r = ensure_params(:ribbon => INT_PARAM)
         post_new_article(r.ribbon, params[:content])
@@ -108,6 +122,28 @@ module APIHelper
     ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
     post = Post.attach_if_exist(post_id) or raise
     JSONP(make_detail_data(ribbon, post))
+  end
+
+  def get_userlist
+    JSONP(
+      Users.singleton.list.map do |user|
+        [user.store.id, user.store.username, user.store.label]
+      end)
+  end
+
+  def get_grouplist
+    JSONP(
+      Groups.singleton.list.map do |group|
+        [group.store.id, group.store.name]
+      end)
+  end
+
+  def get_boardlist(target_id)
+    target = User.attach_if_exist(target_id) or raise
+    JSONP(
+      target.store.boards.map do |boardname, board|
+        [board.store.id, boardname, board.store.label]
+      end)
   end
 
   def post_new_article(ribbon_id, content)
