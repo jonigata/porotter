@@ -210,8 +210,12 @@ class MyPage {
                 var boardname: String = v[1];
                 var boardlabel: String = v[2];
 
+                var disabled: String =
+                    0 < new JQuery('[board-id="$boardId"]').length ?
+                    ' disabled="disabled"' : '';
+
                 boardSelect.append(
-                    Std.format('<option value="$boardId">$boardname - $boardlabel</option>'));
+                    Std.format('<option value="$boardId"${disabled}>$boardname - $boardlabel</option>'));
             }
             boardSelect.change(function(e: Dynamic) {
                     var boardId: Int =

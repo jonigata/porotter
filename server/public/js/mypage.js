@@ -882,7 +882,8 @@ MyPage.listBoard = function(userId) {
 			var boardId = v[0];
 			var boardname = v[1];
 			var boardlabel = v[2];
-			boardSelect.append("<option value=\"" + boardId + "\">" + boardname + " - " + boardlabel + "</option>");
+			var disabled = 0 < new $("[board-id=\"$boardId\"]").length?" disabled=\"disabled\"":"";
+			boardSelect.append("<option value=\"" + boardId + "\"" + disabled + ">" + boardname + " - " + boardlabel + "</option>");
 		}
 		boardSelect.change(function(e) {
 			var boardId = new $(e.target).find(":selected").val();
