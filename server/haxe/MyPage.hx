@@ -155,12 +155,41 @@ class MyPage {
         var userSelect = dialog.find('[name="user"]');
         var boardSelect: Dynamic = dialog.find('[name="board"]');
         var submit: Dynamic = dialog.find('[type="submit"]');
-        userSelect.attr('disabled', 'disabled');
-        userSelect.html('');
+
         boardSelect.attr('disabled', 'disabled');
         boardSelect.html('');
         submit.attr('disabled', 'disabled');
+
+        setupUserSelect(
+            userSelect,
+            ownername,
+            function() {
+                userSelect.change(
+                    function(e: Dynamic) {
+                        submit.attr('disabled', 'disabled');
+                        setupBoardSelect(
+                            boardSelect,
+                            getSelected(e.target).val(),
+                            function() {
+                                boardSelect.change(
+                                    function(e: Dynamic) {
+                                        if (getSelected(e.target).val() == 0) {
+                                            submit.attr('disabled', 'disabled');
+                                        } else {
+                                            submit.removeAttr('disabled');
+                                        }
+                                    });
+                            });
+                    });
+            });
         dialog.justModal();
+    }
+
+    static function setupUserSelect(
+        userSelect: Dynamic, ownername: String, f: Void->Void) {
+
+        userSelect.attr('disabled', 'disabled');
+        userSelect.html('');
 
         JQuery._static.ajax({
             url: "/foo/ajax/v/userlist",
@@ -180,20 +209,16 @@ class MyPage {
                 userSelect.append(
                     Std.format('<option value="$userId">$username - $userlabel</option>'));
             }
-            userSelect.change(function(e: Dynamic) {
-                    listBoard(new JQuery(e.target).find(':selected').val());
-                });
+            f();
             userSelect.removeAttr('disabled');
         });
     }
 
-    static function listBoard(userId: Int) {
-        var dialog: Dynamic = new JQuery('#share-board');
-        var boardSelect: Dynamic = dialog.find('[name="board"]');
-        var submit: Dynamic = dialog.find('[type="submit"]');
+    static function setupBoardSelect(
+        boardSelect: Dynamic, userId: Int, f: Void->Void) {
+        
         boardSelect.html('');
         boardSelect.attr('disabled', 'disabled');
-        submit.attr('disabled', 'disabled');
         if (userId == 0) {
             return;
         }
@@ -217,15 +242,7 @@ class MyPage {
                 boardSelect.append(
                     Std.format('<option value="$boardId"${disabled}>$boardname - $boardlabel</option>'));
             }
-            boardSelect.change(function(e: Dynamic) {
-                    var boardId: Int =
-                        new JQuery(e.target).find(':selected').val();
-                    if (boardId == 0) {
-                        submit.attr('disabled', 'disabled');
-                    } else {
-                        submit.removeAttr('disabled');
-                    }
-                });
+            f();
             boardSelect.removeAttr('disabled');
         });
     }
@@ -665,5 +682,10 @@ class MyPage {
         }
         return x;
     }
+
+    static private function getSelected(select: Dynamic) {
+        return new JQuery(select).find(':selected');
+    }
+
 }
 

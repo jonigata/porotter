@@ -839,12 +839,24 @@ MyPage.shareBoard = function(ownername) {
 	var userSelect = dialog.find("[name=\"user\"]");
 	var boardSelect = dialog.find("[name=\"board\"]");
 	var submit = dialog.find("[type=\"submit\"]");
-	userSelect.attr("disabled","disabled");
-	userSelect.html("");
 	boardSelect.attr("disabled","disabled");
 	boardSelect.html("");
 	submit.attr("disabled","disabled");
+	MyPage.setupUserSelect(userSelect,ownername,function() {
+		userSelect.change(function(e) {
+			submit.attr("disabled","disabled");
+			MyPage.setupBoardSelect(boardSelect,MyPage.getSelected(e.target).val(),function() {
+				boardSelect.change(function(e1) {
+					if(MyPage.getSelected(e1.target).val() == 0) submit.attr("disabled","disabled"); else submit.removeAttr("disabled");
+				});
+			});
+		});
+	});
 	dialog.justModal();
+}
+MyPage.setupUserSelect = function(userSelect,ownername,f) {
+	userSelect.attr("disabled","disabled");
+	userSelect.html("");
 	$.ajax({ url : "/foo/ajax/v/userlist", method : "get"}).done(function(data) {
 		userSelect.append("<option value=\"0\">所有者を選択</option>");
 		var users = $.parseJSON(data);
@@ -858,19 +870,13 @@ MyPage.shareBoard = function(ownername) {
 			if(ownername == username) continue;
 			userSelect.append("<option value=\"" + userId + "\">" + username + " - " + userlabel + "</option>");
 		}
-		userSelect.change(function(e) {
-			MyPage.listBoard(new $(e.target).find(":selected").val());
-		});
+		f();
 		userSelect.removeAttr("disabled");
 	});
 }
-MyPage.listBoard = function(userId) {
-	var dialog = new $("#share-board");
-	var boardSelect = dialog.find("[name=\"board\"]");
-	var submit = dialog.find("[type=\"submit\"]");
+MyPage.setupBoardSelect = function(boardSelect,userId,f) {
 	boardSelect.html("");
 	boardSelect.attr("disabled","disabled");
-	submit.attr("disabled","disabled");
 	if(userId == 0) return;
 	$.ajax({ url : "/foo/ajax/v/boardlist?user=" + userId, method : "get"}).done(function(data) {
 		boardSelect.append("<option value=\"0\">ボードを選択</option>");
@@ -885,10 +891,7 @@ MyPage.listBoard = function(userId) {
 			var disabled = 0 < new $("[board-id=\"$boardId\"]").length?" disabled=\"disabled\"":"";
 			boardSelect.append("<option value=\"" + boardId + "\"" + disabled + ">" + boardname + " - " + boardlabel + "</option>");
 		}
-		boardSelect.change(function(e) {
-			var boardId = new $(e.target).find(":selected").val();
-			if(boardId == 0) submit.attr("disabled","disabled"); else submit.removeAttr("disabled");
-		});
+		f();
 		boardSelect.removeAttr("disabled");
 	});
 }
@@ -1188,6 +1191,9 @@ MyPage.isUndefined = function(x) {
 MyPage.kickUndefined = function(x) {
 	if(MyPage.isUndefined(x)) return null;
 	return x;
+}
+MyPage.getSelected = function(select) {
+	return new $(select).find(":selected");
 }
 var Reflect = function() { }
 $hxClasses["Reflect"] = Reflect;
