@@ -244,11 +244,15 @@ html {
     @include dialog;
 }    
 
-#share-board {
+#join-board {
     @include dialog;
 }    
 
 #make-ribbon {
+    @include dialog;
+}    
+
+#join-ribbon {
     @include dialog;
 }    
 

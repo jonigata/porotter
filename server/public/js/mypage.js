@@ -834,66 +834,47 @@ MyPage.makeBoard = function() {
 	var dialog = new $("#make-board");
 	dialog.justModal();
 }
-MyPage.shareBoard = function(ownername) {
-	var dialog = new $("#share-board");
+MyPage.joinBoard = function(ownername) {
+	var dialog = new $("#join-board");
 	var userSelect = dialog.find("[name=\"user\"]");
 	var boardSelect = dialog.find("[name=\"board\"]");
 	var submit = dialog.find("[type=\"submit\"]");
-	boardSelect.attr("disabled","disabled");
-	boardSelect.html("");
-	submit.attr("disabled","disabled");
-	MyPage.setupUserSelect(userSelect,ownername,function() {
-		userSelect.change(function(e) {
-			submit.attr("disabled","disabled");
-			MyPage.setupBoardSelect(boardSelect,MyPage.getSelected(e.target).val(),function() {
-				boardSelect.change(function(e1) {
-					if(MyPage.getSelected(e1.target).val() == 0) submit.attr("disabled","disabled"); else submit.removeAttr("disabled");
-				});
-			});
+	MyPage.clearSelect(userSelect);
+	MyPage.setupUserSelect(userSelect,ownername,function(userId) {
+		MyPage.disable(submit);
+		MyPage.clearSelect(boardSelect);
+		if(userId == 0) return;
+		MyPage.setupBoardSelect(boardSelect,userId,function(boardId) {
+			MyPage.setEnabled(submit,boardId != 0);
 		});
 	});
 	dialog.justModal();
 }
-MyPage.setupUserSelect = function(userSelect,ownername,f) {
-	userSelect.attr("disabled","disabled");
-	userSelect.html("");
-	$.ajax({ url : "/foo/ajax/v/userlist", method : "get"}).done(function(data) {
-		userSelect.append("<option value=\"0\">所有者を選択</option>");
-		var users = $.parseJSON(data);
-		var _g = 0;
-		while(_g < users.length) {
-			var v = users[_g];
-			++_g;
-			var userId = v[0];
-			var username = v[1];
-			var userlabel = v[2];
-			if(ownername == username) continue;
-			userSelect.append("<option value=\"" + userId + "\">" + username + " - " + userlabel + "</option>");
-		}
-		f();
-		userSelect.removeAttr("disabled");
+MyPage.joinRibbon = function(ownername) {
+	var dialog = new $("#join-ribbon");
+	var userSelect = dialog.find("[name=\"user\"]");
+	var boardSelect = dialog.find("[name=\"board\"]");
+	var ribbonSelect = dialog.find("[name=\"ribbon\"]");
+	var submit = dialog.find("[type=\"submit\"]");
+	MyPage.clearSelect(userSelect);
+	MyPage.setupUserSelect(userSelect,ownername,function(userId) {
+		MyPage.disable(submit);
+		console.log("clear boardSelect");
+		MyPage.clearSelect(boardSelect);
+		console.log("clear ribbonSelect");
+		MyPage.clearSelect(ribbonSelect);
+		if(userId == 0) return;
+		MyPage.setupBoardSelect(boardSelect,userId,function(boardId) {
+			MyPage.disable(submit);
+			console.log("clear ribbonSelect");
+			MyPage.clearSelect(ribbonSelect);
+			if(boardId == 0) return;
+			MyPage.setupRibbonSelect(ribbonSelect,boardId,function(ribbonId) {
+				MyPage.setEnabled(submit,ribbonId != 0);
+			});
+		});
 	});
-}
-MyPage.setupBoardSelect = function(boardSelect,userId,f) {
-	boardSelect.html("");
-	boardSelect.attr("disabled","disabled");
-	if(userId == 0) return;
-	$.ajax({ url : "/foo/ajax/v/boardlist?user=" + userId, method : "get"}).done(function(data) {
-		boardSelect.append("<option value=\"0\">ボードを選択</option>");
-		var boards = $.parseJSON(data);
-		var _g = 0;
-		while(_g < boards.length) {
-			var v = boards[_g];
-			++_g;
-			var boardId = v[0];
-			var boardname = v[1];
-			var boardlabel = v[2];
-			var disabled = 0 < new $("[board-id=\"$boardId\"]").length?" disabled=\"disabled\"":"";
-			boardSelect.append("<option value=\"" + boardId + "\"" + disabled + ">" + boardname + " - " + boardlabel + "</option>");
-		}
-		f();
-		boardSelect.removeAttr("disabled");
-	});
+	dialog.justModal();
 }
 MyPage.closeRibbon = function(obj) {
 	var ribbon = new $(obj).closest(".ribbon");
@@ -911,6 +892,81 @@ MyPage.editPermissions = function(ribbonId,isPublic) {
 	dialog.find("[name=\"ribbon\"]").val(ribbonId);
 	if(isPublic) dialog.find("[name=\"permission\"][value=\"public\"]").attr("checked","checked"); else dialog.find("[name=\"permission\"][value=\"private\"]").attr("checked","checked");
 	dialog.justModal();
+}
+MyPage.enable = function(e) {
+	e.removeAttr("disabled");
+}
+MyPage.disable = function(e) {
+	e.attr("disabled","disabled");
+}
+MyPage.setEnabled = function(e,f) {
+	if(f) MyPage.enable(e); else MyPage.disable(e);
+}
+MyPage.setupUserAndBoardSelect = function(dialog,ownername,userChange,boardChange) {
+	var userSelect = dialog.find("[name=\"user\"]");
+	var boardSelect = dialog.find("[name=\"board\"]");
+	userChange(0);
+}
+MyPage.setupUserSelect = function(userSelect,ownername,f) {
+	$.ajax({ url : "/foo/ajax/v/userlist", method : "get"}).done(function(data) {
+		userSelect.append("<option value=\"0\">所有者を選択</option>");
+		var users = $.parseJSON(data);
+		var _g = 0;
+		while(_g < users.length) {
+			var v = users[_g];
+			++_g;
+			var userId = v[0];
+			var username = v[1];
+			var userlabel = v[2];
+			if(ownername == username) continue;
+			userSelect.append("<option value=\"" + userId + "\">" + username + " - " + userlabel + "</option>");
+		}
+		userSelect.unbind("change");
+		userSelect.change(function(e) {
+			f(MyPage.getSelected(e.target).val());
+		});
+		MyPage.enable(userSelect);
+	});
+}
+MyPage.setupBoardSelect = function(boardSelect,userId,f) {
+	$.ajax({ url : "/foo/ajax/v/boardlist?user=" + userId, method : "get"}).done(function(data) {
+		boardSelect.append("<option value=\"0\">ボードを選択</option>");
+		var boards = $.parseJSON(data);
+		var _g = 0;
+		while(_g < boards.length) {
+			var v = boards[_g];
+			++_g;
+			var boardId = v[0];
+			var boardname = v[1];
+			var boardlabel = v[2];
+			var disabled = 0 < new $("[board-id=\"$boardId\"]").length?" disabled=\"disabled\"":"";
+			boardSelect.append("<option value=\"" + boardId + "\"" + disabled + ">" + boardname + " - " + boardlabel + "</option>");
+		}
+		boardSelect.unbind("change");
+		boardSelect.change(function(e) {
+			f(MyPage.getSelected(e.target).val());
+		});
+		MyPage.enable(boardSelect);
+	});
+}
+MyPage.setupRibbonSelect = function(ribbonSelect,boardId,f) {
+	$.ajax({ url : "/foo/ajax/v/ribbonlist?board=" + boardId, method : "get"}).done(function(data) {
+		ribbonSelect.append("<option value=\"0\">リボンを選択</option>");
+		var ribbons = $.parseJSON(data);
+		var _g = 0;
+		while(_g < ribbons.length) {
+			var v = ribbons[_g];
+			++_g;
+			var ribbonId = v[0];
+			var ribbonLabel = v[1];
+			ribbonSelect.append("<option value=\"" + ribbonId + "\">" + ribbonLabel + "</option>");
+		}
+		ribbonSelect.unbind("change");
+		ribbonSelect.change(function(e) {
+			f(MyPage.getSelected(e.target).val());
+		});
+		MyPage.enable(ribbonSelect);
+	});
 }
 MyPage.postStamp = function(ribbonId,timelineId,source,selected) {
 	var form = source.closest(".comment-form").find("> form");
@@ -1194,6 +1250,10 @@ MyPage.kickUndefined = function(x) {
 }
 MyPage.getSelected = function(select) {
 	return new $(select).find(":selected");
+}
+MyPage.clearSelect = function(select) {
+	MyPage.disable(select);
+	select.html("");
 }
 var Reflect = function() { }
 $hxClasses["Reflect"] = Reflect;

@@ -14,12 +14,7 @@
           <% if @user == owner %>
           <li class="dropdown">
             <a class="dropdown-toggle" data-toggle="dropdown" href="#">リボン<span class="caret"></span></a>
-            <% if @user == owner %>
-            <ul class="dropdown-menu">
-              <li><a href="#" onclick="MyPage.makeRibbon();return false;">新規作成</a></li>
-              <li><a href="#" onclick="MyPage.makeRibbon();return false;">復活</a></li>
-            </ul>
-            <% end %>
+            <%=  erb :_chooseribbon %>
           </li>
           <li><a href="<%= local_url('/preferences') %>">個人設定</a></li>
           <li><a href="<%= local_url('/logout') %>">ログアウト</a></li>
@@ -51,8 +46,11 @@
   <div id="edit-permission">
     <%= erb :_editpermission %>
   </div>
-  <div id="share-board">
-    <%= erb :_shareboard %>
+  <div id="join-board">
+    <%= erb :_joinboard %>
+  </div>
+  <div id="join-ribbon">
+    <%= erb :_joinribbon %>
   </div>
   <% end %>
 </header>

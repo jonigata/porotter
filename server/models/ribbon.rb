@@ -33,6 +33,10 @@ class Ribbon < RedisMapper::PlatformModel
     self.store.spotter = spotter
   end
 
+  def label
+    self.store.read_source.store.label
+  end
+
   delegate :read_source     do self.store end
   delegate :write_target    do self.store end
 

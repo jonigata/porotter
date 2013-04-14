@@ -39,6 +39,12 @@ module APIHelper
         get_boardlist(r.user)
       end
 
+      get '/v/ribbonlist' do
+        r = ensure_params(
+          :board => INT_PARAM)
+        get_ribbonlist(r.board)
+      end
+
       post '/m/newarticle' do
         r = ensure_params(:ribbon => INT_PARAM)
         post_new_article(r.ribbon, params[:content])
@@ -143,6 +149,14 @@ module APIHelper
     JSONP(
       target.store.boards.map do |boardname, board|
         [board.store.id, boardname, board.store.label]
+      end)
+  end
+
+  def get_ribbonlist(board_id)
+    board = Board.attach_if_exist(board_id) or raise
+    JSONP(
+      board.store.ribbons.map do |ribbon|
+        [ribbon.store.id, ribbon.label]
       end)
   end
 

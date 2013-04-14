@@ -150,101 +150,65 @@ class MyPage {
         dialog.justModal();
     }
 
-    static function shareBoard(ownername: String) {
-        var dialog: Dynamic = new JQuery('#share-board');
-        var userSelect = dialog.find('[name="user"]');
+    static function joinBoard(ownername: String) {
+        var dialog: Dynamic = new JQuery('#join-board');
+        var userSelect: Dynamic = dialog.find('[name="user"]');
         var boardSelect: Dynamic = dialog.find('[name="board"]');
         var submit: Dynamic = dialog.find('[type="submit"]');
 
-        boardSelect.attr('disabled', 'disabled');
-        boardSelect.html('');
-        submit.attr('disabled', 'disabled');
-
+        clearSelect(userSelect);
         setupUserSelect(
             userSelect,
             ownername,
-            function() {
-                userSelect.change(
-                    function(e: Dynamic) {
-                        submit.attr('disabled', 'disabled');
-                        setupBoardSelect(
-                            boardSelect,
-                            getSelected(e.target).val(),
-                            function() {
-                                boardSelect.change(
-                                    function(e: Dynamic) {
-                                        if (getSelected(e.target).val() == 0) {
-                                            submit.attr('disabled', 'disabled');
-                                        } else {
-                                            submit.removeAttr('disabled');
-                                        }
-                                    });
-                            });
+            function(userId: Int) {
+                disable(submit);
+                clearSelect(boardSelect);
+                if (userId == 0) { return; }
+                        
+                setupBoardSelect(
+                    boardSelect,
+                    userId,
+                    function(boardId: Int) {
+                        setEnabled(submit, boardId != 0);
                     });
             });
         dialog.justModal();
     }
 
-    static function setupUserSelect(
-        userSelect: Dynamic, ownername: String, f: Void->Void) {
+    static function joinRibbon(ownername: String) {
+        var dialog: Dynamic = new JQuery('#join-ribbon');
+        var userSelect: Dynamic = dialog.find('[name="user"]');
+        var boardSelect: Dynamic = dialog.find('[name="board"]');
+        var ribbonSelect: Dynamic = dialog.find('[name="ribbon"]');
+        var submit: Dynamic = dialog.find('[type="submit"]');
 
-        userSelect.attr('disabled', 'disabled');
-        userSelect.html('');
+        clearSelect(userSelect);
+        setupUserSelect(
+            userSelect,
+            ownername,
+            function(userId: Int) {
+                disable(submit);
+                clearSelect(boardSelect);
+                clearSelect(ribbonSelect);
+                if (userId == 0) { return; }
+                        
+                setupBoardSelect(
+                    boardSelect,
+                    userId,
+                    function(boardId: Int) {
+                        disable(submit);
+                        clearSelect(ribbonSelect);
+                        if (boardId == 0) { return; }
 
-        JQuery._static.ajax({
-            url: "/foo/ajax/v/userlist",
-            method: "get"
-        }).done(function(data) {
-            userSelect.append('<option value="0">所有者を選択</option>');
-                
-            var users: Array<Dynamic> = JQuery._static.parseJSON(data);
-            for(v in users) {
-                var userId: Int = v[0];
-                var username: String = v[1];
-                var userlabel: String = v[2];
-                if (ownername == username) {
-                    continue;
-                }
-
-                userSelect.append(
-                    Std.format('<option value="$userId">$username - $userlabel</option>'));
-            }
-            f();
-            userSelect.removeAttr('disabled');
-        });
-    }
-
-    static function setupBoardSelect(
-        boardSelect: Dynamic, userId: Int, f: Void->Void) {
-        
-        boardSelect.html('');
-        boardSelect.attr('disabled', 'disabled');
-        if (userId == 0) {
-            return;
-        }
-        
-        JQuery._static.ajax({
-            url: Std.format("/foo/ajax/v/boardlist?user=${userId}"),
-            method: "get"
-        }).done(function(data) {
-            boardSelect.append('<option value="0">ボードを選択</option>');
-                
-            var boards: Array<Dynamic> = JQuery._static.parseJSON(data);
-            for(v in boards) {
-                var boardId: Int = v[0];
-                var boardname: String = v[1];
-                var boardlabel: String = v[2];
-
-                var disabled: String =
-                    0 < new JQuery('[board-id="$boardId"]').length ?
-                    ' disabled="disabled"' : '';
-
-                boardSelect.append(
-                    Std.format('<option value="$boardId"${disabled}>$boardname - $boardlabel</option>'));
-            }
-            f();
-            boardSelect.removeAttr('disabled');
-        });
+                        setupRibbonSelect(
+                            ribbonSelect,
+                            boardId,
+                            function(ribbonId: Int) {
+                                setEnabled(submit, ribbonId != 0);
+                            });
+                    });
+            });
+        dialog.justModal();
     }
 
     static function closeRibbon(obj: Dynamic) {
@@ -281,6 +245,120 @@ class MyPage {
 
     ////////////////////////////////////////////////////////////////
     // private functions
+    static private function enable(e: Dynamic) {
+        e.removeAttr('disabled');
+    }
+
+    static private function disable(e: Dynamic) {
+        e.attr('disabled', 'disabled');
+    }
+
+    static private function setEnabled(e: Dynamic, f: Bool) {
+        if (f) {
+            enable(e);
+        } else {
+            disable(e);
+        }
+    }
+    
+    static private function setupUserAndBoardSelect(
+        dialog: Dynamic,
+        ownername: String,
+        userChange: Int->Void,
+        boardChange: Int->Void) {
+        var userSelect = dialog.find('[name="user"]');
+        var boardSelect: Dynamic = dialog.find('[name="board"]');
+
+        userChange(0);
+    }
+
+    static private function setupUserSelect(
+        userSelect: Dynamic, ownername: String, f: Int->Void) {
+
+        JQuery._static.ajax({
+            url: "/foo/ajax/v/userlist",
+            method: "get"
+        }).done(function(data) {
+            userSelect.append('<option value="0">所有者を選択</option>');
+                
+            var users: Array<Dynamic> = JQuery._static.parseJSON(data);
+            for(v in users) {
+                var userId: Int = v[0];
+                var username: String = v[1];
+                var userlabel: String = v[2];
+                if (ownername == username) {
+                    continue;
+                }
+
+                userSelect.append(
+                    Std.format('<option value="$userId">$username - $userlabel</option>'));
+            }
+            userSelect.unbind('change');
+            userSelect.change(
+                function(e: Dynamic) {
+                    f(getSelected(e.target).val());
+                });
+            enable(userSelect);
+        });
+    }
+
+    static private function setupBoardSelect(
+        boardSelect: Dynamic, userId: Int, f: Int->Void) {
+        
+        JQuery._static.ajax({
+            url: Std.format("/foo/ajax/v/boardlist?user=${userId}"),
+            method: "get"
+        }).done(function(data) {
+            boardSelect.append('<option value="0">ボードを選択</option>');
+                
+            var boards: Array<Dynamic> = JQuery._static.parseJSON(data);
+            for(v in boards) {
+                var boardId: Int = v[0];
+                var boardname: String = v[1];
+                var boardlabel: String = v[2];
+
+                var disabled: String =
+                    0 < new JQuery('[board-id="$boardId"]').length ?
+                    ' disabled="disabled"' : '';
+
+                boardSelect.append(
+                    Std.format('<option value="$boardId"${disabled}>$boardname - $boardlabel</option>'));
+            }
+            boardSelect.unbind('change');
+            boardSelect.change(
+                function(e: Dynamic) {
+                    f(getSelected(e.target).val());
+                });
+            enable(boardSelect);
+        });
+    }
+
+    static private function setupRibbonSelect(
+        ribbonSelect: Dynamic, boardId: Int, f: Int->Void) {
+        
+        JQuery._static.ajax({
+            url: Std.format("/foo/ajax/v/ribbonlist?board=$boardId"),
+            method: "get"
+        }).done(function(data) {
+            ribbonSelect.append('<option value="0">リボンを選択</option>');
+                
+            var ribbons: Array<Dynamic> = JQuery._static.parseJSON(data);
+            for(v in ribbons) {
+                var ribbonId: Int = v[0];
+                var ribbonLabel: String = v[1];
+
+                ribbonSelect.append(
+                    Std.format('<option value="$ribbonId">$ribbonLabel</option>'));
+            }
+            ribbonSelect.unbind('change');
+            ribbonSelect.change(
+                function(e: Dynamic) {
+                    f(getSelected(e.target).val());
+                });
+            enable(ribbonSelect);
+        });
+    }
+
     static private function postStamp(
         ribbonId: Int, timelineId: Int, source: Dynamic, selected: Dynamic) {
         var form = source.closest('.comment-form').find('> form');
@@ -687,5 +765,9 @@ class MyPage {
         return new JQuery(select).find(':selected');
     }
 
+    static private function clearSelect(select: Dynamic) {
+        disable(select);
+        select.html('');
+    }
 }
 
