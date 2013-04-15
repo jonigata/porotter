@@ -29,6 +29,12 @@ class Ribbon < RedisMapper::PlatformModel
     spotter.secret?
   end
 
+  def editable_by?(user)
+    return false unless user
+    return true unless self.store.spotter.store.writable
+    self.store.spotter.store.writable.member?(user)
+  end
+
   def set_spotter(spotter)
     self.store.spotter = spotter
   end

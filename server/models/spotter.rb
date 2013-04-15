@@ -19,6 +19,12 @@ class Spotter < RedisMapper::PlatformModel
     !self.store.readable.nil?
   end
 
+  def editable_by?(user)
+    return false unless user
+    return true unless self.store.writable
+    self.store.writable.member?(user)
+  end
+
   property  :readable,  Group # nil means fully public
   property  :writable,  Group # nil means fully public
 end

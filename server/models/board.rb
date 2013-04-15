@@ -14,24 +14,12 @@ class Board < RedisMapper::PlatformModel
       Ribbon.create(self, read_source, write_target, self.store.spotter))
   end
 
-  def remove_ribbon(ribbon)
-    ribbons.remove(ribbon)
-  end
-
-  def secret?
-    spotter = self.store.spotter or return false
-    spotter.secret?
-  end
-
-  def editable_by?(user)
-    return false unless user
-    return true unless self.store.spotter.store.writable
-    self.store.spotter.store.writable.member?(user)
-  end
-
   delegate :add_ribbon, :add        do self.store.ribbons end
   delegate :remove_ribbon, :remove  do self.store.ribbons end
   delegate :list_ribbons, :to_a     do self.store.ribbons end
+
+  delegate :secret?                 do self.store.spotter end
+  delegate :editable_by?            do self.store.spotter end
 
   property      :owner,     User
   property      :label,     String

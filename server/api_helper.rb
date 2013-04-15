@@ -57,6 +57,14 @@ module APIHelper
         post_new_comment(r.ribbon, r.parent, :Tweet, params[:content])
       end
 
+      post '/m/stamp' do
+        r = ensure_params(
+          :ribbon => INT_PARAM,
+          :parent => INT_PARAM)
+        post_new_comment(r.ribbon, r.parent, :Stamp, params[:content])
+        "OK"
+      end
+
       post '/m/favor' do
         r = ensure_params(
           :ribbon => INT_PARAM,
@@ -70,14 +78,6 @@ module APIHelper
           :ribbon => INT_PARAM,
           :target => INT_PARAM)
         unfavor(r.ribbon, r.target)
-        "OK"
-      end
-
-      post '/m/stamp' do
-        r = ensure_params(
-          :ribbon => INT_PARAM,
-          :parent => INT_PARAM)
-        post_new_comment(r.ribbon, r.parent, :Stamp, params[:content])
         "OK"
       end
 
@@ -171,11 +171,15 @@ module APIHelper
 
   def post_new_article(ribbon_id, content)
     ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
+    ribbon.editable_by?(@user) or halt 403
+
     @user.add_article(ribbon, :Tweet, content).store.id.to_s
   end
 
   def post_new_comment(ribbon_id, parent_id, type, content)
     ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
+    ribbon.editable_by?(@user) or halt 403
+
     parent = Post.attach_if_exist(parent_id) or raise
     @user.add_comment(ribbon, parent, type, params[:content]).store.id.to_s
   end
