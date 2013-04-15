@@ -980,7 +980,6 @@ RUBY
             self.new_instance do |instance|
               self.redis.set(key, instance.store.id)
               self.on_create(instance)
-              puts "singleton created"
             end
           else
             id = self.redis.get(key).to_i

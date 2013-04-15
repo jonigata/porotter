@@ -20,7 +20,8 @@ class User < RedisMapper::PlatformModel
         user.store.salt = salt
         user.store.hashed_password = Misc.hash_pw(salt, password)
 
-        board = Board.create(user, 'global', '井戸端会議', nil, nil)
+        noone_group = Group.create
+        board = Board.create(user, 'global', '井戸端会議', nil, noone_group)
         user.store.boards['global'] = board
         
         global_timeline = Users.singleton.store.global_timeline
@@ -116,6 +117,7 @@ class User < RedisMapper::PlatformModel
   end
 
   def add_board(name, label)
+    raise if self.store.boards.member?(name)
     private_group = self.store.private_group
     board = Board.create(self, name, label, private_group, private_group)
     self.store.boards[name] = board

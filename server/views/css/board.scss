@@ -73,6 +73,10 @@ html {
     }
 }
 
+.hidden {
+    display: none;
+}
+
 .workspace {
     @include border-box;
     height: 100%;

@@ -850,6 +850,10 @@ MyPage.joinBoard = function(ownername) {
 	});
 	dialog.justModal();
 }
+MyPage.makeRibbon = function() {
+	var dialog = new $("#make-ribbon");
+	dialog.justModal();
+}
 MyPage.joinRibbon = function(ownername) {
 	var dialog = new $("#join-ribbon");
 	var userSelect = dialog.find("[name=\"user\"]");
@@ -859,14 +863,11 @@ MyPage.joinRibbon = function(ownername) {
 	MyPage.clearSelect(userSelect);
 	MyPage.setupUserSelect(userSelect,ownername,function(userId) {
 		MyPage.disable(submit);
-		console.log("clear boardSelect");
 		MyPage.clearSelect(boardSelect);
-		console.log("clear ribbonSelect");
 		MyPage.clearSelect(ribbonSelect);
 		if(userId == 0) return;
 		MyPage.setupBoardSelect(boardSelect,userId,function(boardId) {
 			MyPage.disable(submit);
-			console.log("clear ribbonSelect");
 			MyPage.clearSelect(ribbonSelect);
 			if(boardId == 0) return;
 			MyPage.setupRibbonSelect(ribbonSelect,boardId,function(ribbonId) {
@@ -883,15 +884,28 @@ MyPage.closeRibbon = function(obj) {
 		ribbon.closest(".ribbon-outer").remove();
 	});
 }
-MyPage.makeRibbon = function() {
-	var dialog = new $("#make-ribbon");
-	dialog.justModal();
-}
 MyPage.editPermissions = function(ribbonId,isPublic) {
 	var dialog = new $("#edit-permission");
 	dialog.find("[name=\"ribbon\"]").val(ribbonId);
 	if(isPublic) dialog.find("[name=\"permission\"][value=\"public\"]").attr("checked","checked"); else dialog.find("[name=\"permission\"][value=\"private\"]").attr("checked","checked");
 	dialog.justModal();
+}
+MyPage.doPost = function(obj) {
+	MyPage.postForm(MyPage.getForm(obj),function(s) {
+		MyPage.redirect(MyPage.makeBoardUrl(s));
+	});
+	return false;
+}
+MyPage.makeBoardUrl = function(boardname) {
+	var urlinfo = new $("#board-url");
+	var base_url = urlinfo.attr("base-url");
+	var username = urlinfo.attr("username");
+	return "" + base_url + "/" + username + "/" + boardname;
+}
+MyPage.postForm = function(form,f) {
+	$.ajax({ url : form.attr("action"), method : form.attr("method"), data : form.serialize()}).done(function(data) {
+		f(data);
+	});
 }
 MyPage.enable = function(e) {
 	e.removeAttr("disabled");
@@ -1157,6 +1171,10 @@ MyPage.getEntry = function(obj) {
 	var e = new $(obj);
 	if(e["is"](".entry")) return e; else return e.closest(".entry");
 }
+MyPage.getForm = function(obj) {
+	var e = new $(obj);
+	if(e["is"]("form")) return e; else return e.closest("form");
+}
 MyPage.updateCommentDisplayText = function(entry) {
 	var comments = entry.find("> .comments");
 	var showComment = entry.find("> .operation .show-comment-label");
@@ -1237,6 +1255,9 @@ MyPage.openComments = function(comments) {
 }
 MyPage.closeComments = function(comments) {
 	comments.hide();
+}
+MyPage.redirect = function(url) {
+	js.Lib.window.location.href = url;
 }
 MyPage.getThis = function() {
 	return $(this);

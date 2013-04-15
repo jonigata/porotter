@@ -175,6 +175,11 @@ class MyPage {
         dialog.justModal();
     }
 
+    static function makeRibbon() {
+        var dialog: Dynamic = new JQuery('#make-ribbon');
+        dialog.justModal();
+    }
+
     static function joinRibbon(ownername: String) {
         var dialog: Dynamic = new JQuery('#join-ribbon');
         var userSelect: Dynamic = dialog.find('[name="user"]');
@@ -226,11 +231,6 @@ class MyPage {
         });
     }        
 
-    static function makeRibbon() {
-        var dialog: Dynamic = new JQuery('#make-ribbon');
-        dialog.justModal();
-    }
-
     static function editPermissions(ribbonId: Int, isPublic: Bool) {
         var dialog: Dynamic = new JQuery('#edit-permission');
         dialog.find('[name="ribbon"]').val(ribbonId);
@@ -243,8 +243,32 @@ class MyPage {
         dialog.justModal();
     }
 
+    static function doPost(obj: Dynamic) {
+        postForm(getForm(obj), function(s: String) {
+                redirect(makeBoardUrl(s));
+            });
+        return false;
+    }
+
     ////////////////////////////////////////////////////////////////
     // private functions
+    static private function makeBoardUrl(boardname): String {
+        var urlinfo: Dynamic = new JQuery('#board-url');
+        var base_url = urlinfo.attr('base-url');
+        var username = urlinfo.attr('username');
+        return Std.format("$base_url/$username/$boardname");
+    }
+
+    static private function postForm(form: Dynamic, f: String->Void) {
+        JQuery._static.ajax({
+            url: form.attr('action'),
+            method: form.attr('method'),
+            data: form.serialize()
+        }).done(function(data) {
+            f(data);
+        });
+    }
+
     static private function enable(e: Dynamic) {
         e.removeAttr('disabled');
     }
@@ -640,6 +664,15 @@ class MyPage {
         }
     }
 
+    static private function getForm(obj: Dynamic): JQuery {
+        var e = new JQuery(obj);
+        if (e.is('form')) {
+            return e;
+        } else {
+            return e.closest("form");
+        }
+    }
+
     static private function updateCommentDisplayText(entry: Dynamic) {
         var comments = entry.find('> .comments');
         var showComment = entry.find('> .operation .show-comment-label');
@@ -744,6 +777,10 @@ class MyPage {
 
     static private function closeComments(comments: Dynamic) {
         comments.hide();
+    }
+
+    static private function redirect(url: String) {
+        js.Lib.window.location.href = url;
     }
 
     static private function getThis(): Dynamic {
