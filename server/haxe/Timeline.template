@@ -21,14 +21,14 @@
           <img src="::chatIconUrl::">
           <span class="show-comment-label">×::__current__.commentsLength::</span>
         </a>
-        ::if userExists::
+        ::if editable::
         <span class="ui-delimiter-8"></span>
         <a class="post-comment" href="#" onclick="MyPage.toggleCommentForm(this);return false;">コメントする</a>
         ::end::
       </div>
       ::end::
 
-      ::if userExists::
+      ::if editable::
       <div class="comment-form">
         <form>
           <input type="hidden" name="parent" value="::__current__.postId::"/>

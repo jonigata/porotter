@@ -302,6 +302,7 @@ module APIHelper
           :commentsVersion => detail[:commentsVersion],
           :comments => [],
           :userExists => @user ? true : false,
+          :editable => ribbon.editable_by?(@user),
           :chatIconUrl => local_url('/images/chat.png')
         }
       end,

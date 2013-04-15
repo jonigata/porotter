@@ -24,15 +24,9 @@ class Ribbon < RedisMapper::PlatformModel
     post
   end
 
-  def secret?
-    spotter = self.store.spotter or return false
-    spotter.secret?
-  end
-
   def editable_by?(user)
-    return false unless user
-    return true unless self.store.spotter.store.writable
-    self.store.spotter.store.writable.member?(user)
+    return false unless write_target
+    return self.store.spotter.editable_by?(user)
   end
 
   def set_spotter(spotter)
@@ -45,6 +39,7 @@ class Ribbon < RedisMapper::PlatformModel
 
   delegate :read_source     do self.store end
   delegate :write_target    do self.store end
+  delegate :secret?         do self.store.spotter end
 
   property  :owner,         Board
   property  :spotter,       Spotter

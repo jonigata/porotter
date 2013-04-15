@@ -11,7 +11,7 @@
         <section class="ribbon" ribbon-id="<%= ribbon.store.id %>">
           <div class="ribbon-inner">
             <%= erb :_ribbonheader, :locals => { :current_board => current_board, :ribbon => ribbon } %>
-            <% if ribbon.write_target %>
+            <% if ribbon.editable_by?(@user) %>
             <%=  erb :_newarticle, :locals => { :ribbon => ribbon }  %>
             <% end %>
             <section class="timeline" level="0" ribbon-id="<%= ribbon.store.id %>" timeline-id="<%= ribbon.read_source.store.id %>" version="0">
