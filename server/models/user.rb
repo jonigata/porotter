@@ -132,9 +132,9 @@ class User < RedisMapper::PlatformModel
     board.import(timeline, timeline)
   end
 
-  def remove_ribbon(ribbon)
+  def remove_ribbon(board, ribbon)
     # TODO: ribbonチェック
-    ribbon.store.owner.remove_ribbon(ribbon)
+    board.remove_ribbon(ribbon)
   end
 
   def edit_permission(ribbon, permission)

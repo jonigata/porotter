@@ -229,8 +229,8 @@ module APIHelper
     board.editable_by?(@user) or halt 403
 
     ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
-    @user.remove_ribbon(ribbon)
-    ribbon.store.owner.store.label
+    @user.remove_ribbon(board, ribbon)
+    board.store.label
   end
 
   def edit_permission(board_id, ribbon_id, permission)
