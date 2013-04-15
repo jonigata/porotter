@@ -844,7 +844,7 @@ MyPage.joinBoard = function(ownername) {
 		MyPage.disable(submit);
 		MyPage.clearSelect(boardSelect);
 		if(userId == 0) return;
-		MyPage.setupBoardSelect(boardSelect,userId,function(boardId) {
+		MyPage.setupBoardSelect(boardSelect,userId,true,function(boardId) {
 			MyPage.setEnabled(submit,boardId != 0);
 		});
 	});
@@ -866,11 +866,11 @@ MyPage.joinRibbon = function(ownername) {
 		MyPage.clearSelect(boardSelect);
 		MyPage.clearSelect(ribbonSelect);
 		if(userId == 0) return;
-		MyPage.setupBoardSelect(boardSelect,userId,function(boardId) {
+		MyPage.setupBoardSelect(boardSelect,userId,false,function(boardId) {
 			MyPage.disable(submit);
 			MyPage.clearSelect(ribbonSelect);
 			if(boardId == 0) return;
-			MyPage.setupRibbonSelect(ribbonSelect,boardId,function(ribbonId) {
+			MyPage.setupRibbonSelect(ribbonSelect,boardId,true,function(ribbonId) {
 				MyPage.setEnabled(submit,ribbonId != 0);
 			});
 		});
@@ -942,7 +942,7 @@ MyPage.setupUserSelect = function(userSelect,ownername,f) {
 		MyPage.enable(userSelect);
 	});
 }
-MyPage.setupBoardSelect = function(boardSelect,userId,f) {
+MyPage.setupBoardSelect = function(boardSelect,userId,disableDup,f) {
 	$.ajax({ url : "/foo/ajax/v/boardlist?user=" + userId, method : "get"}).done(function(data) {
 		boardSelect.append("<option value=\"0\">ボードを選択</option>");
 		var boards = $.parseJSON(data);
@@ -952,7 +952,8 @@ MyPage.setupBoardSelect = function(boardSelect,userId,f) {
 			++_g;
 			var boardId = v[0];
 			var boardlabel = v[1];
-			var disabled = 0 < new $("[board-id=\"" + boardId + "\"]").length?" disabled=\"disabled\"":"";
+			var disabled = "";
+			if(disableDup && 0 < new $("[board-id=\"" + boardId + "\"]").length) disabled = " disabled=\"disabled\"";
 			boardSelect.append("<option value=\"" + boardId + "\"" + disabled + ">" + boardlabel + "</option>");
 		}
 		boardSelect.unbind("change");
@@ -962,7 +963,7 @@ MyPage.setupBoardSelect = function(boardSelect,userId,f) {
 		MyPage.enable(boardSelect);
 	});
 }
-MyPage.setupRibbonSelect = function(ribbonSelect,boardId,f) {
+MyPage.setupRibbonSelect = function(ribbonSelect,boardId,disableDup,f) {
 	$.ajax({ url : "/foo/ajax/v/ribbonlist?board=" + boardId, method : "get"}).done(function(data) {
 		ribbonSelect.append("<option value=\"0\">リボンを選択</option>");
 		var ribbons = $.parseJSON(data);
@@ -972,7 +973,9 @@ MyPage.setupRibbonSelect = function(ribbonSelect,boardId,f) {
 			++_g;
 			var ribbonId = v[0];
 			var ribbonLabel = v[1];
-			ribbonSelect.append("<option value=\"" + ribbonId + "\">" + ribbonLabel + "</option>");
+			var disabled = "";
+			if(disableDup && 0 < new $("[ribbon-id=\"" + ribbonId + "\"]").length) disabled = " disabled=\"disabled\"";
+			ribbonSelect.append("<option value=\"" + ribbonId + "\"" + disabled + ">" + ribbonLabel + "</option>");
 		}
 		ribbonSelect.unbind("change");
 		ribbonSelect.change(function(e) {

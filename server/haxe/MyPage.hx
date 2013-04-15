@@ -168,6 +168,7 @@ class MyPage {
                 setupBoardSelect(
                     boardSelect,
                     userId,
+                    true,
                     function(boardId: Int) {
                         setEnabled(submit, boardId != 0);
                     });
@@ -200,6 +201,7 @@ class MyPage {
                 setupBoardSelect(
                     boardSelect,
                     userId,
+                    false,
                     function(boardId: Int) {
                         disable(submit);
                         clearSelect(ribbonSelect);
@@ -208,6 +210,7 @@ class MyPage {
                         setupRibbonSelect(
                             ribbonSelect,
                             boardId,
+                            true,
                             function(ribbonId: Int) {
                                 setEnabled(submit, ribbonId != 0);
                             });
@@ -329,7 +332,7 @@ class MyPage {
     }
 
     static private function setupBoardSelect(
-        boardSelect: Dynamic, userId: Int, f: Int->Void) {
+        boardSelect: Dynamic, userId: Int, disableDup: Bool, f: Int->Void) {
         
         JQuery._static.ajax({
             url: Std.format("/foo/ajax/v/boardlist?user=${userId}"),
@@ -342,9 +345,11 @@ class MyPage {
                 var boardId: Int = v[0];
                 var boardlabel: String = v[1];
 
-                var disabled: String =
-                    0 < new JQuery(Std.format('[board-id="$boardId"]')).length ?
-                    ' disabled="disabled"' : '';
+                var disabled: String = '';
+                if (disableDup && 
+                    0 < new JQuery(Std.format('[board-id="$boardId"]')).length) {
+                    disabled = ' disabled="disabled"';
+                }
 
                 boardSelect.append(
                     Std.format('<option value="$boardId"$disabled>$boardlabel</option>'));
@@ -359,7 +364,7 @@ class MyPage {
     }
 
     static private function setupRibbonSelect(
-        ribbonSelect: Dynamic, boardId: Int, f: Int->Void) {
+        ribbonSelect: Dynamic, boardId: Int, disableDup: Bool, f: Int->Void) {
         
         JQuery._static.ajax({
             url: Std.format("/foo/ajax/v/ribbonlist?board=$boardId"),
@@ -372,8 +377,14 @@ class MyPage {
                 var ribbonId: Int = v[0];
                 var ribbonLabel: String = v[1];
 
+                var disabled: String = '';
+                if (disableDup && 
+                    0 < new JQuery(Std.format('[ribbon-id="$ribbonId"]')).length) {
+                    disabled = ' disabled="disabled"';
+                }
+
                 ribbonSelect.append(
-                    Std.format('<option value="$ribbonId">$ribbonLabel</option>'));
+                    Std.format('<option value="$ribbonId"$disabled>$ribbonLabel</option>'));
             }
             ribbonSelect.unbind('change');
             ribbonSelect.change(
