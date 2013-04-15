@@ -951,10 +951,9 @@ MyPage.setupBoardSelect = function(boardSelect,userId,f) {
 			var v = boards[_g];
 			++_g;
 			var boardId = v[0];
-			var boardname = v[1];
-			var boardlabel = v[2];
+			var boardlabel = v[1];
 			var disabled = 0 < new $("[board-id=\"$boardId\"]").length?" disabled=\"disabled\"":"";
-			boardSelect.append("<option value=\"" + boardId + "\"" + disabled + ">" + boardname + " - " + boardlabel + "</option>");
+			boardSelect.append("<option value=\"" + boardId + "\"" + disabled + ">" + boardlabel + "</option>");
 		}
 		boardSelect.unbind("change");
 		boardSelect.change(function(e) {

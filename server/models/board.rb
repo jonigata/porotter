@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 
 class Board < RedisMapper::PlatformModel
-  def self.create(owner, name, label, read_permission, write_permission)
+  def self.create(owner, label, read_permission, write_permission)
     self.new_instance.tap do |board|
       board.store.owner = owner
-      board.store.name = name
       board.store.label = label
       board.store.spotter = Spotter.create(read_permission, write_permission)
     end
@@ -29,7 +28,6 @@ class Board < RedisMapper::PlatformModel
   delegate :list_ribbons, :to_a     do self.store.ribbons end
 
   property      :owner,     User
-  property      :name,      String
   property      :label,     String
   property      :spotter,   Spotter
   list_property :ribbons,   Ribbon

@@ -21,7 +21,7 @@ class User < RedisMapper::PlatformModel
         user.store.hashed_password = Misc.hash_pw(salt, password)
 
         noone_group = Group.create
-        board = Board.create(user, 'global', '井戸端会議', nil, noone_group)
+        board = Board.create(user, 'global', nil, noone_group)
         user.store.boards['global'] = board
         
         global_timeline = Users.singleton.store.global_timeline
@@ -57,8 +57,8 @@ class User < RedisMapper::PlatformModel
           user.store.private_group = private_group
 
           board = Board.create(
-            user, 'myboard', 'マイボード', private_group, private_group)
-          user.store.boards['myboard'] = board
+            user, 'マイボード', private_group, private_group)
+          user.store.boards['マイボード'] = board
             
           my_posts = Timeline.create(user, 'あなたの投稿')
           user.store.my_posts = my_posts
@@ -116,15 +116,15 @@ class User < RedisMapper::PlatformModel
     self.store.favorites.member?(post)
   end
 
-  def add_board(name, label)
-    raise if self.store.boards.member?(name)
+  def add_board(label)
+    raise if self.store.boards.member?(label)
     private_group = self.store.private_group
-    board = Board.create(self, name, label, private_group, private_group)
-    self.store.boards[name] = board
+    board = Board.create(self, label, private_group, private_group)
+    self.store.boards[label] = board
   end
 
-  def find_board(idname)
-    self.store.boards[idname]
+  def find_board(label)
+    self.store.boards[label]
   end
 
   def add_ribbon(board, label)
@@ -150,7 +150,7 @@ class User < RedisMapper::PlatformModel
   end
 
   def join_board(board)
-    self.store.boards[board.store.name] = board
+    self.store.boards[board.store.label] = board
   end
 
   def join_ribbon(board, ribbon)

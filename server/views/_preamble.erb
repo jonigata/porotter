@@ -8,10 +8,10 @@
           <% else %>
           <img class="secret-indicator" src="<%= static_url("images/public.png") %>">
           <% end %>
-          <span><%= owner.store.label %></span>/<span><%= current_board.store.label %></span>
+          <span><%= current_board.store.owner.store.label %></span>/<span><%= current_board.store.label %></span>
         </a>
         <ul class="nav">
-          <% if @user == owner %>
+          <% if @user == refered %>
           <li class="dropdown">
             <a class="dropdown-toggle" data-toggle="dropdown" href="#">リボン<span class="caret"></span></a>
             <%=  erb :_chooseribbon %>
@@ -22,10 +22,14 @@
           <li><a href="https://github.com/jonigata/porotter">github</a></li>
         </ul>
 
-        <% if @user == owner %>
+        <% if @user == refered %>
         <ul class="nav pull-right">
           <li class="dropdown">
-            <a class="dropdown-toggle" data-toggle="dropdown" href="#">ボード選択<span class="caret"></span></a>
+            <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+              <img class="user-icon" src="<%= static_url("images/user.png") %>">
+              <%= @user.store.label %>
+              <span class="caret"></span>
+            </a>
             <%=  erb :_chooseboard, :locals => { :boards => boards } %>
           </li>
         </ul>

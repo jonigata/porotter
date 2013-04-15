@@ -20,7 +20,7 @@ class Porotter < Sinatra::Base
 
   get '/' do
     p @user.store.username
-    redirect local_url("/users/#{@user.store.username}/myboard");
+    redirect local_url("/users/#{@user.store.username}/マイボード");
   end
 
   get '/logout' do
@@ -30,8 +30,8 @@ class Porotter < Sinatra::Base
 
   get '/users/*/*' do |username, boardname|
     halt 403 if !@user
-    owner = User.store_class.find_by_username(username) or go_to_login_page
-    board = owner.find_board(boardname) or go_to_login_page
-    erb :board, :locals => { :base_url => local_url("/users"), :owner => owner, :current_board => board, :boards => owner.store.boards }
+    refered = User.store_class.find_by_username(username) or go_to_login_page
+    board = refered.find_board(boardname) or go_to_login_page
+    erb :board, :locals => { :base_url => local_url("/users"), :refered => refered, :current_board => board, :boards => refered.store.boards }
   end
 end

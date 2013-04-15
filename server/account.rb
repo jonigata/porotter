@@ -20,7 +20,7 @@ class Account < Sinatra::Base
       username, password = params.values_at(:username, :password)
       user = User.create(username, password)
       session["user_id"] = user.store.id
-      redirect parent_url("/users/#{username}/myboard")
+      redirect parent_url("/users/#{username}/マイボード")
     rescue SignUpError => e
       puts e.backtrace
       puts e
@@ -32,7 +32,7 @@ class Account < Sinatra::Base
     username, password = params.values_at(:username, :password)
     if user = User.auth(username, password)
       session["user_id"] = user.store.id
-      redirect parent_url("/users/#{username}/myboard")
+      redirect parent_url("/users/#{username}/マイボード")
     else
       render_login_page("bad username or password", nil)
     end

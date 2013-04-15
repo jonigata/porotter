@@ -338,15 +338,14 @@ class MyPage {
             var boards: Array<Dynamic> = JQuery._static.parseJSON(data);
             for(v in boards) {
                 var boardId: Int = v[0];
-                var boardname: String = v[1];
-                var boardlabel: String = v[2];
+                var boardlabel: String = v[1];
 
                 var disabled: String =
                     0 < new JQuery('[board-id="$boardId"]').length ?
                     ' disabled="disabled"' : '';
 
                 boardSelect.append(
-                    Std.format('<option value="$boardId"${disabled}>$boardname - $boardlabel</option>'));
+                    Std.format('<option value="$boardId"${disabled}>$boardlabel</option>'));
             }
             boardSelect.unbind('change');
             boardSelect.change(

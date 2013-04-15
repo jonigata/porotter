@@ -3,7 +3,7 @@
   <%= erb :_head %>
 
   <body>
-    <%= erb :_preamble, :locals => { :owner => owner, :current_board => current_board, :boards => boards } %>
+    <%= erb :_preamble, :locals => { :refered => refered, :current_board => current_board, :boards => boards } %>
 
     <div class="workspace">
       <% current_board.list_ribbons.each do |ribbon| %>
@@ -22,6 +22,6 @@
       <% end %>
     </div>
 
-    <div class="hidden" id="board-url" base-url="<%= base_url %>" username="<%= owner.store.username %>" boardname="<%= current_board.store.name %>"></div>
+    <div class="hidden" id="board-url" base-url="<%= base_url %>" username="<%= refered.store.username %>" boardname="<%= current_board.store.label %>"></div>
   </body>
 </html>

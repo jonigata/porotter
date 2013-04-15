@@ -1,8 +1,8 @@
 <ul class="dropdown-menu">
   <% boards.values.each do |board| %>
-  <li><a href="<%= local_url("/users/#{@user.store.username}/#{board.store.name}") %>" board-id="<%= board.store.id %>"><%= board.store.label %></a></li>
+  <li><a href="<%= local_url("/users/#{@user.store.username}/#{board.store.label}") %>" board-id="<%= board.store.id %>"><%= board.store.label %></a></li>
   <% end %>
   <li class="divider"></li>
-  <li><a href="#" onclick="MyPage.makeBoard();return false;">新規作成</a></li>
-  <li><a href="#" onclick="MyPage.joinBoard('<%= @user.store.username %>');return false;">共有</a></li>
+  <li><a href="#" onclick="MyPage.makeBoard();return false;">ボード作成</a></li>
+  <li><a href="#" onclick="MyPage.joinBoard('<%= @user.store.username %>');return false;">ボード参照</a></li>
 </ul>

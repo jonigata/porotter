@@ -82,9 +82,7 @@ module APIHelper
       end
 
       post '/m/newboard' do
-        r = ensure_params(
-          :name => IDNAME_PARAM)
-        make_new_board(r.name, params[:label])
+        make_new_board(params[:label])
       end
 
       post '/m/joinboard' do
@@ -157,7 +155,7 @@ module APIHelper
     target = User.attach_if_exist(target_id) or raise
     JSONP(
       target.store.boards.map do |boardname, board|
-        [board.store.id, boardname, board.store.label]
+        [board.store.id, board.store.label]
       end)
   end
 
@@ -192,40 +190,40 @@ module APIHelper
     @user.unfavor(ribbon, post)
   end
 
-  def make_new_board(name, label)
-    @user.add_board(name, label)
-    name
+  def make_new_board(label)
+    @user.add_board(label)
+    label
   end
 
   def join_board(board_id)
     board = Board.attach_if_exist(board_id) or raise
     @user.join_board(board)
-    board.store.name
+    board.store.label
   end
 
   def make_new_ribbon(board_id, label)
     board = Board.attach_if_exist(board_id) or raise
     @user.add_ribbon(board, label)
-    board.store.name
+    board.store.label
   end
 
   def join_ribbon(board_id, ribbon_id)
     board = Board.attach_if_exist(board_id) or raise
     ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
     @user.join_ribbon(board, ribbon)
-    board.store.name
+    board.store.label
   end
 
   def close_ribbon(ribbon_id)
     ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
     @user.remove_ribbon(ribbon)
-    ribbon.store.owner.store.name
+    ribbon.store.owner.store.label
   end
 
   def edit_permission(ribbon_id, permission)
     ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
     @user.edit_permission(ribbon, permission)
-    ribbon.store.owner.store.name
+    ribbon.store.owner.store.label
   end
 
   def ensure_params(h)
