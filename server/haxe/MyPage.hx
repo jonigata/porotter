@@ -343,11 +343,11 @@ class MyPage {
                 var boardlabel: String = v[1];
 
                 var disabled: String =
-                    0 < new JQuery('[board-id="$boardId"]').length ?
+                    0 < new JQuery(Std.format('[board-id="$boardId"]')).length ?
                     ' disabled="disabled"' : '';
 
                 boardSelect.append(
-                    Std.format('<option value="$boardId"${disabled}>$boardlabel</option>'));
+                    Std.format('<option value="$boardId"$disabled>$boardlabel</option>'));
             }
             boardSelect.unbind('change');
             boardSelect.change(

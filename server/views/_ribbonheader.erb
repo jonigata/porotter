@@ -1,8 +1,8 @@
 <div class="ribbon-header">
-  <h1><%= ribbon.read_source.store.label %></h1>
+  <h1><%== ribbon.read_source.store.label %></h1>
   <% if ribbon.store.owner != current_board %>
   <%   owner_board = ribbon.store.owner %>
-  <h2>from <%= owner_board.store.owner.store.label %> / <%= owner_board.store.label %></h2>
+  <h2>from <%== owner_board.store.owner.store.label %> / <%== owner_board.store.label %></h2>
   <% end %>
 
   <% if current_board.editable_by?(@user) %>

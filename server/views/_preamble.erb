@@ -8,7 +8,7 @@
           <% else %>
           <img class="secret-indicator" src="<%= static_url("images/public.png") %>">
           <% end %>
-          <span><%= current_board.store.owner.store.label %></span>/<span><%= current_board.store.label %></span>
+          <span><%== current_board.store.owner.store.label %></span>/<span><%== current_board.store.label %></span>
         </a>
         <ul class="nav">
           <% if current_board.editable_by?(@user) %>
@@ -24,7 +24,7 @@
           <li class="dropdown">
             <a class="dropdown-toggle" data-toggle="dropdown" href="#">
               <img class="user-icon" src="<%= static_url("images/user.png") %>">
-              <%= @user.store.label %>
+              <%== @user.store.label %>
               <span class="caret"></span>
             </a>
             <%=  erb :_chooseboard, :locals => { :boards => boards } %>
