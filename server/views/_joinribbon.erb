@@ -1,4 +1,4 @@
-<form action="/foo/ajax/m/shareribbon" method="post">
+<form action="/foo/ajax/m/joinribbon" method="post">
   <table>
     <tr>
       <td>ユーザ</td>
@@ -22,5 +22,6 @@
       </td>
     </tr>
   </table>
+  <input type="hidden" name="target" value="<%= current_board.store.id %>">
   <input class="btn btn-primary" type="submit" value="共有" disabled="disabled">
 </form>

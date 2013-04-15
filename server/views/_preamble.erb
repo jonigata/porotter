@@ -50,7 +50,7 @@
     <%= erb :_joinboard %>
   </div>
   <div id="join-ribbon">
-    <%= erb :_joinribbon %>
+    <%= erb :_joinribbon, :locals => { :current_board => current_board } %>
   </div>
   <% end %>
 </header>

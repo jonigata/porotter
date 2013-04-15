@@ -109,6 +109,21 @@ module APIHelper
         board_name = edit_permission(r.ribbon, r.permission)
         redirect parent_url("/users/#{@user.store.username}/#{board_name}")
       end
+
+      post '/m/joinboard' do
+        r = ensure_params(
+          :board => INT_PARAM)
+        board_name = join_board(r.board)
+        redirect parent_url("/users/#{@user.store.username}/#{board_name}")
+      end
+
+      post '/m/joinribbon' do
+        r = ensure_params(
+          :target => INT_PARAM,
+          :ribbon => INT_PARAM)
+        board_name = join_ribbon(r.target, r.ribbon)
+        redirect parent_url("/users/#{@user.store.username}/#{board_name}")
+      end
     end
   end
   
@@ -188,7 +203,7 @@ module APIHelper
   end
 
   def make_new_ribbon(board_id, label)
-    board = Board.attach_if_exist(board_id) or false
+    board = Board.attach_if_exist(board_id) or raise
     @user.add_ribbon(board, label)
     board.store.name
   end
@@ -201,6 +216,19 @@ module APIHelper
   def edit_permission(ribbon_id, permission)
     ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
     @user.edit_permission(ribbon, permission)
+    ribbon.store.owner.store.name
+  end
+
+  def join_board(board_id)
+    board = Board.attach_if_exist(board_id) or raise
+    @user.join_board(board)
+    board.store.name
+  end
+
+  def join_ribbon(board_id, ribbon_id)
+    board = Board.attach_if_exist(board_id) or raise
+    ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
+    @user.join_ribbon(board, ribbon)
     ribbon.store.owner.store.name
   end
 

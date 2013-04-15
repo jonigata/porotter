@@ -147,6 +147,14 @@ class User < RedisMapper::PlatformModel
     end
   end
 
+  def join_board(board)
+    self.store.boards[board.store.name] = board
+  end
+
+  def join_ribbon(board, ribbon)
+    board.store.ribbons.push(ribbon)
+  end
+
   index_accessor :username
 
   property              :username,          String
