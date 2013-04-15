@@ -746,7 +746,7 @@ module RedisMapper
     attr_reader :store
 
     def ==(other)
-      store.id == other.store.id
+      self.store.id == other.store.id
     end
 
     def self.contains?(v)

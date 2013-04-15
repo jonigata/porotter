@@ -10,5 +10,9 @@ class Group < RedisMapper::PlatformModel
     self.store.members.add(member)
   end
 
+  def member?(member)
+    self.store.members.member?(member)
+  end
+
   set_property  :members,   User
 end

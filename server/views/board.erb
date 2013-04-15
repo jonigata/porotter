@@ -10,7 +10,7 @@
       <div class="ribbon-outer">
         <section class="ribbon" ribbon-id="<%= ribbon.store.id %>">
           <div class="ribbon-inner">
-            <%= erb :_ribbonheader, :locals => { :ribbon => ribbon } %>
+            <%= erb :_ribbonheader, :locals => { :current_board => current_board, :ribbon => ribbon } %>
             <% if ribbon.write_target %>
             <%=  erb :_newarticle, :locals => { :ribbon => ribbon }  %>
             <% end %>

@@ -877,14 +877,14 @@ MyPage.joinRibbon = function(ownername) {
 	});
 	dialog.justModal();
 }
-MyPage.closeRibbon = function(obj) {
+MyPage.closeRibbon = function(obj,boardId) {
 	var ribbon = new $(obj).closest(".ribbon");
 	var ribbonId = ribbon.attr("ribbon-id");
-	$.ajax({ url : "/foo/ajax/m/closeribbon", method : "post", data : { ribbon : ribbonId}}).done(function() {
+	$.ajax({ url : "/foo/ajax/m/closeribbon", method : "post", data : { board : boardId, ribbon : ribbonId}}).done(function() {
 		ribbon.closest(".ribbon-outer").remove();
 	});
 }
-MyPage.editPermissions = function(ribbonId,isPublic) {
+MyPage.editPermissions = function(boardId,ribbonId,isPublic) {
 	var dialog = new $("#edit-permission");
 	dialog.find("[name=\"ribbon\"]").val(ribbonId);
 	if(isPublic) dialog.find("[name=\"permission\"][value=\"public\"]").attr("checked","checked"); else dialog.find("[name=\"permission\"][value=\"private\"]").attr("checked","checked");

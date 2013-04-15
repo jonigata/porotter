@@ -106,15 +106,17 @@ module APIHelper
 
       post '/m/closeribbon' do
         r = ensure_params(
+          :board => INT_PARAM,
           :ribbon => INT_PARAM)
-        close_ribbon(r.ribbon)
+        close_ribbon(r.board, r.ribbon)
       end
 
       post '/m/editpermission' do
         r = ensure_params(
+          :board => INT_PARAM,
           :ribbon => INT_PARAM,
           :permission => [/(private|public)/, Symbol])
-        edit_permission(r.ribbon, r.permission)
+        edit_permission(r.board, r.ribbon, r.permission)
       end
     end
   end
@@ -203,24 +205,34 @@ module APIHelper
 
   def make_new_ribbon(board_id, label)
     board = Board.attach_if_exist(board_id) or raise
+    board.editable_by?(@user) or halt 403
+
     @user.add_ribbon(board, label)
     board.store.label
   end
 
   def join_ribbon(board_id, ribbon_id)
     board = Board.attach_if_exist(board_id) or raise
+    board.editable_by?(@user) or halt 403
+
     ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
     @user.join_ribbon(board, ribbon)
     board.store.label
   end
 
-  def close_ribbon(ribbon_id)
+  def close_ribbon(board_id, ribbon_id)
+    board = Board.attach_if_exist(board_id) or raise
+    board.editable_by?(@user) or halt 403
+
     ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
     @user.remove_ribbon(ribbon)
     ribbon.store.owner.store.label
   end
 
-  def edit_permission(ribbon_id, permission)
+  def edit_permission(board_id, ribbon_id, permission)
+    board = Board.attach_if_exist(board_id) or raise
+    board.editable_by?(@user) or halt 403
+
     ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
     @user.edit_permission(ribbon, permission)
     ribbon.store.owner.store.label

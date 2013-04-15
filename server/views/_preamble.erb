@@ -48,7 +48,7 @@
     <%= erb :_makeribbon, :locals => { :current_board => current_board } %>
   </div>
   <div id="edit-permission">
-    <%= erb :_editpermission %>
+    <%= erb :_editpermission, :locals => { :current_board => current_board } %>
   </div>
   <div id="join-board">
     <%= erb :_joinboard %>

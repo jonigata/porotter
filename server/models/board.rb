@@ -23,6 +23,12 @@ class Board < RedisMapper::PlatformModel
     spotter.secret?
   end
 
+  def editable_by?(user)
+    return false unless user
+    return true unless self.store.spotter.store.writable
+    self.store.spotter.store.writable.member?(user)
+  end
+
   delegate :add_ribbon, :add        do self.store.ribbons end
   delegate :remove_ribbon, :remove  do self.store.ribbons end
   delegate :list_ribbons, :to_a     do self.store.ribbons end

@@ -216,7 +216,7 @@ class MyPage {
         dialog.justModal();
     }
 
-    static function closeRibbon(obj: Dynamic) {
+    static function closeRibbon(obj: Dynamic, boardId: Int) {
         var ribbon = new JQuery(obj).closest('.ribbon');
         var ribbonId = ribbon.attr('ribbon-id');
 
@@ -224,6 +224,7 @@ class MyPage {
             url: "/foo/ajax/m/closeribbon",
             method: "post",
             data: {
+                board: boardId,
                 ribbon: ribbonId
             }
         }).done(function() {
@@ -231,7 +232,8 @@ class MyPage {
         });
     }        
 
-    static function editPermissions(ribbonId: Int, isPublic: Bool) {
+    static function editPermissions(
+        boardId: Int, ribbonId: Int, isPublic: Bool) {
         var dialog: Dynamic = new JQuery('#edit-permission');
         dialog.find('[name="ribbon"]').val(ribbonId);
         if (isPublic) {
