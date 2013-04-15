@@ -11,15 +11,12 @@
           <span><%= current_board.store.owner.store.label %></span>/<span><%= current_board.store.label %></span>
         </a>
         <ul class="nav">
-          <% if @user == refered %>
+          <% if current_board.editable_by?(@user) %>
           <li class="dropdown">
             <a class="dropdown-toggle" data-toggle="dropdown" href="#">リボン<span class="caret"></span></a>
             <%=  erb :_chooseribbon %>
           </li>
-          <li><a href="<%= local_url('/preferences') %>">個人設定</a></li>
-          <li><a href="<%= local_url('/logout') %>">ログアウト</a></li>
           <% end %>
-          <li><a href="https://github.com/jonigata/porotter">github</a></li>
         </ul>
 
         <% if @user == refered %>

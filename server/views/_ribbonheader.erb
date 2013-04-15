@@ -5,10 +5,12 @@
   <h2>from <%= owner_board.store.owner.store.label %> / <%= owner_board.store.label %></h2>
   <% end %>
 
+  <% if current_board.editable_by?(@user) %>
   <img class="close-button" src="<%= static_url("images/remove.png") %>" onclick="MyPage.closeRibbon(this, <%= current_board.store.id %>);return false;">
-  <% if ribbon.secret? %>
+  <%   if ribbon.secret? %>
   <img class="secret-indicator" src="<%= static_url("images/private.png") %>" onclick="MyPage.editPermissions(<%= current_board.store.id %>, <%= ribbon.store.id %>, false);return false;">
-  <% else %>
+  <%   else %>
   <img class="secret-indicator" src="<%= static_url("images/public.png") %>" onclick="MyPage.editPermissions(<%= current_board.store.id %>, <%= ribbon.store.id %>, true);return false;">
+  <%   end %>
   <% end %>
 </div>
