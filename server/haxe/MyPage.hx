@@ -29,8 +29,29 @@ class MyPage {
     static function init() {
         new JQuery('[timeline-id]').each(
             function(i: Int, elem: Dynamic) {
-                fillTimeline(new JQuery(elem), null);
+                var timeline: Dynamic = new JQuery(elem);
+                fillTimeline(timeline, null);
+
+                timeline.sortable({
+                    connectWith: "[timeline-id]",
+                    update: function(event: Dynamic, ui: Dynamic) {
+                        if (ui.sender == null) {
+                            if (ui.item.parent()[0] == timeline[0]) {
+                                trace("same timeline move");
+                                moveArticle(ui.item);
+                            } else {
+                                // discard
+                                trace("discard");
+                            }
+                        } else {
+                            trace("different timeline move");
+                        }
+                    },
+                });
+
+        
             });
+
         startWatch();
     }
 
@@ -253,8 +274,9 @@ class MyPage {
 
         var postId: Int = Std.parseInt(dragging.attr('post-id'));
         var target: Dynamic = dragging.next();
+        trace(target);
         var targetId = 0;
-        if (0 < target.length) {
+        if (0 < target.length && target.is('article')) {
             targetId = target.attr('post-id');
         }
 
@@ -589,12 +611,6 @@ class MyPage {
 
         trace('old(after)');
         traceTimeline(oldTimeline);
-
-        oldTimeline.sortable({
-              update: function(event: Dynamic, ui: Dynamic) {
-                    moveArticle(ui.item);
-                }
-            });
     }
 
     static private function insertContinueReading(
@@ -850,7 +866,7 @@ class MyPage {
     }
 
     static private function getThis(): Dynamic {
-        return untyped __js__('$(this)');
+        return untyped __js__('this');
     }
 
     static private function isUndefined(x: Dynamic) {

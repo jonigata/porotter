@@ -764,7 +764,16 @@ MyPage.testIt = function() {
 }
 MyPage.init = function() {
 	new $("[timeline-id]").each(function(i,elem) {
-		MyPage.fillTimeline(new $(elem),null);
+		var timeline = new $(elem);
+		MyPage.fillTimeline(timeline,null);
+		timeline.sortable({ connectWith : "[timeline-id]", update : function(event,ui) {
+			if(ui.sender == null) {
+				if(ui.item.parent()[0] == timeline[0]) {
+					console.log("same timeline move");
+					MyPage.moveArticle(ui.item);
+				} else console.log("discard");
+			} else console.log("different timeline move");
+		}});
 	});
 	MyPage.startWatch();
 }
@@ -894,8 +903,9 @@ MyPage.moveArticle = function(dragging) {
 	var ribbonId = Std.parseInt(dragging.parent().attr("ribbon-id"));
 	var postId = Std.parseInt(dragging.attr("post-id"));
 	var target = dragging.next();
+	console.log(target);
 	var targetId = 0;
-	if(0 < target.length) targetId = target.attr("post-id");
+	if(0 < target.length && target["is"]("article")) targetId = target.attr("post-id");
 	$.ajax({ url : "/foo/ajax/m/movearticle", method : "post", data : { ribbon : ribbonId, source : postId, target : targetId}}).done(function(data) {
 		console.log("movearticle done");
 	});
@@ -1109,9 +1119,6 @@ MyPage.mergeTimeline = function(oldTimeline,newTimeline) {
 	oldTimeline.attr("intervals",JSON.stringify(intervals.to_array()));
 	console.log("old(after)");
 	MyPage.traceTimeline(oldTimeline);
-	oldTimeline.sortable({ update : function(event,ui) {
-		MyPage.moveArticle(ui.item);
-	}});
 }
 MyPage.insertContinueReading = function(timeline,score) {
 	var link = new $("<a class=\"continue-reading\" href=\"#\" onclick=\"MyPage.continueReading(this);return false;\">続きを読む</a>");
@@ -1291,7 +1298,7 @@ MyPage.redirect = function(url) {
 	js.Lib.window.location.href = url;
 }
 MyPage.getThis = function() {
-	return $(this);
+	return this;
 }
 MyPage.isUndefined = function(x) {
 	return "undefined" === typeof x;
