@@ -70,10 +70,30 @@ class Timeline < RedisMapper::PlatformModel
     target.store.watchers.add(self)
   end
 
+  def move_post(source, target)
+    # sourceをbump up
+    self.store.posts.add(self.store.version_incr(1), source)
+
+    # source->targetをbump up
+    newest_score = RedisMapper.exclusive(self.store.posts.score(source))
+    oldest_score = :'-inf'
+    if target
+      p target
+      oldest_score = RedisMapper.exclusive(self.store.posts.score(target))
+    end
+
+    self.store.posts.range(oldest_score, newest_score).each do |e|
+      self.store.posts.add(self.store.version_incr(1), e[:value])
+    end
+
+    redis.publish(
+      "timeline-watcher", [self.store.id, self.store.version].to_json)
+  end
+
   private
   def version_up
     self.store.version_incr(1).tap do |version|
-      redis.publish "timeline-watcher", [self.store.id, version].to_json
+      redis.publish("timeline-watcher", [self.store.id, version].to_json)
     end
   end    
 

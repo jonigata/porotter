@@ -248,6 +248,30 @@ class MyPage {
         dialog.justModal();
     }
 
+    static function moveArticle(dragging: Dynamic) {
+        var ribbonId: Int = dragging.parent().attr('ribbon-id');
+        trace(ribbonId);
+
+        var postId: Int = dragging.attr('post-id');
+        var target: Dynamic = dragging.next();
+        var targetId = 0;
+        if (0 < target.length) {
+            targetId = target.attr('post-id');
+        }
+
+        JQuery._static.ajax({
+            url: "/foo/ajax/m/movearticle",
+            method: "post",
+            data: {
+                ribbon: ribbonId,
+                source: postId,
+                target: targetId
+            }
+        }).done(function(data) {
+            trace("movearticle done");
+        });
+    }
+
     static function doPost(obj: Dynamic) {
         postForm(getForm(obj), function(s: String) {
                 redirect(makeBoardUrl(s));
@@ -541,6 +565,12 @@ class MyPage {
             }
         }
         oldTimeline.attr('intervals', JSON.stringify(intervals.to_array()));
+
+        oldTimeline.sortable({
+              update: function(event: Dynamic, ui: Dynamic) {
+                    moveArticle(ui.item);
+                }
+            });
     }
 
     static private function insertContinueReading(

@@ -65,6 +65,15 @@ module APIHelper
         "OK"
       end
 
+      post '/m/movearticle' do
+        r = ensure_params(
+          :ribbon => INT_PARAM,
+          :source => INT_PARAM,
+          :target => INT_PARAM)
+        move_article(r.ribbon, r.source, r.target)
+        "OK"
+      end
+
       post '/m/favor' do
         r = ensure_params(
           :ribbon => INT_PARAM,
@@ -182,6 +191,15 @@ module APIHelper
 
     parent = Post.attach_if_exist(parent_id) or raise
     @user.add_comment(ribbon, parent, type, params[:content]).store.id.to_s
+  end
+
+  def move_article(ribbon_id, source_id, target_id)
+    ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
+    source = Post.attach_if_exist(source_id) or raise
+    target = Post.attach_if_exist(target_id)
+    ribbon.editable_by?(@user) or halt 403
+
+    ribbon.write_target.move_post(source, target)    
   end
 
   def favor(ribbon_id, target_id)

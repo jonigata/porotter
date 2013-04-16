@@ -632,7 +632,7 @@ module RedisMapper
 
       private
       def format_score(n)
-        return "#{n.value})" if n.kind_of?(Exclusive)
+        return "(#{n.value}" if n.kind_of?(Exclusive)
         n
       end
 
@@ -641,13 +641,19 @@ module RedisMapper
       end        
 
       def validate_lower(lower)
-        raise "ordered set lower score must be Integer when exclusive" if lower.kind_of?(Exclusive) && !lower.value.kind_of?(Integer)
-        raise "ordered_set lower score must be Integer or :'-inf'; passed = #{lower.inspect}" unless lower.kind_of?(Integer) || lower == :'-inf'
+        if lower.kind_of?(Exclusive)
+          raise "ordered set lower score must be Integer when exclusive" unless lower.value.kind_of?(Integer)
+        else
+          raise "ordered_set lower score must be Integer or :'-inf'; passed = #{lower.inspect}" unless lower.kind_of?(Integer) || lower == :'-inf'
+        end
       end
 
       def validate_upper(upper)
-        raise "ordered set upper score must be Integer when exclusive" if upper.kind_of?(Exclusive) && !upper.value.kind_of?(Integer)
-        raise "ordered_set upper score must be Integer or :inf or :'+inf'; passed = #{upper.inspect}" unless upper.kind_of?(Integer) || upper == :'+inf' || upper == :inf
+        if upper.kind_of?(Exclusive)
+          raise "ordered set upper score must be Integer when exclusive" unless upper.value.kind_of?(Integer)
+        else
+          raise "ordered_set upper score must be Integer or :inf or :'+inf'; passed = #{upper.inspect}" unless upper.kind_of?(Integer) || upper == :'+inf' || upper == :inf
+        end
       end
 
       def validate_limit(limit)

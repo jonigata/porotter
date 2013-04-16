@@ -890,6 +890,17 @@ MyPage.editPermissions = function(boardId,ribbonId,isPublic) {
 	if(isPublic) dialog.find("[name=\"permission\"][value=\"public\"]").attr("checked","checked"); else dialog.find("[name=\"permission\"][value=\"private\"]").attr("checked","checked");
 	dialog.justModal();
 }
+MyPage.moveArticle = function(dragging) {
+	var ribbonId = dragging.parent().attr("ribbon-id");
+	console.log(ribbonId);
+	var postId = dragging.attr("post-id");
+	var target = dragging.next();
+	var targetId = 0;
+	if(0 < target.length) targetId = target.attr("post-id");
+	$.ajax({ url : "/foo/ajax/m/movearticle", method : "post", data : { ribbon : ribbonId, source : postId, target : targetId}}).done(function(data) {
+		console.log("movearticle done");
+	});
+}
 MyPage.doPost = function(obj) {
 	MyPage.postForm(MyPage.getForm(obj),function(s) {
 		MyPage.redirect(MyPage.makeBoardUrl(s));
@@ -1083,6 +1094,9 @@ MyPage.mergeTimeline = function(oldTimeline,newTimeline) {
 		if(v.e != 0) MyPage.insertContinueReading(oldTimeline,v.e);
 	}
 	oldTimeline.attr("intervals",JSON.stringify(intervals.to_array()));
+	oldTimeline.sortable({ update : function(event,ui) {
+		MyPage.moveArticle(ui.item);
+	}});
 }
 MyPage.insertContinueReading = function(timeline,score) {
 	var link = new $("<a class=\"continue-reading\" href=\"#\" onclick=\"MyPage.continueReading(this);return false;\">続きを読む</a>");
