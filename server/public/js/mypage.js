@@ -772,7 +772,10 @@ MyPage.init = function() {
 					console.log("same timeline move");
 					MyPage.moveArticle(ui.item);
 				} else console.log("discard");
-			} else console.log("different timeline move");
+			} else {
+				console.log("different timeline move");
+				MyPage.transferArticle(ui.item,ui.sender);
+			}
 		}});
 	});
 	MyPage.startWatch();
@@ -907,6 +910,19 @@ MyPage.moveArticle = function(dragging) {
 	var targetId = 0;
 	if(0 < target.length && target["is"]("article")) targetId = target.attr("post-id");
 	$.ajax({ url : "/foo/ajax/m/movearticle", method : "post", data : { ribbon : ribbonId, source : postId, target : targetId}}).done(function(data) {
+		console.log("movearticle done");
+	});
+}
+MyPage.transferArticle = function(dragging,sourceRibbon) {
+	var sourceRibbonId = Std.parseInt(sourceRibbon.attr("ribbon-id"));
+	var targetRibbon = dragging.parent();
+	var targetRibbonId = Std.parseInt(targetRibbon.attr("ribbon-id"));
+	var postId = Std.parseInt(dragging.attr("post-id"));
+	var target = dragging.next();
+	console.log(target);
+	var targetId = 0;
+	if(0 < target.length && target["is"]("article")) targetId = target.attr("post-id");
+	$.ajax({ url : "/foo/ajax/m/transferarticle", method : "post", data : { source_ribbon : sourceRibbonId, target_ribbon : targetRibbonId, source : postId, target : targetId}}).done(function(data) {
 		console.log("movearticle done");
 	});
 }

@@ -45,6 +45,7 @@ class MyPage {
                             }
                         } else {
                             trace("different timeline move");
+                            transferArticle(ui.item, ui.sender);
                         }
                     },
                 });
@@ -285,6 +286,33 @@ class MyPage {
             method: "post",
             data: {
                 ribbon: ribbonId,
+                source: postId,
+                target: targetId
+            }
+        }).done(function(data) {
+            trace("movearticle done");
+        });
+    }
+
+    static function transferArticle(dragging: Dynamic, sourceRibbon: Dynamic) {
+        var sourceRibbonId: Int = Std.parseInt(sourceRibbon.attr('ribbon-id'));
+        var targetRibbon: Dynamic = dragging.parent();
+        var targetRibbonId: Int = Std.parseInt(targetRibbon.attr('ribbon-id'));
+
+        var postId: Int = Std.parseInt(dragging.attr('post-id'));
+        var target: Dynamic = dragging.next();
+        trace(target);
+        var targetId = 0;
+        if (0 < target.length && target.is('article')) {
+            targetId = target.attr('post-id');
+        }
+
+        JQuery._static.ajax({
+            url: "/foo/ajax/m/transferarticle",
+            method: "post",
+            data: {
+                source_ribbon: sourceRibbonId,
+                target_ribbon: targetRibbonId,
                 source: postId,
                 target: targetId
             }

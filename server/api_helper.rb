@@ -74,6 +74,16 @@ module APIHelper
         "OK"
       end
 
+      post '/m/transferarticle' do
+        r = ensure_params(
+          :source_ribbon => INT_PARAM,
+          :target_ribbon => INT_PARAM,
+          :source => INT_PARAM,
+          :target => INT_PARAM)
+        transfer_article(r.source_ribbon, r.target_ribbon, r.source, r.target)
+        "OK"
+      end
+
       post '/m/favor' do
         r = ensure_params(
           :ribbon => INT_PARAM,
@@ -200,6 +210,18 @@ module APIHelper
     ribbon.editable_by?(@user) or halt 403
 
     ribbon.write_target.move_post(source, target)    
+  end
+
+  def transfer_article(source_ribbon_id, target_ribbon_id, source_id, target_id)
+    source_ribbon = Ribbon.attach_if_exist(source_ribbon_id) or raise
+    target_ribbon = Ribbon.attach_if_exist(target_ribbon_id) or raise
+    source = Post.attach_if_exist(source_id) or raise
+    target = Post.attach_if_exist(target_id)
+    source_ribbon.editable_by?(@user) or halt 403
+    target_ribbon.editable_by?(@user) or halt 403
+
+    target_ribbon.write_target.transfer_post_from(
+      source_ribbon.read_source, source, target)    
   end
 
   def favor(ribbon_id, target_id)

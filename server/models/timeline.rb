@@ -101,6 +101,10 @@ class Timeline < RedisMapper::PlatformModel
       "timeline-watcher", [self.store.id, self.store.version].to_json)
   end
 
+  def transfer_post_from(source_timeline, source, target)
+    move_post(source, target)
+  end
+
   private
   def version_up
     self.store.version_incr(1).tap do |version|
