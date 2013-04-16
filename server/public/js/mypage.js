@@ -891,9 +891,8 @@ MyPage.editPermissions = function(boardId,ribbonId,isPublic) {
 	dialog.justModal();
 }
 MyPage.moveArticle = function(dragging) {
-	var ribbonId = dragging.parent().attr("ribbon-id");
-	console.log(ribbonId);
-	var postId = dragging.attr("post-id");
+	var ribbonId = Std.parseInt(dragging.parent().attr("ribbon-id"));
+	var postId = Std.parseInt(dragging.attr("post-id"));
 	var target = dragging.next();
 	var targetId = 0;
 	if(0 < target.length) targetId = target.attr("post-id");
@@ -1007,8 +1006,13 @@ MyPage.fillTimeline = function(timeline,version) {
 	MyPage.fetchTimeline(timeline,null,null,version);
 }
 MyPage.fillNewerTimeline = function(timeline,version) {
-	var oldestScore = MyPage.kickUndefined(timeline.children().eq(0).attr("newest-score"));
-	MyPage.fetchTimeline(timeline,null,oldestScore,version);
+	var newestScore = 0;
+	timeline.children().each(function(i,elem) {
+		var e = new $(elem);
+		var score = Std.parseInt(e.attr("score"));
+		if(newestScore < score) newestScore = score;
+	});
+	MyPage.fetchTimeline(timeline,null,newestScore,version);
 }
 MyPage.fetchTimeline = function(oldTimeline,newestScore,oldestScore,version) {
 	var ribbonId = Std.parseInt(oldTimeline.attr("ribbon-id"));
@@ -1043,34 +1047,41 @@ MyPage.fetchTimeline = function(oldTimeline,newestScore,oldestScore,version) {
 		});
 	});
 }
+MyPage.traceTimeline = function(timeline) {
+	timeline.find("> article").each(function(i,elem) {
+		var e = new $(elem);
+		var v0 = e.attr("score");
+		var v1 = e.attr("post-id");
+		console.log("" + v0 + ", " + v1);
+	});
+}
 MyPage.mergeTimeline = function(oldTimeline,newTimeline) {
 	if(newTimeline.children().length == 0) return;
 	oldTimeline.find("> .continue-reading").remove();
+	console.log("old(before)");
+	MyPage.traceTimeline(oldTimeline);
+	console.log("new");
+	MyPage.traceTimeline(newTimeline);
+	newTimeline.children().each(function(i,elem) {
+		var e = new $(elem);
+		var postId = e.attr("post-id");
+		oldTimeline.find("[post-id=" + postId + "]").addClass("removing");
+	});
+	oldTimeline.find(".removing").remove();
+	var oe = oldTimeline.children().eq(0);
 	var ne = newTimeline.children().eq(0);
-	var oldTimelineElements = oldTimeline.children().get();
-	var _g = 0;
-	while(_g < oldTimelineElements.length) {
-		var ore = oldTimelineElements[_g];
-		++_g;
-		var oe = new $(ore);
+	while(0 < oe.length && 0 < ne.length) {
 		var oldScore = Std.parseInt(oe.attr("score"));
 		var newScore = null;
-		while(oldScore <= (newScore = Std.parseInt(ne.attr("score")))) {
-			if(oldScore == newScore) oe.replaceWith(ne); else {
-				ne.insertBefore(oe);
-				var postId = ne.attr("post-id");
-				var oldPost = ne.nextAll("[post-id=" + postId + "]");
-				if(0 < oldPost.length) {
-					var entry = ne.find("> .entry");
-					entry.find("> .comments").replaceWith(oldPost.find("> .entry > .comments"));
-					MyPage.updateCommentDisplayText(entry);
-				}
-				oldPost.remove();
-			}
-			ne = ne.next();
-			if(ne.length == 0) break;
+		while(0 < ne.length && oldScore <= (newScore = Std.parseInt(ne.attr("score")))) {
+			var newPostId = Std.parseInt(ne.attr("post-id"));
+			var oldPostId = Std.parseInt(oe.attr("post-id"));
+			console.log("judge newPost: " + newPostId);
+			var next_ne = ne.next();
+			ne.insertBefore(oe);
+			ne = next_ne;
 		}
-		if(ne.length == 0) break;
+		oe = oe.next();
 	}
 	if(0 < ne.length) {
 		var nextne = ne.nextAll();
@@ -1080,6 +1091,8 @@ MyPage.mergeTimeline = function(oldTimeline,newTimeline) {
 	var intervals = new Intervals();
 	var oldTimelineIntervalsAttr = oldTimeline.attr("intervals");
 	if(MyPage.kickUndefined(oldTimelineIntervalsAttr) != null) intervals.from_array($.parseJSON(oldTimelineIntervalsAttr));
+	console.log("newTimeline intervals");
+	console.log(newTimeline.attr("intervals"));
 	var tmpIntervalArray = $.parseJSON(newTimeline.attr("intervals"));
 	var _g = 0;
 	while(_g < tmpIntervalArray.length) {
@@ -1094,6 +1107,8 @@ MyPage.mergeTimeline = function(oldTimeline,newTimeline) {
 		if(v.e != 0) MyPage.insertContinueReading(oldTimeline,v.e);
 	}
 	oldTimeline.attr("intervals",JSON.stringify(intervals.to_array()));
+	console.log("old(after)");
+	MyPage.traceTimeline(oldTimeline);
 	oldTimeline.sortable({ update : function(event,ui) {
 		MyPage.moveArticle(ui.item);
 	}});

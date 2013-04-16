@@ -32,22 +32,31 @@ class Timeline < RedisMapper::PlatformModel
     
     b = newest_score.kick(nil, :inf)
     e = oldest_score.kick(nil, :'-inf')
+    p b
+    p e
 
     posts = self.store.posts
     a = posts.revrange(b, e, [0, count + 1])
+    p (a.map { |x| x[:score] })
     if a.empty?
       [[], nil, nil]
     else
       res_newest_score = a.first[:score]
       res_oldest_score = a.last[:score]
-      if a.length <= count
-        # 続きがない
-        res_oldest_score = oldest_score || 0
-      else
-        # oldestはexclusive
+      if count < a.length
         a.pop
+      else
+        if res_oldest_score == oldest_score
+          # oldestはexclusive
+          a.pop
+        else
+          # 続きがない
+          res_oldest_score = oldest_score || 0
+        end
       end
-      [a, res_newest_score, res_oldest_score]
+      [a, res_newest_score, res_oldest_score].tap do |q|
+        p q
+      end
     end
   end
 
@@ -72,6 +81,7 @@ class Timeline < RedisMapper::PlatformModel
 
   def move_post(source, target)
     # sourceをbump up
+    puts "bump up(source): #{source.store.id}"
     self.store.posts.add(self.store.version_incr(1), source)
 
     # source->targetをbump up
@@ -83,6 +93,7 @@ class Timeline < RedisMapper::PlatformModel
     end
 
     self.store.posts.range(oldest_score, newest_score).each do |e|
+      puts "bump up(target): #{e[:value].store.id}"
       self.store.posts.add(self.store.version_incr(1), e[:value])
     end
 

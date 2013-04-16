@@ -249,10 +249,9 @@ class MyPage {
     }
 
     static function moveArticle(dragging: Dynamic) {
-        var ribbonId: Int = dragging.parent().attr('ribbon-id');
-        trace(ribbonId);
+        var ribbonId: Int = Std.parseInt(dragging.parent().attr('ribbon-id'));
 
-        var postId: Int = dragging.attr('post-id');
+        var postId: Int = Std.parseInt(dragging.attr('post-id'));
         var target: Dynamic = dragging.next();
         var targetId = 0;
         if (0 < target.length) {
@@ -443,9 +442,16 @@ class MyPage {
     }
 
     static private function fillNewerTimeline(timeline: Dynamic, version: Int) {
-        var oldestScore =
-            kickUndefined(timeline.children().eq(0).attr('newest-score'));
-        fetchTimeline(timeline, null, oldestScore, version);
+        var newestScore = 0;
+        timeline.children().each(
+            function(i: Int, elem: Dynamic) {
+                var e: Dynamic = new JQuery(elem);
+                var score: Int = Std.parseInt(e.attr('score'));
+                if (newestScore < score) {
+                    newestScore = score;
+                }
+            });
+        fetchTimeline(timeline, null, newestScore, version);
     }
     
     static private function fetchTimeline(
@@ -500,6 +506,16 @@ class MyPage {
         });
     }
 
+    static private function traceTimeline(timeline: Dynamic) {
+        timeline.find('> article').each(
+            function(i: Int, elem: Dynamic) {
+                var e = new JQuery(elem);
+                var v0 = e.attr('score');
+                var v1 = e.attr('post-id');
+                trace(Std.format("$v0, $v1"));
+            });
+    }
+
     static private function mergeTimeline(
         oldTimeline: Dynamic, newTimeline: Dynamic) {
 
@@ -509,36 +525,39 @@ class MyPage {
 
         oldTimeline.find('> .continue-reading').remove();
 
+        trace('old(before)');
+        traceTimeline(oldTimeline);
+
+        trace('new');
+        traceTimeline(newTimeline);
+
+        // post-idの同じ物を削除
+        newTimeline.children().each(
+            function(i: Int, elem: Dynamic) {
+                var e: Dynamic = new JQuery(elem);
+                var postId = e.attr('post-id');
+                oldTimeline.find(Std.format('[post-id=$postId]')).addClass("removing");
+            });
+        oldTimeline.find('.removing').remove();
+
+        var oe: Dynamic = oldTimeline.children().eq(0);
         var ne: Dynamic = newTimeline.children().eq(0);
-        var oldTimelineElements: Array<Dynamic> = oldTimeline.children().get();
-        for(ore in oldTimelineElements) {
-            var oe = new JQuery(ore);
+        while(0 < oe.length && 0 < ne.length) {
             var oldScore = Std.parseInt(oe.attr('score'));
-            var newScore: Int = null;
-            while(oldScore <= (newScore = Std.parseInt(ne.attr('score')))) {
-                if (oldScore == newScore) {
-                    oe.replaceWith(ne);
-                } else {
-                    ne.insertBefore(oe);
-                    // 古いものがある場合は子供を奪って消す
-                    var postId = ne.attr('post-id');
-                    var oldPost = ne.nextAll(Std.format('[post-id=$postId]'));
-                    if (0 < oldPost.length) {
-                        var entry = ne.find('> .entry');
-                        entry.find('> .comments').replaceWith(
-                            oldPost.find('> .entry > .comments'));
-                        updateCommentDisplayText(entry);
-                    }
-                    oldPost.remove();
-                }
-                ne = ne.next();
-                if (ne.length == 0) {
-                    break;
-                }
+            var newScore: Null<Int> = null;
+            while(
+                0 < ne.length &&
+                oldScore <= (newScore = Std.parseInt(ne.attr('score')))) {
+                var newPostId = Std.parseInt(ne.attr('post-id'));
+                var oldPostId = Std.parseInt(oe.attr('post-id'));
+                trace(Std.format("judge newPost: $newPostId"));
+                var next_ne = ne.next();
+
+                ne.insertBefore(oe);
+
+                ne = next_ne;
             }
-            if (ne.length == 0) {
-                break;
-            }
+            oe = oe.next();
         }
         if (0 < ne.length) {
             var nextne = ne.nextAll();
@@ -553,6 +572,8 @@ class MyPage {
             intervals.from_array(JQuery._static.parseJSON(oldTimelineIntervalsAttr));
         }
 
+        trace('newTimeline intervals');
+        trace(newTimeline.attr('intervals'));
         var tmpIntervalArray: Array<Array<Int>> =
             JQuery._static.parseJSON(newTimeline.attr('intervals'));
         for(v in tmpIntervalArray) {
@@ -565,6 +586,9 @@ class MyPage {
             }
         }
         oldTimeline.attr('intervals', JSON.stringify(intervals.to_array()));
+
+        trace('old(after)');
+        traceTimeline(oldTimeline);
 
         oldTimeline.sortable({
               update: function(event: Dynamic, ui: Dynamic) {
