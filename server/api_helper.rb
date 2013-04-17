@@ -137,6 +137,12 @@ module APIHelper
           :permission => [/(private|public)/, Symbol])
         edit_permission(r.board, r.ribbon, r.permission)
       end
+
+      post '/m/ribbontest' do
+        r = ensure_params(
+          :ribbon => INT_PARAM)
+        do_ribbon_test(r.ribbon)
+      end
     end
   end
   
@@ -282,6 +288,12 @@ module APIHelper
     ribbon.store.owner.store.label
   end
 
+  def do_ribbon_test(ribbon_id)
+    ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
+    ribbon.do_test(@user)
+    "OK"
+  end
+
   def ensure_params(h)
     halt_on_exception do
       params.enstructure(h)
@@ -300,7 +312,7 @@ module APIHelper
   def make_detail_data(ribbon, post)
     comments = post.store.comments;
     author = post.store.author
-    content = PlugIns.module_eval(post.type).display(
+    content = PlugIns.module_eval(post.type.to_s).display(
       PluginService.new(settings), post)
     {
       :ribbonId => ribbon.store.id,
@@ -330,11 +342,14 @@ module APIHelper
       :timelineVersion => timeline.store.version,
       :newestScore => res_newest_score,
       :oldestScore => res_oldest_score,
-      :posts => posts.map do |h|
-        score, post = h.values_at(:score, :value)
+      :posts => posts.map do |score, removed, post|
+        p score
+        p removed
+        p post
         detail = make_detail_data(ribbon, post)
         {
           :score => score,
+          :removed => removed,
           :postId => post.store.id,
           :postVersion => post.store.version,
           :icon => Misc.gravator(post.store.author.store.email),

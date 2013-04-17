@@ -1,6 +1,7 @@
 require "#{File.dirname(__FILE__)}/models/user.rb"
 require "#{File.dirname(__FILE__)}/models/users.rb"
 require "#{File.dirname(__FILE__)}/models/post.rb"
+require "#{File.dirname(__FILE__)}/models/postholder.rb"
 require "#{File.dirname(__FILE__)}/models/group.rb"
 require "#{File.dirname(__FILE__)}/models/groups.rb"
 require "#{File.dirname(__FILE__)}/models/spotter.rb"

@@ -328,6 +328,18 @@ class MyPage {
         return false;
     }
 
+    static function doRibbonTest(ribbonId: Int) {
+        JQuery._static.ajax({
+            url: "/foo/ajax/m/ribbontest",
+            method: "post",
+            data: {
+                ribbon: ribbonId,
+            }
+        }).done(function(data) {
+            trace("ribbontest done");
+        });
+    }
+
     ////////////////////////////////////////////////////////////////
     // private functions
     static private function makeBoardUrl(boardname): String {
@@ -559,10 +571,7 @@ class MyPage {
     static private function traceTimeline(timeline: Dynamic) {
         timeline.find('> article').each(
             function(i: Int, elem: Dynamic) {
-                var e = new JQuery(elem);
-                var v0 = e.attr('score');
-                var v1 = e.attr('post-id');
-                trace(Std.format("$v0, $v1"));
+                trace(elem);
             });
     }
 
@@ -575,11 +584,33 @@ class MyPage {
 
         oldTimeline.find('> .continue-reading').remove();
 
-        trace('old(before)');
-        traceTimeline(oldTimeline);
-
         trace('new');
         traceTimeline(newTimeline);
+
+        var remover = newTimeline.find('> article[removed="true"]');
+        trace('remover');
+        remover.each(
+            function(i: Int, elem: Dynamic) {
+                trace(elem);
+            });
+
+        trace('old(before applying remover)');
+        traceTimeline(oldTimeline);
+
+        remover.each(
+            function(i: Int, elem: Dynamic) {
+                var e: Dynamic = new JQuery(elem);
+                var postId = e.attr('post-id');
+                var filter = Std.format('[post-id="$postId"]');
+                trace(filter);
+                newTimeline.find(filter).addClass('removing');
+                oldTimeline.find(filter).addClass('removing');
+            });
+        newTimeline.find('.removing').remove();
+        oldTimeline.find('.removing').remove();
+
+        trace('old(before)');
+        traceTimeline(oldTimeline);
 
         // post-idの同じ物を削除
         newTimeline.children().each(

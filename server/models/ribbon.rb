@@ -37,6 +37,14 @@ class Ribbon < RedisMapper::PlatformModel
     self.store.read_source.store.label
   end
 
+  def do_test(author)
+    add_article(p1 = Post.create(author, :Tweet, '1', true))
+    add_article(p2 = Post.create(author, :Tweet, '2', true))
+    add_article(p3 = Post.create(author, :Tweet, '3', true))
+    self.store.write_target.remove_post(p3)
+    add_article(p3)
+  end
+
   delegate :read_source     do self.store end
   delegate :write_target    do self.store end
   delegate :secret?         do self.store.spotter end

@@ -1,12 +1,19 @@
-<section class="timeline"
-         level="::level::"
-         ribbon-id="::ribbonId::"
-         timeline-id="::timelineId::"
-         version="::timelineVersion::"
-         intervals="::intervals::"
-         >
+<section
+   class="timeline"
+   level="::level::"
+   ribbon-id="::ribbonId::"
+   timeline-id="::timelineId::"
+   version="::timelineVersion::"
+   intervals="::intervals::"
+   >
   ::foreach posts::
-  <article class="post" score="::__current__.score::" post-id="::__current__.postId::" version="::__current__.postVersion::">
+  <article
+     class="post"
+     score="::__current__.score::"
+     post-id="::__current__.postId::"
+     version="::__current__.postVersion::"
+     removed="::__current__.removed::"
+     >
     <div class="avatar">
       <div class="icon">
         <img src="http://www.gravatar.com/avatar/::__current__.icon::?s=40&d=mm" alt="gravator"/>

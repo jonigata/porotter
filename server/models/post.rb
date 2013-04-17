@@ -14,21 +14,24 @@ class Post < RedisMapper::PlatformModel
   end
 
   def add_comment(post)
-    version_up
-    self.store.comments.add_post(post)
-    self.store.refered_by.each do |timeline|
-      timeline.on_post_modified(self)
+    version_up do |version|
+      self.store.comments.add_post(post)
+      self.store.refered_by.each do |timeline|
+        timeline.on_post_modified(self)
+      end
     end
   end
 
   def favored_by(user)
-    version_up
-    self.store.favored_by.add(user)
+    version_up do |version|
+      self.store.favored_by.add(user)
+    end
   end
 
   def unfavored_by(user)
-    version_up
-    self.store.favored_by.remove(user)
+    version_up do |version|
+      self.store.favored_by.remove(user)
+    end
   end
 
   def refered_by(timeline)
@@ -38,6 +41,7 @@ class Post < RedisMapper::PlatformModel
   private
   def version_up
     self.store.version_incr(1).tap do |version|
+      yield version
       redis.publish "post-watcher", [self.store.id, version].to_json
     end
   end

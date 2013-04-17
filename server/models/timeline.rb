@@ -10,20 +10,34 @@ class Timeline < RedisMapper::PlatformModel
   end
 
   def add_post(post)
-    self.store.posts.add(version_up, post)
-    post.refered_by(self)
+    holder = self.store.post_to_holder[post]
+    if !holder
+      holder = PostHolder.create(post)
+      self.store.post_to_holder[post] = holder
+    else
+      holder.mark_as_removed(false)
+    end
+    
+    version_up do |version|
+      post.refered_by(self)
+      self.store.posts.add(version, holder)
+    end
+
     self.store.watchers.each do |watcher|
       watcher.add_post(post)
     end
   end
 
   def remove_post(post)
-    version_up
-    self.store.posts.remove(post)
+    holder = self.store.post_to_holder[post] or return
+    holder.mark_as_removed(true)
+    version_up do |version|
+      self.store.posts.add(version, holder)
+    end
   end
 
   def member?(post)
-    self.store.posts.member?(post)
+    self.store.post_to_holder.member?(post)
   end
 
   def fetch(newest_score, oldest_score, count)
@@ -32,12 +46,9 @@ class Timeline < RedisMapper::PlatformModel
     
     b = newest_score.kick(nil, :inf)
     e = oldest_score.kick(nil, :'-inf')
-    p b
-    p e
 
     posts = self.store.posts
     a = posts.revrange(b, e, [0, count + 1])
-    p (a.map { |x| x[:score] })
     if a.empty?
       [[], nil, nil]
     else
@@ -54,9 +65,8 @@ class Timeline < RedisMapper::PlatformModel
           res_oldest_score = oldest_score || 0
         end
       end
-      [a, res_newest_score, res_oldest_score].tap do |q|
-        p q
-      end
+      p a      
+      [(a.map { |x| y = x[:value]; [x[:score], y.removed, y.post] }), res_newest_score, res_oldest_score]
     end
   end
 
@@ -70,8 +80,11 @@ class Timeline < RedisMapper::PlatformModel
 
   def on_post_modified(post)
     # bump up
-    if self.store.posts.last_value != post
-      self.store.posts.add(version_up, post)
+    holder = self.store.post_to_holder[post]
+    if self.store.posts.last_value != holder
+      version_up do |version|
+        self.store.posts.add(version, holder)
+      end
     end
   end
 
@@ -82,14 +95,17 @@ class Timeline < RedisMapper::PlatformModel
   def move_post(source, target)
     # sourceをbump up
     puts "bump up(source): #{source.store.id}"
-    self.store.posts.add(self.store.version_incr(1), source)
+    source_holder =
+      self.store.post_to_holder[source] || PostHolder.create(source)
+    self.store.posts.add(self.store.version_incr(1), source_holder)
 
     # source->targetをbump up
-    newest_score = RedisMapper.exclusive(self.store.posts.score(source))
+    newest_score = RedisMapper.exclusive(self.store.posts.score(source_holder))
     oldest_score = :'-inf'
     if target
-      p target
-      oldest_score = RedisMapper.exclusive(self.store.posts.score(target))
+      target_holder = self.store.post_to_holder[target]
+      oldest_score =
+        RedisMapper.exclusive(self.store.posts.score(target_holder))
     end
 
     self.store.posts.range(oldest_score, newest_score).each do |e|
@@ -108,13 +124,15 @@ class Timeline < RedisMapper::PlatformModel
   private
   def version_up
     self.store.version_incr(1).tap do |version|
+      yield version
       redis.publish("timeline-watcher", [self.store.id, version].to_json)
     end
   end    
 
-  property              :owner,     User
-  property              :label,     String
-  property              :version,   Integer
-  ordered_set_property  :posts,     Post
-  set_property          :watchers,  Timeline
+  property              :owner,             User
+  property              :label,             String
+  property              :version,           Integer
+  ordered_set_property  :posts,             PostHolder
+  dictionary_property   :post_to_holder,    Post, PostHolder
+  set_property          :watchers,          Timeline
 end
