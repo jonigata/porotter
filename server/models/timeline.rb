@@ -49,24 +49,26 @@ class Timeline < RedisMapper::PlatformModel
 
     posts = self.store.posts
     a = posts.revrange(b, e, [0, count + 1])
-    if a.empty?
-      [[], nil, nil]
+    return [[], nil, nil] if a.empty?
+
+    res_newest_score = a.first[:score]
+    res_oldest_score = a.last[:score]
+    if count < a.length
+      a.pop
     else
-      res_newest_score = a.first[:score]
-      res_oldest_score = a.last[:score]
-      if count < a.length
+      if res_oldest_score == oldest_score
+        # oldestはexclusive
         a.pop
       else
-        if res_oldest_score == oldest_score
-          # oldestはexclusive
-          a.pop
-        else
-          # 続きがない
-          res_oldest_score = oldest_score || 0
-        end
+        # 続きがない
+        res_oldest_score = oldest_score || 0
       end
-      [(a.map { |x| y = x[:value]; [x[:score], y.removed, y.post] }), res_newest_score, res_oldest_score]
     end
+    [
+      (a.map { |x| y = x[:value]; [x[:score], y.removed, y.post] }),
+      res_newest_score,
+      res_oldest_score
+    ]
   end
 
   def length
