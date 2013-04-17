@@ -300,7 +300,7 @@ module APIHelper
   def make_detail_data(ribbon, post)
     comments = post.store.comments;
     author = post.store.author
-    content = PlugIns.module_eval(post.type.to_s).display(
+    content = PlugIns.module_eval(post.type).display(
       PluginService.new(settings), post)
     {
       :ribbonId => ribbon.store.id,
