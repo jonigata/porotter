@@ -320,6 +320,8 @@ module APIHelper
   end
 
   def make_timeline_data(ribbon, timeline, newest_score, oldest_score, count)
+    # haxeのtemplateの仕様の都合でdetailと重複がある
+    # TODO: haxe側で対処する
     posts, res_newest_score, res_oldest_score = timeline.fetch(
       newest_score, oldest_score, count)
     {

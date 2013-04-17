@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 class Post < RedisMapper::PlatformModel
   def self.create(author, type, content, has_comments)
     self.new_instance do |post|
@@ -10,10 +11,6 @@ class Post < RedisMapper::PlatformModel
       post.store.comments =
         has_comments ? Timeline.create(author, 'コメント') : nil
     end
-  end
-
-  def type
-    self.store.type
   end
 
   def add_comment(post)
@@ -44,6 +41,8 @@ class Post < RedisMapper::PlatformModel
       redis.publish "post-watcher", [self.store.id, version].to_json
     end
   end
+
+  delegate :type do self.store end
 
   property  :type,          Symbol
   property  :version,       Integer
