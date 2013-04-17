@@ -65,7 +65,6 @@ class Timeline < RedisMapper::PlatformModel
           res_oldest_score = oldest_score || 0
         end
       end
-      p a      
       [(a.map { |x| y = x[:value]; [x[:score], y.removed, y.post] }), res_newest_score, res_oldest_score]
     end
   end
@@ -94,9 +93,14 @@ class Timeline < RedisMapper::PlatformModel
 
   def move_post(source, target)
     # sourceをbump up
-    puts "bump up(source): #{source.store.id}"
-    source_holder =
-      self.store.post_to_holder[source] || PostHolder.create(source)
+    # puts "bump up(source): #{source.store.id}"
+    source_holder = self.store.post_to_holder[source]
+    if !source_holder
+      source_holder = PostHolder.create(source)
+      self.store.post_to_holder[source] = source_holder
+    else
+      source_holder.mark_as_removed(false)
+    end
     self.store.posts.add(self.store.version_incr(1), source_holder)
 
     # source->targetをbump up
@@ -104,12 +108,14 @@ class Timeline < RedisMapper::PlatformModel
     oldest_score = :'-inf'
     if target
       target_holder = self.store.post_to_holder[target]
+      # puts "target_holder.store.id = #{target_holder.store.id}"
       oldest_score =
         RedisMapper.exclusive(self.store.posts.score(target_holder))
     end
 
+    # puts "oldest_score = #{oldest_score}, newest_score = #{newest_score}"
     self.store.posts.range(oldest_score, newest_score).each do |e|
-      puts "bump up(target): #{e[:value].store.id}"
+      # puts "bump up(target): score = #{e[:score]} post.store.id = #{e[:value].post.store.id}, post.store.content = \"#{e[:value].post.store.content}\""
       self.store.posts.add(self.store.version_incr(1), e[:value])
     end
 
@@ -118,7 +124,9 @@ class Timeline < RedisMapper::PlatformModel
   end
 
   def transfer_post_from(source_timeline, source, target)
+    # puts "transfer_post_from source.store.id = #{source.store.id}, target.store.id = #{target && target.store.id}"
     move_post(source, target)
+    source_timeline.remove_post(source)
   end
 
   private

@@ -343,9 +343,6 @@ module APIHelper
       :newestScore => res_newest_score,
       :oldestScore => res_oldest_score,
       :posts => posts.map do |score, removed, post|
-        p score
-        p removed
-        p post
         detail = make_detail_data(ribbon, post)
         {
           :score => score,

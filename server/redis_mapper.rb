@@ -24,6 +24,9 @@ module RedisMapper
   class Exclusive
     def initialize(n) @value = n; end
     attr_reader :value
+    def to_s
+      "(#{@value}"
+    end
   end
 
   def self.exclusive(n)
