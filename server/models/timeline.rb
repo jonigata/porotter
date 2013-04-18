@@ -41,34 +41,65 @@ class Timeline < RedisMapper::PlatformModel
   end
 
   def fetch(newest_score, oldest_score, count)
-    # [newest_score, oldest_score)の範囲を返す
-    # newest_score, oldest_scoreがnilの場合無限を指す
+    # 1.[newest_score, oldest_score)に有効要素がない場合
+    #   → [[], nil, nil]を返す
+    # 
+    # 2.有効要素がある場合
+    #   →
+    #     [
+    #       [有効要素0, ..., 有効要素N](A),
+    #       score(有効要素0),
+    #       [score(next(有効要素N)), oldest_score].min
+    #     ]
+    # を返す。
+    # Aの長さはcount以下とは限らない(削除情報が入ることがあるため)。
+
+    oldest_score ||= 0
     
-    b = newest_score.kick(nil, :inf)
-    e = oldest_score.kick(nil, :'-inf')
+    # newest_score, oldest_scoreがnilの場合無限を指す
+    b = newest_score || :inf
+    e = RedisMapper.exclusive(oldest_score)
 
     posts = self.store.posts
-    a = posts.revrange(b, e, [0, count + 1])
-    return [[], nil, nil] if a.empty?
+    res_newest_score = nil
+    res_oldest_score = nil
+    result_array = []
+    rest_count = count + 1
 
-    res_newest_score = a.first[:score]
-    res_oldest_score = a.last[:score]
-    if count < a.length
-      a.pop
-    else
-      if res_oldest_score == oldest_score
-        # oldestはexclusive
-        a.pop
-      else
-        # 続きがない
-        res_oldest_score = oldest_score || 0
+    while 0 < rest_count
+      a = posts.revrange(b, e, [0, rest_count])
+      break if a.empty?
+
+      res_newest_score ||= a.first[:score]
+      res_oldest_score = a.last[:score]
+
+      a.each do |x|
+        score = x[:score]
+        value = x[:value]
+        removed = value.removed
+        result_array.push([score, removed, value.post])
+        rest_count -= 1 unless removed
       end
+
+      b = RedisMapper.exclusive(res_oldest_score)
+      puts "result_array.length = #{result_array.length}, rest_count = #{rest_count}"
     end
+
+    return [[], nil, nil] if result_array.empty?
+
+    if rest_count == 0
+      result_array.pop
+    else
+      res_oldest_score = oldest_score
+    end
+    
     [
-      (a.map { |x| y = x[:value]; [x[:score], y.removed, y.post] }),
+      result_array,
       res_newest_score,
       res_oldest_score
-    ]
+    ].tap do |r|
+      p r
+    end
   end
 
   def length
