@@ -136,6 +136,11 @@ html {
                     }
                     @include clearfix;
                 }
+                .no-article {
+                    height: 48px;
+                    text-align: center;
+                    color: #AAA;
+                }
             }
 
         }

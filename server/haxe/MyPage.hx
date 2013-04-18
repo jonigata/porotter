@@ -579,6 +579,7 @@ class MyPage {
         oldTimeline: Dynamic, newTimeline: Dynamic) {
 
         if (newTimeline.children().length == 0) {
+            setupNoArticle(oldTimeline);
             return;
         }
 
@@ -670,6 +671,15 @@ class MyPage {
 
         trace('old(after)');
         traceTimeline(oldTimeline);
+
+        setupNoArticle(oldTimeline);
+    }
+
+    static private function setupNoArticle(timeline: Dynamic) {
+        timeline.find('> .no-article').remove();
+        if (timeline.find('> article').length == 0) {
+            timeline.append('<div class="no-article">ポストがありません</div>');
+        }
     }
 
     static private function insertContinueReading(

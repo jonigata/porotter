@@ -1084,7 +1084,10 @@ MyPage.traceTimeline = function(timeline) {
 	});
 }
 MyPage.mergeTimeline = function(oldTimeline,newTimeline) {
-	if(newTimeline.children().length == 0) return;
+	if(newTimeline.children().length == 0) {
+		MyPage.setupNoArticle(oldTimeline);
+		return;
+	}
 	oldTimeline.find("> .continue-reading").remove();
 	console.log("new");
 	MyPage.traceTimeline(newTimeline);
@@ -1154,6 +1157,11 @@ MyPage.mergeTimeline = function(oldTimeline,newTimeline) {
 	oldTimeline.attr("intervals",JSON.stringify(intervals.to_array()));
 	console.log("old(after)");
 	MyPage.traceTimeline(oldTimeline);
+	MyPage.setupNoArticle(oldTimeline);
+}
+MyPage.setupNoArticle = function(timeline) {
+	timeline.find("> .no-article").remove();
+	if(timeline.find("> article").length == 0) timeline.append("<div class=\"no-article\">ポストがありません</div>");
 }
 MyPage.insertContinueReading = function(timeline,score) {
 	var link = new $("<a class=\"continue-reading\" href=\"#\" onclick=\"MyPage.continueReading(this);return false;\">続きを読む</a>");
