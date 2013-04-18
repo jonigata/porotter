@@ -889,6 +889,16 @@ MyPage.joinRibbon = function(ownername) {
 	});
 	dialog.justModal();
 }
+MyPage.restoreRibbon = function(boardId) {
+	var dialog = new $("#restore-ribbon");
+	var ribbonSelect = dialog.find("[name=\"ribbon\"]");
+	var submit = dialog.find("[type=\"submit\"]");
+	MyPage.clearSelect(ribbonSelect);
+	MyPage.setupRemovedRibbonSelect(ribbonSelect,boardId,true,function(ribbonId) {
+		MyPage.setEnabled(submit,ribbonId != 0);
+	});
+	dialog.justModal();
+}
 MyPage.closeRibbon = function(obj,boardId) {
 	var ribbon = new $(obj).closest(".ribbon");
 	var ribbonId = ribbon.attr("ribbon-id");
@@ -1017,6 +1027,25 @@ MyPage.setupRibbonSelect = function(ribbonSelect,boardId,disableDup,f) {
 			var disabled = "";
 			if(disableDup && 0 < new $("[ribbon-id=\"" + ribbonId + "\"]").length) disabled = " disabled=\"disabled\"";
 			ribbonSelect.append("<option value=\"" + ribbonId + "\"" + disabled + ">" + ribbonLabel + "</option>");
+		}
+		ribbonSelect.unbind("change");
+		ribbonSelect.change(function(e) {
+			f(MyPage.getSelected(e.target).val());
+		});
+		MyPage.enable(ribbonSelect);
+	});
+}
+MyPage.setupRemovedRibbonSelect = function(ribbonSelect,boardId,disableDup,f) {
+	$.ajax({ url : "/foo/ajax/v/removedribbonlist?board=" + boardId, method : "get"}).done(function(data) {
+		ribbonSelect.append("<option value=\"0\">リボンを選択</option>");
+		var ribbons = $.parseJSON(data);
+		var _g = 0;
+		while(_g < ribbons.length) {
+			var v = ribbons[_g];
+			++_g;
+			var ribbonId = v[0];
+			var ribbonLabel = v[1];
+			ribbonSelect.append("<option value=\"" + ribbonId + "\">" + ribbonLabel + "</option>");
 		}
 		ribbonSelect.unbind("change");
 		ribbonSelect.change(function(e) {

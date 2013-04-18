@@ -241,6 +241,23 @@ class MyPage {
         dialog.justModal();
     }
 
+    static function restoreRibbon(boardId: Int) {
+        var dialog: Dynamic = new JQuery('#restore-ribbon');
+        var ribbonSelect: Dynamic = dialog.find('[name="ribbon"]');
+        var submit: Dynamic = dialog.find('[type="submit"]');
+
+        clearSelect(ribbonSelect);
+        setupRemovedRibbonSelect(
+            ribbonSelect,
+            boardId,
+            true,
+            function(ribbonId: Int) {
+                setEnabled(submit, ribbonId != 0);
+            });
+        
+        dialog.justModal();
+    }        
+
     static function closeRibbon(obj: Dynamic, boardId: Int) {
         var ribbon = new JQuery(obj).closest('.ribbon');
         var ribbonId = ribbon.attr('ribbon-id');
@@ -470,6 +487,32 @@ class MyPage {
 
                 ribbonSelect.append(
                     Std.format('<option value="$ribbonId"$disabled>$ribbonLabel</option>'));
+            }
+            ribbonSelect.unbind('change');
+            ribbonSelect.change(
+                function(e: Dynamic) {
+                    f(getSelected(e.target).val());
+                });
+            enable(ribbonSelect);
+        });
+    }
+
+    static private function setupRemovedRibbonSelect(
+        ribbonSelect: Dynamic, boardId: Int, disableDup: Bool, f: Int->Void) {
+        
+        JQuery._static.ajax({
+            url: Std.format("/foo/ajax/v/removedribbonlist?board=$boardId"),
+            method: "get"
+        }).done(function(data) {
+            ribbonSelect.append('<option value="0">リボンを選択</option>');
+                
+            var ribbons: Array<Dynamic> = JQuery._static.parseJSON(data);
+            for(v in ribbons) {
+                var ribbonId: Int = v[0];
+                var ribbonLabel: String = v[1];
+
+                ribbonSelect.append(
+                    Std.format('<option value="$ribbonId">$ribbonLabel</option>'));
             }
             ribbonSelect.unbind('change');
             ribbonSelect.change(

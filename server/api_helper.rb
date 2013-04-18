@@ -45,6 +45,12 @@ module APIHelper
         get_ribbonlist(r.board)
       end
 
+      get '/v/removedribbonlist' do
+        r = ensure_params(
+          :board => INT_PARAM)
+        get_removedribbonlist(r.board)
+      end
+
       post '/m/newarticle' do
         r = ensure_params(:ribbon => INT_PARAM)
         post_new_article(r.ribbon, params[:content])
@@ -123,6 +129,13 @@ module APIHelper
         join_ribbon(r.target, r.ribbon)
       end
 
+      post '/m/restoreribbon' do
+        r = ensure_params(
+          :target => INT_PARAM,
+          :ribbon => INT_PARAM)
+        restore_ribbon(r.target, r.ribbon)
+      end
+
       post '/m/closeribbon' do
         r = ensure_params(
           :board => INT_PARAM,
@@ -189,7 +202,15 @@ module APIHelper
   def get_ribbonlist(board_id)
     board = Board.attach_if_exist(board_id) or raise
     JSONP(
-      board.store.ribbons.map do |ribbon|
+      board.list_ribbons.map do |ribbon|
+        [ribbon.store.id, ribbon.label]
+      end)
+  end
+
+  def get_removedribbonlist(board_id)
+    board = Board.attach_if_exist(board_id) or raise
+    JSONP(
+      board.list_removed_ribbons.map do |ribbon|
         [ribbon.store.id, ribbon.label]
       end)
   end
@@ -267,6 +288,15 @@ module APIHelper
 
     ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
     @user.join_ribbon(board, ribbon)
+    board.store.label
+  end
+
+  def restore_ribbon(board_id, ribbon_id)
+    board = Board.attach_if_exist(board_id) or raise
+    board.editable_by?(@user) or halt 403
+
+    ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
+    @user.restore_ribbon(board, ribbon)
     board.store.label
   end
 

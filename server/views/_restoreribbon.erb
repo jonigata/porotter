@@ -1,0 +1,13 @@
+<form action="/foo/ajax/m/restoreribbon" method="post">
+  <table>
+    <tr>
+      <td>リボン</td>
+      <td>
+        <select name="ribbon">
+        </select>
+      </td>
+    </tr>
+  </table>
+  <input type="hidden" name="target" value="<%= current_board.store.id %>">
+  <input class="btn btn-primary" type="submit" value="参照" onclick="return MyPage.doPost(this);" disabled="disabled">
+</form>

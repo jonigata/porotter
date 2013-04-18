@@ -154,7 +154,11 @@ class User < RedisMapper::PlatformModel
   end
 
   def join_ribbon(board, ribbon)
-    board.store.ribbons.push(ribbon)
+    board.add_ribbon(ribbon)
+  end
+
+  def restore_ribbon(board, ribbon)
+    board.restore_ribbon(ribbon)
   end
 
   index_accessor :username

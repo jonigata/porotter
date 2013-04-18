@@ -259,25 +259,9 @@ html {
     }
 }
 
-#make-board {
+.dialog {
     @include dialog;
-}    
-
-#join-board {
-    @include dialog;
-}    
-
-#make-ribbon {
-    @include dialog;
-}    
-
-#join-ribbon {
-    @include dialog;
-}    
-
-#edit-permission {
-    @include dialog;
-}    
+}
 
 #board-menu-trigger {
     float: right;

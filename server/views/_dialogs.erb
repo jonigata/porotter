@@ -1,0 +1,23 @@
+<% if @user %>
+<div class="dialog" id="stamp-chooser">
+  <%= erb :_stamps %>
+</div>
+<div class="dialog" id="make-board">
+  <%= erb :_makeboard %>
+</div>
+<div class="dialog" id="make-ribbon">
+  <%= erb :_makeribbon, :locals => { :current_board => current_board } %>
+</div>
+<div class="dialog" id="edit-permission">
+  <%= erb :_editpermission, :locals => { :current_board => current_board } %>
+</div>
+<div class="dialog" id="join-board">
+  <%= erb :_joinboard %>
+</div>
+<div class="dialog" id="join-ribbon">
+  <%= erb :_joinribbon, :locals => { :current_board => current_board } %>
+</div>
+<div class="dialog" id="restore-ribbon">
+  <%= erb :_restoreribbon, :locals => { :current_board => current_board } %>
+</div>
+<% end %>

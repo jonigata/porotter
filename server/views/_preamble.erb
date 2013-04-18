@@ -14,7 +14,7 @@
           <% if current_board.editable_by?(@user) %>
           <li class="dropdown">
             <a class="dropdown-toggle" data-toggle="dropdown" href="#">リボン<span class="caret"></span></a>
-            <%=  erb :_chooseribbon %>
+            <%=  erb :_chooseribbon, :locals => { :current_board => current_board } %>
           </li>
           <% end %>
         </ul>
@@ -34,24 +34,5 @@
       </div>
     </div>
   </div>
-  <div id="stamp-chooser">
-    <%= erb :_stamps %>
-  </div>
-  <% if @user %>
-  <div id="make-board">
-    <%= erb :_makeboard %>
-  </div>
-  <div id="make-ribbon">
-    <%= erb :_makeribbon, :locals => { :current_board => current_board } %>
-  </div>
-  <div id="edit-permission">
-    <%= erb :_editpermission, :locals => { :current_board => current_board } %>
-  </div>
-  <div id="join-board">
-    <%= erb :_joinboard %>
-  </div>
-  <div id="join-ribbon">
-    <%= erb :_joinribbon, :locals => { :current_board => current_board } %>
-  </div>
-  <% end %>
+  <%= erb :_dialogs, :locals => { :current_board => current_board } %>
 </header>
