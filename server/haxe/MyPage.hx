@@ -366,7 +366,19 @@ class MyPage {
     static function editGroup(ownername: String) {
         var dialog: Dynamic = new JQuery('#edit-group');
         var userSelect: Dynamic = dialog.find('[name="user"]');
-        var addButton: Dynamic = dialog.find('[id="add-member"]');
+        var addButton: Dynamic = dialog.find('#add-member');
+        var members: Dynamic = dialog.find('#group-members');
+        addButton.unbind('click');
+        addButton.click(function() {
+                trace(userSelect.find(':selected').attr('icon'));
+                members.find('p').remove();
+                var gravatar = userSelect.find(':selected').attr('icon');
+                var icon: String = Std.format('<img src="http://www.gravatar.com/avatar/$gravatar?s=16&d=mm" alt="gravator"/>');
+                members.append(icon);
+                clearSelect(userSelect);
+                disable(addButton);
+            });
+
         disable(addButton);
         setupUserSelect(
             userSelect,
@@ -426,6 +438,7 @@ class MyPage {
     static private function setupUserSelect(
         userSelect: Dynamic, ownername: String, f: Int->Void) {
 
+        clearSelect(userSelect);
         JQuery._static.ajax({
             url: "/foo/ajax/v/userlist",
             method: "get"
@@ -437,12 +450,13 @@ class MyPage {
                 var userId: Int = v[0];
                 var username: String = v[1];
                 var userlabel: String = v[2];
+                var userIcon: String = v[3];
                 if (ownername == username) {
                     continue;
                 }
 
                 userSelect.append(
-                    Std.format('<option value="$userId">$username - $userlabel</option>'));
+                    Std.format('<option value="$userId" icon="$userIcon">$username - $userlabel</option>'));
             }
             userSelect.unbind('change');
             userSelect.change(

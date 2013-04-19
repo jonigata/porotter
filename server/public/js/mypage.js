@@ -954,7 +954,18 @@ MyPage.editBoardSettings = function() {
 MyPage.editGroup = function(ownername) {
 	var dialog = new $("#edit-group");
 	var userSelect = dialog.find("[name=\"user\"]");
-	var addButton = dialog.find("[id=\"add-member\"]");
+	var addButton = dialog.find("#add-member");
+	var members = dialog.find("#group-members");
+	addButton.unbind("click");
+	addButton.click(function() {
+		console.log(userSelect.find(":selected").attr("icon"));
+		members.find("p").remove();
+		var gravatar = userSelect.find(":selected").attr("icon");
+		var icon = "<img src=\"http://www.gravatar.com/avatar/" + gravatar + "?s=16&d=mm\" alt=\"gravator\"/>";
+		members.append(icon);
+		MyPage.clearSelect(userSelect);
+		MyPage.disable(addButton);
+	});
 	MyPage.disable(addButton);
 	MyPage.setupUserSelect(userSelect,ownername,function(userId) {
 		MyPage.setEnabled(addButton,userId != 0);
@@ -987,6 +998,7 @@ MyPage.setupUserAndBoardSelect = function(dialog,ownername,userChange,boardChang
 	userChange(0);
 }
 MyPage.setupUserSelect = function(userSelect,ownername,f) {
+	MyPage.clearSelect(userSelect);
 	$.ajax({ url : "/foo/ajax/v/userlist", method : "get"}).done(function(data) {
 		userSelect.append("<option value=\"0\">所有者を選択</option>");
 		var users = $.parseJSON(data);
@@ -997,8 +1009,9 @@ MyPage.setupUserSelect = function(userSelect,ownername,f) {
 			var userId = v[0];
 			var username = v[1];
 			var userlabel = v[2];
+			var userIcon = v[3];
 			if(ownername == username) continue;
-			userSelect.append("<option value=\"" + userId + "\">" + username + " - " + userlabel + "</option>");
+			userSelect.append("<option value=\"" + userId + "\" icon=\"" + userIcon + "\">" + username + " - " + userlabel + "</option>");
 		}
 		userSelect.unbind("change");
 		userSelect.change(function(e) {
