@@ -6,6 +6,8 @@ class Board < RedisMapper::PlatformModel
       board.store.owner = owner
       board.store.label = label
       board.store.spotter = Spotter.create(read_permission, write_permission)
+      board.store.unique_readable = Group.create
+      board.store.unique_writable = Group.create
     end
   end
 
@@ -20,9 +22,44 @@ class Board < RedisMapper::PlatformModel
   end
 
   def restore_ribbon(ribbon)
-    puts "************restore***********"
     self.store.ribbons.push(ribbon)
     self.store.removed_ribbons.remove(ribbon)
+  end
+
+  def format_readability
+    result = [false, false, false]
+    spotter = self.store.spotter
+    rt = spotter.store.readable_type
+    if rt == :everyone
+      result[0] = true
+    else
+      rg = spotter.store.readable_group
+      if self.store.unique_readable == rg
+        result[2] = true
+      else
+        result[1] = true
+      end
+    end
+    result
+  end
+
+  def format_writability
+    result = [false, false, false, false]
+    spotter = self.store.spotter
+    wt = spotter.store.writable_type
+    if wt == :everyone
+      result[0] = true
+    elsif wt == :same_as_readable
+      result[3] = true
+    else
+      wg = spotter.store.writable_group
+      if self.store.unique_writable == wg
+        result[2] = true
+      else
+        result[1] = true
+      end
+    end
+    result
   end
 
   delegate :add_ribbon, :push       do self.store.ribbons end
@@ -35,6 +72,8 @@ class Board < RedisMapper::PlatformModel
   property      :owner,             User
   property      :label,             String
   property      :spotter,           Spotter
+  property      :unique_readable,   Group
+  property      :unique_writable,   Group
   list_property :ribbons,           Ribbon
   list_property :removed_ribbons,   Ribbon
 end

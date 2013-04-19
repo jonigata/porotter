@@ -21,7 +21,7 @@ class User < RedisMapper::PlatformModel
         user.store.hashed_password = Misc.hash_pw(salt, password)
 
         noone_group = Group.create
-        board = Board.create(user, 'global', nil, noone_group)
+        board = Board.create(user, 'global', :everyone, noone_group)
         user.store.boards['global'] = board
         
         global_timeline = Users.singleton.store.global_timeline

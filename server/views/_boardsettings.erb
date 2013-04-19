@@ -11,40 +11,54 @@
       <td>
         <table>
           <tr>
-            <% r = current_board.store.spotter.store.readable %>
+            <% r = current_board.format_readability.map { |x| x ? " checked" : "" } %>
             <% p r %>
-            <% p r.store.members.to_a %>
-            <% w = current_board.store.spotter.store.writable %>
-            <% p w %>
-            <% p w.store.members.to_a %>
-            <td>read</td>
+            <td class="item-name">read</td>
             <td>
-              <% r0 = r.nil? ? " checked" : "" %>
-              <% r1 = r.nil? ? "" : " checked" %>
               <label class="radio">
-                <input type="radio" name="read_permission" value="true" <%= r0 %>>
+                <input type="radio" name="read_permission" value="everyone" <%= r[0] %>>
                 誰でも
               </label>
               <label class="radio">
-                <input type="radio" name="read_permission" value="false" <%= r1 %>>
-                グループ
-                <%= erb :_groupmember, :locals => { :group => r } %>
+                <input type="radio" name="read_permission" value="public_group" <%= r[1] %>>
+                パブリックグループ
+                <select name="public_group">
+                  <option value="0" disabled="disabled">グループを選択</option>
+                </select>
               </label>
+              <label class="radio">
+                <input type="radio" name="read_permission" value="private_group" <%= r[2] %>>
+                特有グループ
+                <%= erb :_groupmember, :locals => { :group => current_board.store.unique_readable } %>
+                <input class="btn btn-info btn-mini" type="button" value="編集">
+              </label>
+              <hr>
             </td>
           </tr>
           <tr>
-            <td>write</td>
+            <% w = current_board.format_writability.map { |x| x ? " checked" : "" } %>
+            <td class="item-name">write</td>
             <td>
-              <% w0 = w.nil? ? " checked" : "" %>
-              <% w1 = w.nil? ? "" : " checked" %>
               <label class="radio">
-                <input type="radio" name="write_permission" value="true" <%= w0 %>>
+                <input type="radio" name="write_permission" value="everyone" <%= w[0] %>>
                 誰でも
               </label>
               <label class="radio">
-                <input type="radio" name="write_permission" value="false" <%= w1 %>>
-                グループ                
-                <%= erb :_groupmember, :locals => { :group => w } %>
+                <input type="radio" name="write_permission" value="public_group" <%= w[1] %>>
+                パブリックグループ
+                <select name="public_group">
+                  <option value="0" disabled="disabled">グループを選択</option>
+                </select>
+              </label>
+              <label class="radio">
+                <input type="radio" name="write_permission" value="private_group" <%= w[2] %>>
+                特有グループ
+                <%= erb :_groupmember, :locals => { :group => current_board.store.unique_writable } %>
+                <input class="btn btn-info btn-mini" type="button" value="編集">
+              </label>
+              <label class="radio">
+                <input type="radio" name="write_permission" value="same_as_read" <%= w[3] %>>
+                readと同じ
               </label>
             </td>
           </tr>
@@ -52,5 +66,5 @@
       </td>
     </tr>
   </table>
-  <input class="btn btn-primary" type="submit" value="共有" onclick="return MyPage.doPost(this);" disabled="disabled">
+  <input class="btn btn-primary" type="submit" value="保存" onclick="return MyPage.doPost(this);" disabled="disabled">
 </form>
