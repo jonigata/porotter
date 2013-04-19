@@ -266,3 +266,16 @@ html {
 #board-menu-trigger {
     float: right;
 }
+
+.dialog-grid {
+    .item-name {
+        text-align: right;
+        font-weight: bold;
+    }
+    td {
+        padding: 8px;
+    }
+    label {
+        width: 128px;
+    }
+}

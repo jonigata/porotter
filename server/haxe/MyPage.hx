@@ -357,6 +357,12 @@ class MyPage {
         });
     }
 
+    static function editBoardSettings() {
+        var dialog: Dynamic = new JQuery('#board-settings');
+        dialog.justModal();
+        
+    }
+
     ////////////////////////////////////////////////////////////////
     // private functions
     static private function makeBoardUrl(boardname): String {

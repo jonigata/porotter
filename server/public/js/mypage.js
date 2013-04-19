@@ -947,6 +947,10 @@ MyPage.doRibbonTest = function(ribbonId) {
 		console.log("ribbontest done");
 	});
 }
+MyPage.editBoardSettings = function() {
+	var dialog = new $("#board-settings");
+	dialog.justModal();
+}
 MyPage.makeBoardUrl = function(boardname) {
 	var urlinfo = new $("#board-url");
 	var base_url = urlinfo.attr("base-url");

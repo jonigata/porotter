@@ -1,0 +1,56 @@
+<form action="/foo/ajax/m/boardsetting" method="post">
+  <table class="dialog-grid">
+    <tr>
+      <td class="item-name">ボード名</td>
+      <td>
+        <input class="text" name="board_name" value="<%= current_board.store.label %>">
+      </td>
+    </tr>
+    <tr>
+      <td class="item-name">許可</td>
+      <td>
+        <table>
+          <tr>
+            <% r = current_board.store.spotter.store.readable %>
+            <% p r %>
+            <% p r.store.members.to_a %>
+            <% w = current_board.store.spotter.store.writable %>
+            <% p w %>
+            <% p w.store.members.to_a %>
+            <td>read</td>
+            <td>
+              <% r0 = r.nil? ? " checked" : "" %>
+              <% r1 = r.nil? ? "" : " checked" %>
+              <label class="radio">
+                <input type="radio" name="read_permission" value="true" <%= r0 %>>
+                誰でも
+              </label>
+              <label class="radio">
+                <input type="radio" name="read_permission" value="false" <%= r1 %>>
+                グループ
+                <%= erb :_groupmember, :locals => { :group => r } %>
+              </label>
+            </td>
+          </tr>
+          <tr>
+            <td>write</td>
+            <td>
+              <% w0 = w.nil? ? " checked" : "" %>
+              <% w1 = w.nil? ? "" : " checked" %>
+              <label class="radio">
+                <input type="radio" name="write_permission" value="true" <%= w0 %>>
+                誰でも
+              </label>
+              <label class="radio">
+                <input type="radio" name="write_permission" value="false" <%= w1 %>>
+                グループ                
+                <%= erb :_groupmember, :locals => { :group => w } %>
+              </label>
+            </td>
+          </tr>
+        </table>          
+      </td>
+    </tr>
+  </table>
+  <input class="btn btn-primary" type="submit" value="共有" onclick="return MyPage.doPost(this);" disabled="disabled">
+</form>

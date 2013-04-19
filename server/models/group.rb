@@ -14,5 +14,7 @@ class Group < RedisMapper::PlatformModel
     self.store.members.member?(member)
   end
 
+  delegate :list_members, :to_a do self.store.members end
+
   set_property  :members,   User
 end

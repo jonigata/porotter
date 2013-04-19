@@ -27,6 +27,10 @@ module WebServerHelper
     return nil
   end
 
+  def gravator(mail)
+    Misc.gravator(mail)
+  end
+
   def render_login_page(login_error, signup_error)
     erb :login, :locals => {
       :login_error => login_error,
