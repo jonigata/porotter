@@ -363,6 +363,20 @@ class MyPage {
         
     }
 
+    static function editGroup(ownername: String) {
+        var dialog: Dynamic = new JQuery('#edit-group');
+        var userSelect: Dynamic = dialog.find('[name="user"]');
+        var addButton: Dynamic = dialog.find('[id="add-member"]');
+        disable(addButton);
+        setupUserSelect(
+            userSelect,
+            ownername,
+            function(userId: Int) {
+                setEnabled(addButton, userId != 0);
+            });
+        dialog.justModal();
+    }
+
     ////////////////////////////////////////////////////////////////
     // private functions
     static private function makeBoardUrl(boardname): String {

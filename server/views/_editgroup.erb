@@ -1,0 +1,29 @@
+<form action="/foo/ajax/m/editgroup" method="post">
+  <table>
+    <tr>
+      <td>グループ名</td>
+      <td>
+        <input type="text" name="group_name" value="<%= group.store.name %>">
+      </td>
+    </tr>
+    <tr>
+      <td>メンバー</td>
+      <td>
+        <% if group.empty? %>
+        <p>ユーザが含まれていません</p>
+        <% else %>
+        <%= erb :_groupmember, :locals => { :group => group } %>
+        <% end %>
+      </td>
+    </tr>
+    <tr>
+      <td>追加</td>
+      <td>
+        <select name="user" disabled="disabled">
+        </select>
+        <input class="btn btn-primary btn-mini" type="button" value="追加" id="add-member" disabled="disabled">
+      </td>
+    </tr>
+  </table>
+  <input class="btn btn-primary" type="submit" value="保存" onclick="return MyPage.doPost("<%= @user.store.username %>");" disabled="disabled">
+</form>

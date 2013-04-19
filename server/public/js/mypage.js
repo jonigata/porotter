@@ -951,6 +951,16 @@ MyPage.editBoardSettings = function() {
 	var dialog = new $("#board-settings");
 	dialog.justModal();
 }
+MyPage.editGroup = function(ownername) {
+	var dialog = new $("#edit-group");
+	var userSelect = dialog.find("[name=\"user\"]");
+	var addButton = dialog.find("[id=\"add-member\"]");
+	MyPage.disable(addButton);
+	MyPage.setupUserSelect(userSelect,ownername,function(userId) {
+		MyPage.setEnabled(addButton,userId != 0);
+	});
+	dialog.justModal();
+}
 MyPage.makeBoardUrl = function(boardname) {
 	var urlinfo = new $("#board-url");
 	var base_url = urlinfo.attr("base-url");

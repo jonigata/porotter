@@ -14,7 +14,12 @@ class Group < RedisMapper::PlatformModel
     self.store.members.member?(member)
   end
 
+  def empty?
+    self.store.members.empty?
+  end
+
   delegate :list_members, :to_a do self.store.members end
 
+  property      :name,      String
   set_property  :members,   User
 end
