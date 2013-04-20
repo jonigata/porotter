@@ -949,6 +949,8 @@ MyPage.doRibbonTest = function(ribbonId) {
 }
 MyPage.editBoardSettings = function() {
 	var dialog = new $("#board-settings");
+	MyPage.setupRadio(dialog,"read_permission");
+	MyPage.setupRadio(dialog,"write_permission");
 	dialog.justModal();
 }
 MyPage.editGroup = function() {
@@ -1424,6 +1426,32 @@ MyPage.getSelected = function(select) {
 MyPage.clearSelect = function(select) {
 	MyPage.disable(select);
 	select.html("");
+}
+MyPage.setupRadio = function(root,name) {
+	var radios = root.find("[name=\"" + name + "\"]");
+	var f = function() {
+		radios.each(function(i,elem) {
+			var radio = new $(elem);
+			var label = radio.closest("label.radio");
+			var inputs = label.find("input:not(:radio),select");
+			var checked = radio["is"](":checked");
+			if(checked) {
+				console.log("enable");
+				console.log(inputs.get());
+				inputs.removeAttr("disabled");
+			} else {
+				console.log("disable");
+				console.log(inputs.get());
+				inputs.attr("disabled","disabled");
+			}
+		});
+	};
+	f();
+	radios.unbind("change");
+	radios.change(function() {
+		f();
+		return true;
+	});
 }
 var Reflect = function() { }
 $hxClasses["Reflect"] = Reflect;

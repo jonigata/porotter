@@ -359,8 +359,9 @@ class MyPage {
 
     static function editBoardSettings() {
         var dialog: Dynamic = new JQuery('#board-settings');
+        setupRadio(dialog, "read_permission");
+        setupRadio(dialog, "write_permission");
         dialog.justModal();
-        
     }
 
     static function editGroup() {
@@ -1048,6 +1049,34 @@ class MyPage {
     static private function clearSelect(select: Dynamic) {
         disable(select);
         select.html('');
+    }
+
+    static private function setupRadio(root: Dynamic, name: String) {
+        var radios: Dynamic = root.find(Std.format('[name="$name"]'));
+
+        var f = function() {
+            radios.each(
+                function(i: Int, elem: Dynamic) {
+                    var radio: Dynamic = new JQuery(elem);
+                    var label: Dynamic = radio.closest('label.radio');
+                    var inputs: Dynamic = label.find(
+                        'input:not(:radio),select');
+                    var checked = radio.is(':checked');
+                    if (checked) {
+                        trace('enable');
+                        trace(inputs.get());
+                        inputs.removeAttr('disabled');
+                    } else {
+                        trace('disable');
+                        trace(inputs.get());
+                        inputs.attr('disabled', 'disabled');
+                    }
+                });
+        };
+
+        f();
+        radios.unbind('change');
+        radios.change(function() { f(); return true; });
     }
 }
 
