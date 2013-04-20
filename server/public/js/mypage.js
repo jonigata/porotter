@@ -846,13 +846,13 @@ MyPage.makeBoard = function() {
 	var dialog = new $("#make-board");
 	dialog.justModal();
 }
-MyPage.joinBoard = function(ownername) {
+MyPage.joinBoard = function() {
 	var dialog = new $("#join-board");
 	var userSelect = dialog.find("[name=\"user\"]");
 	var boardSelect = dialog.find("[name=\"board\"]");
 	var submit = dialog.find("[type=\"submit\"]");
 	MyPage.clearSelect(userSelect);
-	MyPage.setupUserSelect(userSelect,ownername,function(userId) {
+	MyPage.setupUserSelect(userSelect,MyPage.getUserName(),function(userId) {
 		MyPage.disable(submit);
 		MyPage.clearSelect(boardSelect);
 		if(userId == 0) return;
@@ -873,7 +873,7 @@ MyPage.joinRibbon = function(ownername) {
 	var ribbonSelect = dialog.find("[name=\"ribbon\"]");
 	var submit = dialog.find("[type=\"submit\"]");
 	MyPage.clearSelect(userSelect);
-	MyPage.setupUserSelect(userSelect,ownername,function(userId) {
+	MyPage.setupUserSelect(userSelect,null,function(userId) {
 		MyPage.disable(submit);
 		MyPage.clearSelect(boardSelect);
 		MyPage.clearSelect(ribbonSelect);
@@ -951,7 +951,7 @@ MyPage.editBoardSettings = function() {
 	var dialog = new $("#board-settings");
 	dialog.justModal();
 }
-MyPage.editGroup = function(ownername) {
+MyPage.editGroup = function() {
 	var dialog = new $("#edit-group");
 	var userSelect = dialog.find("[name=\"user\"]");
 	var addButton = dialog.find("#add-member");
@@ -967,7 +967,7 @@ MyPage.editGroup = function(ownername) {
 		MyPage.disable(addButton);
 	});
 	MyPage.disable(addButton);
-	MyPage.setupUserSelect(userSelect,ownername,function(userId) {
+	MyPage.setupUserSelect(userSelect,null,function(userId) {
 		MyPage.setEnabled(addButton,userId != 0);
 	});
 	dialog.justModal();
@@ -977,6 +977,18 @@ MyPage.makeBoardUrl = function(boardname) {
 	var base_url = urlinfo.attr("base-url");
 	var username = urlinfo.attr("username");
 	return "" + base_url + "/" + username + "/" + boardname;
+}
+MyPage.getUserName = function() {
+	var data = new $("#basic-data");
+	return data.attr("username");
+}
+MyPage.getOwnerName = function() {
+	var data = new $("#basic-data");
+	return data.attr("owner-name");
+}
+MyPage.getReferedName = function() {
+	var data = new $("#basic-data");
+	return data.attr("refered-name");
 }
 MyPage.postForm = function(form,f) {
 	$.ajax({ url : form.attr("action"), method : form.attr("method"), data : form.serialize()}).done(function(data) {

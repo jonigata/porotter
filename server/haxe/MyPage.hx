@@ -172,7 +172,7 @@ class MyPage {
         dialog.justModal();
     }
 
-    static function joinBoard(ownername: String) {
+    static function joinBoard() {
         var dialog: Dynamic = new JQuery('#join-board');
         var userSelect: Dynamic = dialog.find('[name="user"]');
         var boardSelect: Dynamic = dialog.find('[name="board"]');
@@ -181,7 +181,7 @@ class MyPage {
         clearSelect(userSelect);
         setupUserSelect(
             userSelect,
-            ownername,
+            getUserName(),
             function(userId: Int) {
                 disable(submit);
                 clearSelect(boardSelect);
@@ -213,7 +213,7 @@ class MyPage {
         clearSelect(userSelect);
         setupUserSelect(
             userSelect,
-            ownername,
+            null,
             function(userId: Int) {
                 disable(submit);
                 clearSelect(boardSelect);
@@ -363,7 +363,7 @@ class MyPage {
         
     }
 
-    static function editGroup(ownername: String) {
+    static function editGroup() {
         var dialog: Dynamic = new JQuery('#edit-group');
         var userSelect: Dynamic = dialog.find('[name="user"]');
         var addButton: Dynamic = dialog.find('#add-member');
@@ -382,7 +382,7 @@ class MyPage {
         disable(addButton);
         setupUserSelect(
             userSelect,
-            ownername,
+            null,
             function(userId: Int) {
                 setEnabled(addButton, userId != 0);
             });
@@ -396,6 +396,21 @@ class MyPage {
         var base_url = urlinfo.attr('base-url');
         var username = urlinfo.attr('username');
         return Std.format("$base_url/$username/$boardname");
+    }
+
+    static private function getUserName(): String {
+        var data: Dynamic = new JQuery('#basic-data');
+        return data.attr('username');
+    }
+
+    static private function getOwnerName(): String {
+        var data: Dynamic = new JQuery('#basic-data');
+        return data.attr('owner-name');
+    }
+
+    static private function getReferedName(): String {
+        var data: Dynamic = new JQuery('#basic-data');
+        return data.attr('refered-name');
     }
 
     static private function postForm(form: Dynamic, f: String->Void) {
