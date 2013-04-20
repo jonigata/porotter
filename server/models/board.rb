@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 
 class Board < RedisMapper::PlatformModel
-  def self.create(owner, label, read_permission, write_permission)
+  def self.create(owner, label)
     self.new_instance.tap do |board|
       board.store.owner = owner
       board.store.label = label
-      board.store.spotter = Spotter.create(read_permission, write_permission)
-      board.store.unique_readable = Group.create
-      board.store.unique_writable = Group.create
+      board.store.unique_readable = unique_readable = Group.create
+      board.store.unique_writable = unique_writable = Group.create
+      unique_readable.add_member(owner)
+      unique_writable.add_member(owner)
+      board.store.spotter = Spotter.create(unique_readable, unique_writable)
     end
   end
 
@@ -66,6 +68,8 @@ class Board < RedisMapper::PlatformModel
   delegate :list_ribbons, :to_a     do self.store.ribbons end
   delegate :list_removed_ribbons, :to_a do self.store.removed_ribbons end
 
+  delegate :set_readability         do self.store.spotter end
+  delegate :set_writability         do self.store.spotter end
   delegate :secret?                 do self.store.spotter end
   delegate :editable_by?            do self.store.spotter end
 

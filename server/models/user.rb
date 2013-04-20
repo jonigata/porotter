@@ -20,8 +20,7 @@ class User < RedisMapper::PlatformModel
         user.store.salt = salt
         user.store.hashed_password = Misc.hash_pw(salt, password)
 
-        noone_group = Group.create
-        board = Board.create(user, 'global', :everyone, noone_group)
+        board = Board.create(user, 'global')
         user.store.boards['global'] = board
         
         global_timeline = Users.singleton.store.global_timeline
@@ -52,12 +51,7 @@ class User < RedisMapper::PlatformModel
           user.store.salt = salt
           user.store.hashed_password = Misc.hash_pw(salt, password)
 
-          private_group = Group.create
-          private_group.add_member(user)
-          user.store.private_group = private_group
-
-          board = Board.create(
-            user, 'マイボード', private_group, private_group)
+          board = Board.create(user, 'マイボード')
           user.store.boards['マイボード'] = board
             
           my_posts = Timeline.create(user, 'あなたの投稿')
@@ -118,8 +112,7 @@ class User < RedisMapper::PlatformModel
 
   def add_board(label)
     raise if self.store.boards.member?(label)
-    private_group = self.store.private_group
-    board = Board.create(self, label, private_group, private_group)
+    board = Board.create(self, label)
     self.store.boards[label] = board
   end
 
@@ -172,5 +165,4 @@ class User < RedisMapper::PlatformModel
   property              :my_posts,          Timeline # 自分の投稿
   property              :favorites,         Timeline # 自分のお気に入り
   dictionary_property   :boards,            String, Board
-  property              :private_group,     Group   # 自分だけのグループ
 end

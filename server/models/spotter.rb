@@ -14,19 +14,8 @@ class Spotter < RedisMapper::PlatformModel
     end
     
     self.new_instance.tap do |spotter|
-      if readable.kind_of?(Symbol)
-        spotter.store.readable_type = readable
-      else
-        spotter.store.readable_type = :group
-        spotter.store.readable_group = readable
-      end
-      
-      if writable.kind_of?(Symbol)
-        spotter.store.writable_type = writable
-      else
-        spotter.store.writable_type = :group
-        spotter.store.writable_group = writable
-      end
+      spotter.set_readability(readable)
+      spotter.set_writability(writable)
     end
   end
 
@@ -34,6 +23,24 @@ class Spotter < RedisMapper::PlatformModel
     self.class.new_instance.tap do |it|
       it.store.readable = self.store.readable
       it.store.writable = self.store.writable
+    end
+  end
+
+  def set_readability(readability)
+    if readability.kind_of?(Symbol)
+      self.store.readable_type = readability
+    else
+      self.store.readable_type = :group
+      self.store.readable_group = readability
+    end
+  end
+
+  def set_writability(writability)
+    if writability.kind_of?(Symbol)
+      self.store.writable_type = writability
+    else
+      self.store.writable_type = :group
+      self.store.writable_group = writability
     end
   end
 
