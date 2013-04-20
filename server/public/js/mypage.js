@@ -973,7 +973,7 @@ MyPage.editGroup = function(ownername) {
 	dialog.justModal();
 }
 MyPage.makeBoardUrl = function(boardname) {
-	var urlinfo = new $("#board-url");
+	var urlinfo = new $("#basic-data");
 	var base_url = urlinfo.attr("base-url");
 	var username = urlinfo.attr("username");
 	return "" + base_url + "/" + username + "/" + boardname;

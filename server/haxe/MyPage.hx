@@ -392,7 +392,7 @@ class MyPage {
     ////////////////////////////////////////////////////////////////
     // private functions
     static private function makeBoardUrl(boardname): String {
-        var urlinfo: Dynamic = new JQuery('#board-url');
+        var urlinfo: Dynamic = new JQuery('#basic-data');
         var base_url = urlinfo.attr('base-url');
         var username = urlinfo.attr('username');
         return Std.format("$base_url/$username/$boardname");
