@@ -56,12 +56,11 @@ class User < RedisMapper::PlatformModel
             
           my_posts = Timeline.create(user, 'あなたの投稿')
           user.store.my_posts = my_posts
-          global_timeline.watch(my_posts)
 
           favorites = Timeline.create(user, 'お気に入り')
           user.store.favorites = favorites
 
-          board.import(global_timeline, my_posts)
+          board.import(global_timeline, global_timeline)
           board.import(my_posts, nil)
           board.import(favorites, nil)
 
@@ -85,7 +84,9 @@ class User < RedisMapper::PlatformModel
 
   def add_article(ribbon, type, content)
     # TODO: ribbonチェック
-    ribbon.add_article(Post.create(self, type, content, true))
+    post = Post.create(self, type, content, true)
+    ribbon.add_article(post)
+    self.store.my_posts.add_post(post)
   end
 
   def add_comment(ribbon, parent, type, content)
