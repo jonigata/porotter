@@ -975,15 +975,34 @@ MyPage.editGroup = function(groupId) {
 			MyPage.setEnabled(addButton,userId != 0);
 		});
 	};
+	var enableSubmit = function() {
+		var beforeMemberSet = memberList.attr("member-set");
+		console.log("beforeMemberSet");
+		console.log(beforeMemberSet);
+		var memberSet = [];
+		memberList.find("img").each(function(i,elem) {
+			var e = new $(elem);
+			memberSet.push(Std.parseInt(e.attr("user-id")));
+		});
+		memberSet.sort(function(a,b) {
+			return a - b;
+		});
+		var afterMemberSet = JSON.stringify(memberSet);
+		console.log("afterMemberSet");
+		console.log(afterMemberSet);
+		MyPage.setEnabled(dialog.find("input:submit"),beforeMemberSet != afterMemberSet);
+	};
 	addButton.unbind("click");
 	addButton.click(function() {
 		memberShow.find("p").html("");
 		var selected = userSelect.find(":selected");
+		var userId = selected.attr("user-id");
 		var username = selected.attr("username");
 		var gravatar = selected.attr("icon");
-		var icon = "<img src=\"http://www.gravatar.com/avatar/" + gravatar + "?s=16&d=mm\" username=\"" + username + "\" alt=\"gravator\"/>";
+		var icon = "<img src=\"http://www.gravatar.com/avatar/" + gravatar + "?s=16&d=mm\" user-id=\"" + userId + "\" username=\"" + username + "\" alt=\"gravator\"/>";
 		memberList.append(icon);
 		updateUI();
+		enableSubmit();
 	});
 	updateUI();
 	dialog.justModal();
@@ -1026,6 +1045,19 @@ MyPage.setupGroupMembers = function(memberShow,groupId) {
 		var memberList = memberShow.find(".group-members");
 		var members = $.parseJSON(data);
 		memberList.html("");
+		var memberSet = [];
+		var _g = 0;
+		while(_g < members.length) {
+			var v = members[_g];
+			++_g;
+			memberSet.push(Std.parseInt(v[0]));
+		}
+		memberSet.sort(function(a,b) {
+			return a - b;
+		});
+		var memberSetString = JSON.stringify(memberSet);
+		console.log(memberSetString);
+		memberList.attr("member-set",memberSetString);
 		if(members.length == 0) noMembers.html("ユーザが含まれていません"); else {
 			noMembers.html("");
 			var _g = 0;
@@ -1036,7 +1068,7 @@ MyPage.setupGroupMembers = function(memberShow,groupId) {
 				var username = v[1];
 				var userLabel = v[2];
 				var userIcon = v[3];
-				memberList.append("<img src=\"http://www.gravatar.com/avatar/" + userIcon + "?s=16&d=mm\" username=\"" + username + "\" alt=\"gravator\"/>");
+				memberList.append("<img src=\"http://www.gravatar.com/avatar/" + userIcon + "?s=16&d=mm\" user-id=\"" + userId + "\" username=\"" + username + "\" alt=\"gravator\"/>");
 			}
 		}
 	});
@@ -1055,7 +1087,7 @@ MyPage.setupUserSelect = function(userSelect,enabler,f) {
 			var userlabel = v[2];
 			var userIcon = v[3];
 			if(!enabler(username)) continue;
-			userSelect.append("<option value=\"" + userId + "\" username=\"" + username + "\" icon=\"" + userIcon + "\">" + username + " - " + userlabel + "</option>");
+			userSelect.append("<option value=\"" + userId + "\" user-id=\"" + userId + "\" username=\"" + username + "\" icon=\"" + userIcon + "\">" + username + " - " + userlabel + "</option>");
 		}
 		userSelect.unbind("change");
 		userSelect.change(function(e) {

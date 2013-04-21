@@ -390,17 +390,39 @@ class MyPage {
                     setEnabled(addButton, userId != 0);
                 });
         };
+
+        var enableSubmit = function() {
+            var beforeMemberSet: String = memberList.attr('member-set');
+            trace('beforeMemberSet');
+            trace(beforeMemberSet);
+                
+            var memberSet: Array<Int> = [];
+            memberList.find('img').each(
+                function(i: Int, elem: Dynamic) {
+                    var e = new JQuery(elem);
+                    memberSet.push(Std.parseInt(e.attr('user-id')));
+                });
+            memberSet.sort(function(a: Int, b: Int) { return a - b; });
+            var afterMemberSet: String = JSON.stringify(memberSet);
+            trace('afterMemberSet');
+            trace(afterMemberSet);
+
+            setEnabled(dialog.find('input:submit'),
+                       beforeMemberSet != afterMemberSet);
+        };
             
         // imgの追加をsetupGroupMembersと両方でやってて冗長
         addButton.unbind('click');
         addButton.click(function() {
                 memberShow.find('p').html('');
                 var selected = userSelect.find(':selected');
+                var userId = selected.attr('user-id');
                 var username = selected.attr('username');
                 var gravatar = selected.attr('icon');
-                var icon: String = Std.format('<img src="http://www.gravatar.com/avatar/$gravatar?s=16&d=mm" username="$username" alt="gravator"/>');
+                var icon: String = Std.format('<img src="http://www.gravatar.com/avatar/$gravatar?s=16&d=mm" user-id="$userId" username="$username" alt="gravator"/>');
                 memberList.append(icon);
                 updateUI();
+                enableSubmit();
             });
 
         updateUI();
@@ -472,6 +494,13 @@ class MyPage {
 
             memberList.html('');
 
+            var memberSet: Array<Int> = [];
+            for(v in members) { memberSet.push(Std.parseInt(v[0])); }
+            memberSet.sort(function(a: Int, b: Int) { return a - b; });
+            var memberSetString: String = JSON.stringify(memberSet);
+            trace(memberSetString);
+            memberList.attr('member-set', memberSetString);
+
             if (members.length == 0) {
                 noMembers.html('ユーザが含まれていません');
             } else {
@@ -481,7 +510,7 @@ class MyPage {
                     var username: String = v[1];
                     var userLabel: String = v[2];
                     var userIcon: String = v[3];
-                    memberList.append(Std.format('<img src="http://www.gravatar.com/avatar/$userIcon?s=16&d=mm" username="$username" alt="gravator"/>'));
+                    memberList.append(Std.format('<img src="http://www.gravatar.com/avatar/$userIcon?s=16&d=mm" user-id="$userId" username="$username" alt="gravator"/>'));
                 }
             }
         });
@@ -510,7 +539,7 @@ class MyPage {
                 }
 
                 userSelect.append(
-                    Std.format('<option value="$userId" username="$username" icon="$userIcon">$username - $userlabel</option>'));
+                    Std.format('<option value="$userId" user-id="$userId" username="$username" icon="$userIcon">$username - $userlabel</option>'));
             }
             userSelect.unbind('change');
             userSelect.change(
