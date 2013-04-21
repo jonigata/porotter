@@ -363,15 +363,47 @@ class MyPage {
         var dialog: Dynamic = new JQuery('#board-settings');
         setupRadio(dialog, "read_permission");
         setupRadio(dialog, "write_permission");
+
+        var editGroupButton =
+            dialog.find('#edit-readable-group');
+        trace(editGroupButton.get());
+        editGroupButton.unbind('click');
+        editGroupButton.click(
+            function(e: Dynamic) {
+                var button: Dynamic = new JQuery(e.target);
+                trace(e.target);
+                var groupId = Std.parseInt(button.attr('group-id'));
+                var storeName = button.attr('store');
+                var filter = Std.format('[name="$storeName"]');
+                var store: Dynamic = button.closest('form').find(filter);
+                editGroup(
+                    groupId,
+                    function(v: Array<Int>){
+                        store.attr('value', JSON.stringify(v));
+                        trace(store.attr('value'));
+                    });
+                return false;
+            });
+
         dialog.justModal();
     }
 
-    static function editGroup(groupId: Int) {
+    static function editGroup(groupId: Int, cb: Array<Int>->Void) {
         var dialog: Dynamic = new JQuery('#edit-group');
         var userSelect: Dynamic = dialog.find('[name="user"]');
         var addButton: Dynamic = dialog.find('#add-member');
         var memberShow: Dynamic = dialog.find('#group-members');
         var memberList: Dynamic = memberShow.find('.group-members');
+        var submit: Dynamic = dialog.find('input:submit');
+        var memberSet: Array<Int> = [];
+
+        submit.unbind('click');
+        submit.click(
+            function() {
+                cb(memberSet);
+                dialog.close();
+                return false;
+            });
 
         setupGroupMembers(memberShow, groupId);
 
@@ -395,8 +427,9 @@ class MyPage {
             var beforeMemberSet: String = memberList.attr('member-set');
             trace('beforeMemberSet');
             trace(beforeMemberSet);
+
+            memberSet = [];
                 
-            var memberSet: Array<Int> = [];
             memberList.find('img').each(
                 function(i: Int, elem: Dynamic) {
                     var e = new JQuery(elem);
@@ -407,8 +440,7 @@ class MyPage {
             trace('afterMemberSet');
             trace(afterMemberSet);
 
-            setEnabled(dialog.find('input:submit'),
-                       beforeMemberSet != afterMemberSet);
+            setEnabled(submit, beforeMemberSet != afterMemberSet);
         };
             
         // imgの追加をsetupGroupMembersと両方でやってて冗長

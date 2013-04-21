@@ -30,7 +30,7 @@
                 <input type="radio" name="read_permission" value="private_group" <%= r[2] %>>
                 特有グループ
                 <%= erb :_groupmember, :locals => { :group => current_board.store.unique_readable } %>
-                <input class="btn btn-info btn-mini" type="button" value="編集" onclick="MyPage.editGroup(<%= current_board.store.unique_readable.store.id %>);return false;">
+                <input id="edit-readable-group" group-id="<%= current_board.store.unique_readable.store.id %>" store="readable_group" class="btn btn-info btn-mini" type="button" value="編集">
               </label>
               <hr>
             </td>
@@ -54,7 +54,7 @@
                 <input type="radio" name="write_permission" value="private_group" <%= w[2] %>>
                 特有グループ
                 <%= erb :_groupmember, :locals => { :group => current_board.store.unique_writable } %>
-                <input class="btn btn-info btn-mini" type="button" value="編集"onclick="MyPage.editGroup(<%= current_board.store.unique_writable.store.id %>);return false;">
+                <input id="edit-writable-group" group-id="<%= current_board.store.unique_writable.store.id %>" store="writable_group" class="btn btn-info btn-mini" type="button" value="編集">
               </label>
               <label class="radio">
                 <input type="radio" name="write_permission" value="same_as_read" <%= w[3] %>>
@@ -66,5 +66,7 @@
       </td>
     </tr>
   </table>
+  <input type="hidden" name="readable_group" value="">
+  <input type="hidden" name="writable_group" value="">
   <input class="btn btn-primary" type="submit" value="保存" onclick="return MyPage.doPost(this);" disabled="disabled">
 </form>

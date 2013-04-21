@@ -956,14 +956,38 @@ MyPage.editBoardSettings = function() {
 	var dialog = new $("#board-settings");
 	MyPage.setupRadio(dialog,"read_permission");
 	MyPage.setupRadio(dialog,"write_permission");
+	var editGroupButton = dialog.find("#edit-readable-group");
+	console.log(editGroupButton.get());
+	editGroupButton.unbind("click");
+	editGroupButton.click(function(e) {
+		var button = new $(e.target);
+		console.log(e.target);
+		var groupId = Std.parseInt(button.attr("group-id"));
+		var storeName = button.attr("store");
+		var filter = "[name=\"" + storeName + "\"]";
+		var store = button.closest("form").find(filter);
+		MyPage.editGroup(groupId,function(v) {
+			store.attr("value",JSON.stringify(v));
+			console.log(store.attr("value"));
+		});
+		return false;
+	});
 	dialog.justModal();
 }
-MyPage.editGroup = function(groupId) {
+MyPage.editGroup = function(groupId,cb) {
 	var dialog = new $("#edit-group");
 	var userSelect = dialog.find("[name=\"user\"]");
 	var addButton = dialog.find("#add-member");
 	var memberShow = dialog.find("#group-members");
 	var memberList = memberShow.find(".group-members");
+	var submit = dialog.find("input:submit");
+	var memberSet = [];
+	submit.unbind("click");
+	submit.click(function() {
+		cb(memberSet);
+		dialog.close();
+		return false;
+	});
 	MyPage.setupGroupMembers(memberShow,groupId);
 	var updateUI = function() {
 		MyPage.disable(addButton);
@@ -979,7 +1003,7 @@ MyPage.editGroup = function(groupId) {
 		var beforeMemberSet = memberList.attr("member-set");
 		console.log("beforeMemberSet");
 		console.log(beforeMemberSet);
-		var memberSet = [];
+		memberSet = [];
 		memberList.find("img").each(function(i,elem) {
 			var e = new $(elem);
 			memberSet.push(Std.parseInt(e.attr("user-id")));
@@ -990,7 +1014,7 @@ MyPage.editGroup = function(groupId) {
 		var afterMemberSet = JSON.stringify(memberSet);
 		console.log("afterMemberSet");
 		console.log(afterMemberSet);
-		MyPage.setEnabled(dialog.find("input:submit"),beforeMemberSet != afterMemberSet);
+		MyPage.setEnabled(submit,beforeMemberSet != afterMemberSet);
 	};
 	addButton.unbind("click");
 	addButton.click(function() {
