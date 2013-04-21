@@ -14,6 +14,7 @@ end
   
 redis.flushdb
 
-# global user作成
-User.create_global('ruin837e')
+World.singleton
+
+
 

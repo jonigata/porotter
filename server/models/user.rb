@@ -7,7 +7,7 @@ class Board < RedisMapper::PlatformModel; end
 class Timeline < RedisMapper::PlatformModel; end
 
 class User < RedisMapper::PlatformModel
-  def self.create_global(password)
+  def self.create_global(password, global_timeline)
     # init_platformから１度だけ呼び出される
     username = 'global'
 
@@ -23,10 +23,7 @@ class User < RedisMapper::PlatformModel
         board = Board.create(user, 'global')
         user.store.boards['global'] = board
         
-        global_timeline = Users.singleton.store.global_timeline
         board.import(global_timeline, nil)
-
-        Users.singleton.add_user(user)
       end
     end
 
@@ -40,7 +37,7 @@ class User < RedisMapper::PlatformModel
         username !~ /^\w+$/
       raise "That username is taken." if username == 'all'
 
-      global_timeline = Users.singleton.store.global_timeline
+      global_timeline = World.singleton.store.global_timeline
 
       self.make_index(:username, username) do 
         self.new_instance do |user|
@@ -60,13 +57,13 @@ class User < RedisMapper::PlatformModel
           favorites = Timeline.create(user, 'お気に入り')
           user.store.favorites = favorites
 
-          board.import(global_timeline, global_timeline)
+          global_ribbon = board.import(global_timeline, global_timeline)
           board.import(my_posts, nil)
           board.import(favorites, nil)
 
-          my_posts.add_post(Post.create(user, :Tweet, "最初の投稿です", true))
+          user.add_article(global_ribbon, :Tweet, "最初の投稿です")
 
-          Users.singleton.add_user(user)
+          World.singleton.add_user(user)
         end
       end or raise "That username is taken."
     end

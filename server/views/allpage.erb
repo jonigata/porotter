@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ja">
-  <% timeline = Users.singleton.store.global_timeline %>
+  <% timeline = World.singleton.store.global_timeline %>
   <%= erb :_head, :locals => { :timeline => timeline } %>
 
   <body>

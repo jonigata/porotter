@@ -202,7 +202,7 @@ module APIHelper
 
   def get_userlist
     JSONP(
-      Users.singleton.list.map do |user|
+      World.singleton.list_users.map do |user|
         [user.store.id, user.store.username, user.store.label, Misc.gravator(user.store.email)]
       end)
   end

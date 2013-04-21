@@ -14,8 +14,9 @@ class Board < RedisMapper::PlatformModel
   end
 
   def import(read_source, write_target)
-    self.store.ribbons.push(
-      Ribbon.create(self, read_source, write_target, self.store.spotter))
+    Ribbon.create(self, read_source, write_target, self.store.spotter).tap do |ribbon|
+      self.store.ribbons.push(ribbon)
+    end
   end
 
   def remove_ribbon(ribbon)
