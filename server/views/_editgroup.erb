@@ -9,11 +9,9 @@
     <tr>
       <td>メンバー</td>
       <td id="group-members">
-        <% if group.empty? %>
         <p>ユーザが含まれていません</p>
-        <% else %>
-        <%= erb :_groupmember, :locals => { :group => group } %>
-        <% end %>
+        <div class="group-members">
+        </div>
       </td>
     </tr>
     <tr>

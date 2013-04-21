@@ -958,27 +958,34 @@ MyPage.editBoardSettings = function() {
 	MyPage.setupRadio(dialog,"write_permission");
 	dialog.justModal();
 }
-MyPage.editGroup = function() {
+MyPage.editGroup = function(groupId) {
 	var dialog = new $("#edit-group");
 	var userSelect = dialog.find("[name=\"user\"]");
 	var addButton = dialog.find("#add-member");
-	var members = dialog.find("#group-members");
+	var memberShow = dialog.find("#group-members");
+	var memberList = memberShow.find(".group-members");
+	MyPage.setupGroupMembers(memberShow,groupId);
+	var updateUI = function() {
+		MyPage.disable(addButton);
+		MyPage.clearSelect(userSelect);
+		MyPage.setupUserSelect(userSelect,function(username) {
+			var filter = "[username=\"" + username + "\"]";
+			return memberList.find(filter).length == 0;
+		},function(userId) {
+			MyPage.setEnabled(addButton,userId != 0);
+		});
+	};
 	addButton.unbind("click");
 	addButton.click(function() {
-		console.log(userSelect.find(":selected").attr("icon"));
-		members.find("p").remove();
-		var gravatar = userSelect.find(":selected").attr("icon");
-		var icon = "<img src=\"http://www.gravatar.com/avatar/" + gravatar + "?s=16&d=mm\" alt=\"gravator\"/>";
-		members.append(icon);
-		MyPage.clearSelect(userSelect);
-		MyPage.disable(addButton);
+		memberShow.find("p").html("");
+		var selected = userSelect.find(":selected");
+		var username = selected.attr("username");
+		var gravatar = selected.attr("icon");
+		var icon = "<img src=\"http://www.gravatar.com/avatar/" + gravatar + "?s=16&d=mm\" username=\"" + username + "\" alt=\"gravator\"/>";
+		memberList.append(icon);
+		updateUI();
 	});
-	MyPage.disable(addButton);
-	MyPage.setupUserSelect(userSelect,function(s) {
-		return true;
-	},function(userId) {
-		MyPage.setEnabled(addButton,userId != 0);
-	});
+	updateUI();
 	dialog.justModal();
 }
 MyPage.makeBoardUrl = function(boardname) {
@@ -1013,6 +1020,27 @@ MyPage.disable = function(e) {
 MyPage.setEnabled = function(e,f) {
 	if(f) MyPage.enable(e); else MyPage.disable(e);
 }
+MyPage.setupGroupMembers = function(memberShow,groupId) {
+	$.ajax({ url : "/foo/ajax/v/memberlist", method : "get", data : { group : groupId}}).done(function(data) {
+		var noMembers = memberShow.find("p");
+		var memberList = memberShow.find(".group-members");
+		var members = $.parseJSON(data);
+		memberList.html("");
+		if(members.length == 0) noMembers.html("ユーザが含まれていません"); else {
+			noMembers.html("");
+			var _g = 0;
+			while(_g < members.length) {
+				var v = members[_g];
+				++_g;
+				var userId = Std.parseInt(v[0]);
+				var username = v[1];
+				var userLabel = v[2];
+				var userIcon = v[3];
+				memberList.append("<img src=\"http://www.gravatar.com/avatar/" + userIcon + "?s=16&d=mm\" username=\"" + username + "\" alt=\"gravator\"/>");
+			}
+		}
+	});
+}
 MyPage.setupUserSelect = function(userSelect,enabler,f) {
 	MyPage.clearSelect(userSelect);
 	$.ajax({ url : "/foo/ajax/v/userlist", method : "get"}).done(function(data) {
@@ -1027,7 +1055,7 @@ MyPage.setupUserSelect = function(userSelect,enabler,f) {
 			var userlabel = v[2];
 			var userIcon = v[3];
 			if(!enabler(username)) continue;
-			userSelect.append("<option value=\"" + userId + "\" icon=\"" + userIcon + "\">" + username + " - " + userlabel + "</option>");
+			userSelect.append("<option value=\"" + userId + "\" username=\"" + username + "\" icon=\"" + userIcon + "\">" + username + " - " + userlabel + "</option>");
 		}
 		userSelect.unbind("change");
 		userSelect.change(function(e) {

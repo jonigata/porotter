@@ -191,6 +191,14 @@ module APIHelper
       end)
   end
 
+  def get_memberlist(group_id)
+    group = Group.attach_if_exist(group_id) or raise
+    JSONP(
+      group.list_members.map do |user|
+        [user.store.id, user.store.username, user.store.label, Misc.gravator(user.store.email)]
+      end)
+  end
+
   def get_boardlist(target_id)
     target = User.attach_if_exist(target_id) or raise
     JSONP(

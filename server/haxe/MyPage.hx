@@ -366,29 +366,45 @@ class MyPage {
         dialog.justModal();
     }
 
-    static function editGroup() {
+    static function editGroup(groupId: Int) {
         var dialog: Dynamic = new JQuery('#edit-group');
         var userSelect: Dynamic = dialog.find('[name="user"]');
         var addButton: Dynamic = dialog.find('#add-member');
-        var members: Dynamic = dialog.find('#group-members');
+        var memberShow: Dynamic = dialog.find('#group-members');
+        var memberList: Dynamic = memberShow.find('.group-members');
+
+        setupGroupMembers(memberShow, groupId);
+
+        var updateUI = function() {
+            disable(addButton);
+
+            // TODO: ajax起動する必要ない
+            clearSelect(userSelect);
+            setupUserSelect(
+                userSelect,
+                function(username: String) {
+                    var filter = Std.format('[username="$username"]');
+                    return memberList.find(filter).length == 0;
+                },
+                function(userId: Int) {
+                    setEnabled(addButton, userId != 0);
+                });
+        };
+            
+        // imgの追加をsetupGroupMembersと両方でやってて冗長
         addButton.unbind('click');
         addButton.click(function() {
-                trace(userSelect.find(':selected').attr('icon'));
-                members.find('p').remove();
-                var gravatar = userSelect.find(':selected').attr('icon');
-                var icon: String = Std.format('<img src="http://www.gravatar.com/avatar/$gravatar?s=16&d=mm" alt="gravator"/>');
-                members.append(icon);
-                clearSelect(userSelect);
-                disable(addButton);
+                memberShow.find('p').html('');
+                var selected = userSelect.find(':selected');
+                var username = selected.attr('username');
+                var gravatar = selected.attr('icon');
+                var icon: String = Std.format('<img src="http://www.gravatar.com/avatar/$gravatar?s=16&d=mm" username="$username" alt="gravator"/>');
+                memberList.append(icon);
+                updateUI();
             });
 
-        disable(addButton);
-        setupUserSelect(
-            userSelect,
-            function(s) { return true; },
-            function(userId: Int) {
-                setEnabled(addButton, userId != 0);
-            });
+        updateUI();
+
         dialog.justModal();
     }
 
@@ -442,6 +458,35 @@ class MyPage {
         }
     }
     
+    static private function setupGroupMembers(memberShow: Dynamic, groupId: Int) {
+        JQuery._static.ajax({
+            url: "/foo/ajax/v/memberlist",
+            method: "get",
+            data: {
+                group: groupId,
+            }
+        }).done(function(data) {
+            var noMembers: Dynamic = memberShow.find('p');
+            var memberList: Dynamic = memberShow.find('.group-members');
+            var members: Array<Array<String>> = JQuery._static.parseJSON(data);
+
+            memberList.html('');
+
+            if (members.length == 0) {
+                noMembers.html('ユーザが含まれていません');
+            } else {
+                noMembers.html('');
+                for(v in members) {
+                    var userId: Int = Std.parseInt(v[0]);
+                    var username: String = v[1];
+                    var userLabel: String = v[2];
+                    var userIcon: String = v[3];
+                    memberList.append(Std.format('<img src="http://www.gravatar.com/avatar/$userIcon?s=16&d=mm" username="$username" alt="gravator"/>'));
+                }
+            }
+        });
+    }
+
     static private function setupUserSelect(
         userSelect: Dynamic,
         enabler: String->Bool,
@@ -465,7 +510,7 @@ class MyPage {
                 }
 
                 userSelect.append(
-                    Std.format('<option value="$userId" icon="$userIcon">$username - $userlabel</option>'));
+                    Std.format('<option value="$userId" username="$username" icon="$userIcon">$username - $userlabel</option>'));
             }
             userSelect.unbind('change');
             userSelect.change(
