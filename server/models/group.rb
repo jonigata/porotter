@@ -18,6 +18,14 @@ class Group < RedisMapper::PlatformModel
     self.store.members.empty?
   end
 
+  def set(a)
+    members = self.store.members
+    members.clear
+    a.each do |k|
+      members.add(k)
+    end
+  end
+
   delegate :list_members, :to_a do self.store.members end
 
   property      :name,      String

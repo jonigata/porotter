@@ -33,6 +33,12 @@ module APIHelper
         get_grouplist
       end
 
+      get '/v/memberlist' do
+        r = ensure_params(
+          :group => INT_PARAM)
+        get_memberlist(r.group)
+      end
+
       get '/v/boardlist' do
         r = ensure_params(
           :user => INT_PARAM)
@@ -151,6 +157,23 @@ module APIHelper
         edit_permission(r.board, r.ribbon, r.permission)
       end
 
+      post '/m/editboardsettings' do
+        r = ensure_params(
+          :board => INT_PARAM,
+          :read_permission => [[:everyone, :public_group, :private_group], Symbol],
+          :write_permission => [[:everyone, :public_group, :private_group, :same_as_readable], Symbol],
+          :readable_group => [/\[[0-9,]*\]/, String],
+          :writable_group => [/\[[0-9,]*\]/, String]
+          )
+        
+        edit_board_settings(
+          r.board,
+          r.read_permission,
+          r.write_permission,
+          JSON.parse(r.readable_group),
+          JSON.parse(r.writable_group));
+      end
+      
       post '/m/ribbontest' do
         r = ensure_params(
           :ribbon => INT_PARAM)
@@ -330,6 +353,35 @@ module APIHelper
     ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
     ribbon.do_test(@user)
     "OK"
+  end
+
+  def edit_board_settings(
+      board_id,
+      read_permission,
+      write_permission,
+      readable_group,
+      writable_group)
+    board = Board.attach_if_exist(board_id) or raise
+    board.editable_by?(@user) or halt 403
+
+    readable_group = readable_group.map { |x| User.attach_if_exist(x) }
+    writable_group = writable_group.map { |x| User.attach_if_exist(x) }
+
+    if read_permission == :private_group
+      board.store.unique_readable.set(readable_group)
+      board.set_readability(board.store.unique_readable)
+    else
+      board.set_readability(read_permission)
+    end
+
+    if write_permission == :private_group
+      board.store.unique_writable.set(writable_group)
+      board.set_writability(board.store.unique_writable)
+    else
+      board.set_writability(write_permission)
+    end
+
+    board.store.label
   end
 
   def ensure_params(h)

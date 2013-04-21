@@ -128,11 +128,25 @@ class Hash
         raise StructureException, "paramerter '#{key}' is not exist"
       end
       if val && val != ''
-        if regex
-          regex.match(val) && $& == val or
-            raise StructureException, "bad #{key}: #{val.inspect}" # 完全一致
+        if regex.kind_of?(Array)
+          raise StructureException, "type of '#{key}' must be Symbol" unless
+            type == Symbol
+          result = nil
+          regex.each do |c|
+            raise StructureException, "symbol candidate must be symbol" unless
+              c.kind_of?(Symbol)
+            if c.to_s == val
+              result = c
+            end
+          end
+          r[key] = result or raise StructureException, "parameter '#{key}' must be member of #{regex.inspect}"
+        else
+          if regex
+            regex.match(val) && $& == val or
+              raise StructureException, "bad #{key}: #{val.inspect}" # 完全一致
+          end
+          r[key] = type.from_s(val)
         end
-        r[key] = type.from_s(val)
       else
         r[key] = nil
       end

@@ -67,4 +67,8 @@ module WebServerHelper
       set :public_folder, "#{File.dirname(__FILE__)}/public"
     end
   end
+
+  error do
+    'エラーが発生しました。 - ' + env['sinatra.error'].name
+  end
 end
