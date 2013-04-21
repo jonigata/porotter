@@ -178,10 +178,12 @@ class MyPage {
         var boardSelect: Dynamic = dialog.find('[name="board"]');
         var submit: Dynamic = dialog.find('[type="submit"]');
 
+        var username = getUserName();
+
         clearSelect(userSelect);
         setupUserSelect(
             userSelect,
-            getUserName(),
+            function(s: String) { return s != getUserName(); },
             function(userId: Int) {
                 disable(submit);
                 clearSelect(boardSelect);
@@ -213,7 +215,7 @@ class MyPage {
         clearSelect(userSelect);
         setupUserSelect(
             userSelect,
-            null,
+            function(s) { return true; },
             function(userId: Int) {
                 disable(submit);
                 clearSelect(boardSelect);
@@ -383,7 +385,7 @@ class MyPage {
         disable(addButton);
         setupUserSelect(
             userSelect,
-            null,
+            function(s) { return true; },
             function(userId: Int) {
                 setEnabled(addButton, userId != 0);
             });
@@ -440,19 +442,10 @@ class MyPage {
         }
     }
     
-    static private function setupUserAndBoardSelect(
-        dialog: Dynamic,
-        ownername: String,
-        userChange: Int->Void,
-        boardChange: Int->Void) {
-        var userSelect = dialog.find('[name="user"]');
-        var boardSelect: Dynamic = dialog.find('[name="board"]');
-
-        userChange(0);
-    }
-
     static private function setupUserSelect(
-        userSelect: Dynamic, ownername: String, f: Int->Void) {
+        userSelect: Dynamic,
+        enabler: String->Bool,
+        f: Int->Void) {
 
         clearSelect(userSelect);
         JQuery._static.ajax({
@@ -467,7 +460,7 @@ class MyPage {
                 var username: String = v[1];
                 var userlabel: String = v[2];
                 var userIcon: String = v[3];
-                if (ownername == username) {
+                if (!enabler(username)) {
                     continue;
                 }
 

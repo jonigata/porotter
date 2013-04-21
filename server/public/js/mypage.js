@@ -851,8 +851,11 @@ MyPage.joinBoard = function() {
 	var userSelect = dialog.find("[name=\"user\"]");
 	var boardSelect = dialog.find("[name=\"board\"]");
 	var submit = dialog.find("[type=\"submit\"]");
+	var username = MyPage.getUserName();
 	MyPage.clearSelect(userSelect);
-	MyPage.setupUserSelect(userSelect,MyPage.getUserName(),function(userId) {
+	MyPage.setupUserSelect(userSelect,function(s) {
+		return s != MyPage.getUserName();
+	},function(userId) {
 		MyPage.disable(submit);
 		MyPage.clearSelect(boardSelect);
 		if(userId == 0) return;
@@ -873,7 +876,9 @@ MyPage.joinRibbon = function(ownername) {
 	var ribbonSelect = dialog.find("[name=\"ribbon\"]");
 	var submit = dialog.find("[type=\"submit\"]");
 	MyPage.clearSelect(userSelect);
-	MyPage.setupUserSelect(userSelect,null,function(userId) {
+	MyPage.setupUserSelect(userSelect,function(s) {
+		return true;
+	},function(userId) {
 		MyPage.disable(submit);
 		MyPage.clearSelect(boardSelect);
 		MyPage.clearSelect(ribbonSelect);
@@ -969,7 +974,9 @@ MyPage.editGroup = function() {
 		MyPage.disable(addButton);
 	});
 	MyPage.disable(addButton);
-	MyPage.setupUserSelect(userSelect,null,function(userId) {
+	MyPage.setupUserSelect(userSelect,function(s) {
+		return true;
+	},function(userId) {
 		MyPage.setEnabled(addButton,userId != 0);
 	});
 	dialog.justModal();
@@ -1006,12 +1013,7 @@ MyPage.disable = function(e) {
 MyPage.setEnabled = function(e,f) {
 	if(f) MyPage.enable(e); else MyPage.disable(e);
 }
-MyPage.setupUserAndBoardSelect = function(dialog,ownername,userChange,boardChange) {
-	var userSelect = dialog.find("[name=\"user\"]");
-	var boardSelect = dialog.find("[name=\"board\"]");
-	userChange(0);
-}
-MyPage.setupUserSelect = function(userSelect,ownername,f) {
+MyPage.setupUserSelect = function(userSelect,enabler,f) {
 	MyPage.clearSelect(userSelect);
 	$.ajax({ url : "/foo/ajax/v/userlist", method : "get"}).done(function(data) {
 		userSelect.append("<option value=\"0\">所有者を選択</option>");
@@ -1024,7 +1026,7 @@ MyPage.setupUserSelect = function(userSelect,ownername,f) {
 			var username = v[1];
 			var userlabel = v[2];
 			var userIcon = v[3];
-			if(ownername == username) continue;
+			if(!enabler(username)) continue;
 			userSelect.append("<option value=\"" + userId + "\" icon=\"" + userIcon + "\">" + username + " - " + userlabel + "</option>");
 		}
 		userSelect.unbind("change");
