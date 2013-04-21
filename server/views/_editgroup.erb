@@ -23,5 +23,6 @@
       </td>
     </tr>
   </table>
+  <input type="hidden" name="group_id" value="<%= group.store.id %>">
   <input class="btn btn-primary" type="submit" value="保存" onclick="return MyPage.doPost("<%= @user.store.username %>");" disabled="disabled">
 </form>
