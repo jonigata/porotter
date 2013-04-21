@@ -5,6 +5,7 @@
    timeline-id="::timelineId::"
    version="::timelineVersion::"
    intervals="::intervals::"
+   editable="::editable::"
    >
   ::foreach posts::
   <article

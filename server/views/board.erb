@@ -14,7 +14,7 @@
             <% if ribbon.editable_by?(@user) %>
             <%=  erb :_newarticle, :locals => { :ribbon => ribbon }  %>
             <% end %>
-            <section class="timeline" level="0" ribbon-id="<%= ribbon.store.id %>" timeline-id="<%= ribbon.read_source.store.id %>" version="0">
+            <section class="timeline" level="0" ribbon-id="<%= ribbon.store.id %>" timeline-id="<%= ribbon.read_source.store.id %>" version="0" editable="<%= ribbon.editable_by?(@user) %>">
             </section>
           </div>
         </section>

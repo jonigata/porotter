@@ -33,7 +33,7 @@ class MyPage {
                 fillTimeline(timeline, null);
 
                 timeline.sortable({
-                    connectWith: "[timeline-id]",
+                    connectWith: '[timeline-id][editable="true"]',
                     update: function(event: Dynamic, ui: Dynamic) {
                         if (ui.sender == null) {
                             if (ui.item.parent()[0] == timeline[0]) {
