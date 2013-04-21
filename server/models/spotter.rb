@@ -1,69 +1,82 @@
 # -*- coding: utf-8 -*-
 
 class Spotter < RedisMapper::PlatformModel
-  def self.create(readable, writable)
-    if readable.kind_of?(Symbol)
-      raise if readable != :everyone
-    else
-      raise unless readable.kind_of?(Group)
-    end
-    if writable.kind_of?(Symbol)
-      raise if writable != :everyone && writable != :same_as_readable
-    else
-      raise unless writable.kind_of?(Group)
-    end
+  def self.create(type, permission)
+    raise unless [:read, :write, :edit].member?(type)
+    check_permission(permission)
     
     self.new_instance.tap do |spotter|
-      spotter.set_readability(readable)
-      spotter.set_writability(writable)
+      spotter.store.type = type
+      spotter.store.unique_group = Group.create
+      spotter.set_permission_no_check(permission)
     end
   end
 
-  def clone
-    self.class.new_instance.tap do |it|
-      it.store.readable = self.store.readable
-      it.store.writable = self.store.writable
-    end
-  end
-
-  def set_readability(readability)
-    if readability.kind_of?(Symbol)
-      self.store.readable_type = readability
+  def self.check_permission(permission)
+    case permission
+    when Symbol
+      raise if permission != :everyone
+    when Array
+      permission.each do |m|
+        raise unless m.kind_of?(User)
+      end
+    when Spotter
+      # do nothing
+    when Group
+      # do nothing
     else
-      self.store.readable_type = :group
-      self.store.readable_group = readability
+      raise
     end
   end
 
-  def set_writability(writability)
-    if writability.kind_of?(Symbol)
-      self.store.writable_type = writability
-    else
-      self.store.writable_type = :group
-      self.store.writable_group = writability
-    end
+  def set_permission(permission)
+    self.class.check_permission(permission)
+    set_permission_no_check(permission)
+  end
+
+  def unique?
+    raise if self.store.permission != :group
+    self.store.unique_group == self.store.group
   end
 
   def secret?
-    self.store.readable_type != :everyone
+    return self.store.permission != :everyone
   end
 
-  def editable_by?(user)
-    return false unless user
-    writable_type = self.store.writable_type
-    return true if writable_type == :everyone
-    if writable_type == :same_as_readable
-      readable_type = self.store.readable_type 
-      return true if readable_type == :everyone
-      return true if readable_group.member?(user)
-      return false
-    else
-      self.store.writable_group.member?(user)
+  def permitted?(user)
+    case self.store.permission
+    when :everyone
+      return true
+    when :outsource
+      return self.store.source.permitted?(user)
+    when :group
+      return self.store.group.member?(user)
+    end
+    raise
+  end
+
+  def set_permission_no_check(permission)
+    case permission
+    when Symbol
+      self.store.permission = permission
+    when Array
+      unique_group = self.store.unique_group
+      unique_group.set(permission)
+      self.store.group = unique_group
+      self.store.permission = :group
+    when Spotter
+      # TODO: 循環チェック
+      self.store.source = permission
+      self.store.permission = :outsource
+    when Group
+      self.store.group = permission
+      self.store.permission = :group
     end
   end
 
-  property  :readable_type,     Symbol  # :everyone, :group
-  property  :readable_group,    Group 
-  property  :writable_type,     Symbol  # :everyone, :group, :same_as_readable
-  property  :writable_group,    Group
+  property  :type,          Symbol      # :read, :write, :edit
+  property  :permission,    Symbol      # :everyone, :outsource, :group
+  property  :group,         Group
+  property  :source,        Spotter
+  property  :unique_group,  Group
 end

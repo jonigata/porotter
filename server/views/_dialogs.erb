@@ -24,6 +24,6 @@
   <%= erb :_boardsettings, :locals => { :current_board => current_board } %>
 </div>
 <div class="dialog" id="edit-group">
-  <%= erb :_editgroup, :locals => { :group => current_board.store.unique_readable } %>
+  <%= erb :_editgroup, :locals => { :group => current_board.store.read_spotter.store.unique_group } %>
 </div>
 <% end %>

@@ -5,16 +5,20 @@ class Board < RedisMapper::PlatformModel
     self.new_instance.tap do |board|
       board.store.owner = owner
       board.store.label = label
-      board.store.unique_readable = unique_readable = Group.create
-      board.store.unique_writable = unique_writable = Group.create
-      unique_readable.add_member(owner)
-      unique_writable.add_member(owner)
-      board.store.spotter = Spotter.create(unique_readable, unique_writable)
+      board.store.read_spotter = Spotter.create(:read, [owner])
+      board.store.write_spotter = Spotter.create(:write, [owner])
+      board.store.edit_spotter = Spotter.create(:edit, [owner])
     end
   end
 
-  def import(read_source, write_target)
-    Ribbon.create(self, read_source, write_target, self.store.spotter).tap do |ribbon|
+  def import(read, write)
+    Ribbon.create(
+      self,
+      read,
+      write,
+      self.store.read_spotter,
+      self.store.write_spotter,
+      self.store.edit_spotter).tap do |ribbon|
       self.store.ribbons.push(ribbon)
     end
   end
@@ -30,55 +34,67 @@ class Board < RedisMapper::PlatformModel
   end
 
   def format_readability
-    result = [false, false, false]
-    spotter = self.store.spotter
-    rt = spotter.store.readable_type
-    if rt == :everyone
-      result[0] = true
-    else
-      rg = spotter.store.readable_group
-      if self.store.unique_readable == rg
-        result[2] = true
-      else
-        result[1] = true
-      end
-    end
-    result
+    format_permission(self.store.read_spotter)
   end
 
   def format_writability
-    result = [false, false, false, false]
-    spotter = self.store.spotter
-    wt = spotter.store.writable_type
-    if wt == :everyone
-      result[0] = true
-    elsif wt == :same_as_readable
-      result[3] = true
-    else
-      wg = spotter.store.writable_group
-      if self.store.unique_writable == wg
-        result[2] = true
-      else
-        result[1] = true
+    format_permission(self.store.write_spotter)
+  end
+
+  def secret?
+    return self.store.read_spotter.secret?
+  end
+
+  def readable_by?(user)
+    return self.store.read_spotter.permitted?(user)
+  end
+
+  def writable_by?(user)
+    return self.store.write_spotter.permitted?(user)
+  end
+
+  def editable_by?(user)
+    return self.store.edit_spotter.permitted?(user)
+  end
+
+  private
+  def format_permission(spotter)
+    {
+      :everyone => false,
+      :public_group => false,
+      :private_group => false,
+      :same_as_read => false,
+      :same_as_write => false,
+    }.tap do |result|
+      permission = spotter.store.permission
+      case permission
+      when :everyone
+        result[:everyone] = true
+      when :outsource
+        if spotter.store.source == self.store.read_spotter
+          result[:same_as_read] = true
+        elsif spotter.store.source == self.store.write_spotter
+          result[:same_as_write] = true
+        end
+      when :group
+        result[spotter.unique? ? :private_group : :public_group] = true
       end
     end
-    result
   end
 
   delegate :add_ribbon, :push       do self.store.ribbons end
   delegate :list_ribbons, :to_a     do self.store.ribbons end
   delegate :list_removed_ribbons, :to_a do self.store.removed_ribbons end
 
-  delegate :set_readability         do self.store.spotter end
-  delegate :set_writability         do self.store.spotter end
-  delegate :secret?                 do self.store.spotter end
-  delegate :editable_by?            do self.store.spotter end
+  delegate :readble_by?, :permitted?    do self.store.read_spotter end
+  delegate :writable_by?, :permitted?   do self.store.write_spotter end
+  delegate :editable_by?, :permitted?   do self.store.edit_spotter end
 
   property      :owner,             User
   property      :label,             String
-  property      :spotter,           Spotter
-  property      :unique_readable,   Group
-  property      :unique_writable,   Group
+  property      :read_spotter,      Spotter
+  property      :write_spotter,     Spotter
+  property      :edit_spotter,      Spotter
   list_property :ribbons,           Ribbon
   list_property :removed_ribbons,   Ribbon
 end

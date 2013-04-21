@@ -11,7 +11,7 @@
       <td>
         <table>
           <tr>
-            <% r = current_board.format_readability.map { |x| x ? " checked" : "" } %>
+            <% r = current_board.format_readability.values_at(:everyone, :public_group, :private_group).map { |x| x ? " checked" : "" } %>
             <% p r %>
             <td class="item-name">read</td>
             <td>
@@ -29,14 +29,15 @@
               <label class="radio">
                 <input type="radio" name="read_permission" value="private_group" <%= r[2] %>>
                 特有グループ
-                <%= erb :_groupmember, :locals => { :group => current_board.store.unique_readable } %>
-                <input id="edit-readable-group" group-id="<%= current_board.store.unique_readable.store.id %>" store="readable_group" class="btn btn-info btn-mini" type="button" value="編集">
+                <% rg = current_board.store.read_spotter.store.unique_group %>
+                <%= erb :_groupmember, :locals => { :group => rg } %>
+                <input id="edit-readable-group" group-id="<%= rg.store.id %>" store="readable_group" class="btn btn-info btn-mini" type="button" value="編集">
               </label>
               <hr>
             </td>
           </tr>
           <tr>
-            <% w = current_board.format_writability.map { |x| x ? " checked" : "" } %>
+            <% w = current_board.format_writability.values_at(:everyone, :public_group, :private_group, :same_as_read).map { |x| x ? " checked" : "" } %>
             <td class="item-name">write</td>
             <td>
               <label class="radio">
@@ -53,8 +54,9 @@
               <label class="radio">
                 <input type="radio" name="write_permission" value="private_group" <%= w[2] %>>
                 特有グループ
-                <%= erb :_groupmember, :locals => { :group => current_board.store.unique_writable } %>
-                <input id="edit-writable-group" group-id="<%= current_board.store.unique_writable.store.id %>" store="writable_group" class="btn btn-info btn-mini" type="button" value="編集">
+                <% wg = current_board.store.write_spotter.store.unique_group %>
+                <%= erb :_groupmember, :locals => { :group => wg } %>
+                <input id="edit-writable-group" group-id="<%= wg.store.id %>" store="writable_group" class="btn btn-info btn-mini" type="button" value="編集">
               </label>
               <label class="radio">
                 <input type="radio" name="write_permission" value="same_as_read" <%= w[3] %>>
@@ -66,10 +68,10 @@
       </td>
     </tr>
   </table>
-  <% rg = JSONP(current_board.store.unique_readable.list_members.map { |x| x.store.id }) %>
-  <% wg = JSONP(current_board.store.unique_writable.list_members.map { |x| x.store.id }) %>
+  <% rgi = JSONP(rg.list_members.map { |x| x.store.id }) %>
+  <% wgi = JSONP(wg.list_members.map { |x| x.store.id }) %>
   <input type="hidden" name="board" value="<%= current_board.store.id %>">
-  <input type="hidden" name="readable_group" value="<%= rg %>">
-  <input type="hidden" name="writable_group" value="<%= wg %>">
+  <input type="hidden" name="readable_group" value="<%= rgi %>">
+  <input type="hidden" name="writable_group" value="<%= wgi %>">
   <input class="btn btn-primary" type="submit" value="保存" onclick="return MyPage.doPost(this);">
 </form>
