@@ -32,7 +32,8 @@ class Account < Sinatra::Base
     username, password = params.values_at(:username, :password)
     if user = User.auth(username, password)
       session["user_id"] = user.store.id
-      redirect parent_url("/users/#{username}/マイボード")
+      start_board = user.start_board
+      redirect parent_url("/users/#{username}/#{start_board.label}")
     else
       render_login_page("bad username or password", nil)
     end

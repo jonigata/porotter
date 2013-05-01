@@ -50,6 +50,7 @@ class User < RedisMapper::PlatformModel
 
           board = Board.create(user, 'マイボード')
           user.store.boards['マイボード'] = board
+          user.store.start_board = board
             
           my_posts = Timeline.create(user, 'あなたの投稿')
           user.store.my_posts = my_posts
@@ -118,6 +119,12 @@ class User < RedisMapper::PlatformModel
     self.store.boards[label]
   end
 
+  def rename_board(board, label)
+    self.store.boards.remove(board.label)
+    board.set_label(label)
+    self.store.boards[label] = board
+  end
+
   def add_ribbon(board, label)
     timeline = Timeline.create(self, label)
     board.import(timeline, timeline)
@@ -154,6 +161,8 @@ class User < RedisMapper::PlatformModel
 
   index_accessor :username
 
+  delegate :start_board     do self.store end
+
   property              :username,          String
   property              :label,             String
   property              :email,             String
@@ -163,4 +172,5 @@ class User < RedisMapper::PlatformModel
   property              :my_posts,          Timeline # 自分の投稿
   property              :favorites,         Timeline # 自分のお気に入り
   dictionary_property   :boards,            String, Board
+  property              :start_board,       Board
 end

@@ -178,6 +178,7 @@ module APIHelper
         
         edit_board_settings(
           r.board,
+          params[:board_label],
           r.read_permission,
           r.write_permission,
           r.edit_permission,
@@ -382,6 +383,7 @@ module APIHelper
 
   def edit_board_settings(
       board_id,
+      board_label,
       read_permission,
       write_permission,
       edit_permission,
@@ -390,6 +392,8 @@ module APIHelper
       editable_group)
     board = Board.attach_if_exist(board_id) or raise
     board.editable_by?(@user) or halt 403
+
+    @user.rename_board(board, board_label)
 
     readable_group = convert_permission_group(read_permission, readable_group)
     writable_group = convert_permission_group(write_permission, writable_group)

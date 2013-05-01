@@ -23,6 +23,10 @@ class Board < RedisMapper::PlatformModel
     end
   end
 
+  def set_label(label)
+    self.store.label = label
+  end
+
   def remove_ribbon(ribbon)
     self.store.removed_ribbons.push(ribbon)
     self.store.ribbons.remove(ribbon)
@@ -120,8 +124,9 @@ class Board < RedisMapper::PlatformModel
     end
   end
 
-  delegate :add_ribbon, :push       do self.store.ribbons end
-  delegate :list_ribbons, :to_a     do self.store.ribbons end
+  delegate :label                       do self.store end
+  delegate :add_ribbon, :push           do self.store.ribbons end
+  delegate :list_ribbons, :to_a         do self.store.ribbons end
   delegate :list_removed_ribbons, :to_a do self.store.removed_ribbons end
 
   delegate :readble_by?, :permitted?    do self.store.read_spotter end
