@@ -956,23 +956,25 @@ MyPage.editBoardSettings = function() {
 	var dialog = new $("#board-settings");
 	MyPage.setupRadio(dialog,"read_permission");
 	MyPage.setupRadio(dialog,"write_permission");
-	var editGroupButton = dialog.find("#edit-readable-group");
-	console.log(editGroupButton.get());
-	editGroupButton.unbind("click");
-	editGroupButton.click(function(e) {
-		var button = new $(e.target);
-		console.log(e.target);
-		var groupId = Std.parseInt(button.attr("group-id"));
-		var storeName = button.attr("store");
+	MyPage.setupEditGroupButton(dialog.find("#edit-readable-group"));
+	MyPage.setupEditGroupButton(dialog.find("#edit-writable-group"));
+	MyPage.setupEditGroupButton(dialog.find("#edit-editable-group"));
+	dialog.justModal();
+}
+MyPage.setupEditGroupButton = function(button) {
+	button.unbind("click");
+	button.click(function(e) {
+		var button1 = new $(e.target);
+		var groupId = Std.parseInt(button1.attr("group-id"));
+		var storeName = button1.attr("store");
 		var filter = "[name=\"" + storeName + "\"]";
-		var store = button.closest("form").find(filter);
+		var store = button1.closest("form").find(filter);
 		MyPage.editGroup(groupId,function(v) {
 			store.attr("value",JSON.stringify(v));
 			console.log(store.attr("value"));
 		});
 		return false;
 	});
-	dialog.justModal();
 }
 MyPage.editGroup = function(groupId,cb) {
 	var dialog = new $("#edit-group");

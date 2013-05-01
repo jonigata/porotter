@@ -3,7 +3,7 @@
     <tr>
       <td class="item-name">ボード名</td>
       <td>
-        <input class="text" name="board_label" value="<%= current_board.store.label %>">
+        <input class="text" name="board_label" value="<%= current_board.label %>">
       </td>
     </tr>
     <tr>
@@ -29,7 +29,7 @@
               <label class="radio">
                 <input type="radio" name="read_permission" value="private_group" <%= r[2] %>>
                 特有グループ
-                <% rg = current_board.store.read_spotter.store.unique_group %>
+                <% rg = current_board.read_spotter.unique_group %>
                 <%= erb :_groupmember, :locals => { :group => rg } %>
                 <input id="edit-readable-group" group-id="<%= rg.store.id %>" store="readable_group" class="btn btn-info btn-mini" type="button" value="編集">
               </label>
@@ -54,7 +54,7 @@
               <label class="radio">
                 <input type="radio" name="write_permission" value="private_group" <%= w[2] %>>
                 特有グループ
-                <% wg = current_board.store.write_spotter.store.unique_group %>
+                <% wg = current_board.write_spotter.unique_group %>
                 <%= erb :_groupmember, :locals => { :group => wg } %>
                 <input id="edit-writable-group" group-id="<%= wg.store.id %>" store="writable_group" class="btn btn-info btn-mini" type="button" value="編集">
               </label>
@@ -62,6 +62,7 @@
                 <input type="radio" name="write_permission" value="same_as_read" <%= w[3] %>>
                 readと同じ
               </label>
+              <hr>
             </td>
           </tr>
           <tr>
@@ -82,7 +83,7 @@
               <label class="radio">
                 <input type="radio" name="edit_permission" value="private_group" <%= w[2] %>>
                 特有グループ
-                <% eg = current_board.store.edit_spotter.store.unique_group %>
+                <% eg = current_board.edit_spotter.unique_group %>
                 <%= erb :_groupmember, :locals => { :group => eg } %>
                 <input id="edit-editable-group" group-id="<%= eg.store.id %>" store="editable_group" class="btn btn-info btn-mini" type="button" value="編集">
               </label>

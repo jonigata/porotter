@@ -75,6 +75,8 @@ class Spotter < RedisMapper::PlatformModel
     end
   end
 
+  delegate :unique_group    do self.store end
+
   property  :type,          Symbol      # :read, :write, :edit
   property  :permission,    Symbol      # :everyone, :outsource, :group
   property  :group,         Group

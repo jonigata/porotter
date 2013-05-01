@@ -364,14 +364,18 @@ class MyPage {
         setupRadio(dialog, "read_permission");
         setupRadio(dialog, "write_permission");
 
-        var editGroupButton =
-            dialog.find('#edit-readable-group');
-        trace(editGroupButton.get());
-        editGroupButton.unbind('click');
-        editGroupButton.click(
+        setupEditGroupButton(dialog.find('#edit-readable-group'));
+        setupEditGroupButton(dialog.find('#edit-writable-group'));
+        setupEditGroupButton(dialog.find('#edit-editable-group'));
+
+        dialog.justModal();
+    }
+
+    static function setupEditGroupButton(button: Dynamic) {
+        button.unbind('click');
+        button.click(
             function(e: Dynamic) {
                 var button: Dynamic = new JQuery(e.target);
-                trace(e.target);
                 var groupId = Std.parseInt(button.attr('group-id'));
                 var storeName = button.attr('store');
                 var filter = Std.format('[name="$storeName"]');
@@ -384,8 +388,6 @@ class MyPage {
                     });
                 return false;
             });
-
-        dialog.justModal();
     }
 
     static function editGroup(groupId: Int, cb: Array<Int>->Void) {

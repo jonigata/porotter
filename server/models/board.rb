@@ -125,6 +125,9 @@ class Board < RedisMapper::PlatformModel
   end
 
   delegate :label                       do self.store end
+  delegate :read_spotter                do self.store end
+  delegate :write_spotter               do self.store end
+  delegate :edit_spotter                do self.store end
   delegate :add_ribbon, :push           do self.store.ribbons end
   delegate :list_ribbons, :to_a         do self.store.ribbons end
   delegate :list_removed_ribbons, :to_a do self.store.removed_ribbons end
