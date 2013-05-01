@@ -1030,7 +1030,7 @@ MyPage.editGroup = function(groupId,cb) {
 		enableSubmit();
 	});
 	updateUI();
-	dialog.justModal();
+	dialog.justModal({ overlayZIndex : 20050, modalZIndex : 20100});
 }
 MyPage.makeBoardUrl = function(boardname) {
 	var urlinfo = new $("#basic-data");

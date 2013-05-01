@@ -460,7 +460,7 @@ class MyPage {
 
         updateUI();
 
-        dialog.justModal();
+        dialog.justModal({overlayZIndex: 20050, modalZIndex: 20100});
     }
 
     ////////////////////////////////////////////////////////////////

@@ -5,12 +5,14 @@
             var defaults={
                 top:100,
                 overlay:0.5,
+                overlayZIndex: 100,
+                modalZIndex: 11000,
                 closeButton:null
             };
             var o = $.extend(defaults,options);
 
             // add overlay
-            var overlay = $("<div id='lean-overlay'></div>");
+            var overlay = $('<div id="lean-overlay"></div>');
             $("body").append(overlay);
 
             // setup close function
@@ -26,6 +28,7 @@
             // show overlay
             overlay.css({
                 "display":"block",
+                "z-index":o.overlayZIndex,
                 opacity:0
             });
             overlay.fadeTo(200,o.overlay);
@@ -35,7 +38,7 @@
                 "display":"block",
                 "position":"fixed",
                 "opacity":0,
-                "z-index":11000,
+                "z-index":o.modalZIndex,
                 "left":50+"%",
                 "margin-left":-(modal.outerWidth()/2)+"px",
                 "top":o.top+"px"
