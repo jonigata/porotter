@@ -751,6 +751,7 @@ class MyPage {
                     favoredBy += Std.format('<img src="http://www.gravatar.com/avatar/${vv}?s=16&d=mm" alt="gravator"/>');
                 }
                 post.detail.favoredBy = favoredBy;
+                post.detail.elapsed = elapsedInWords(post.detail.elapsed);
                 post.detail = applyTemplate("Detail", post.detail);
             }
             data.intervals =
@@ -1185,6 +1186,37 @@ class MyPage {
         f();
         radios.unbind('change');
         radios.change(function() { f(); return true; });
+    }
+
+    static private function elapsedInWords(elapsedInSeconds: Int): String {
+        if (elapsedInSeconds <=  10) {
+            return "今";
+        } else if(elapsedInSeconds <  60) {
+            return Std.format("${elapsedInSeconds}秒前");
+        }
+
+        var elapsedInMinutes = Math.round(elapsedInSeconds / 60);
+        if (elapsedInMinutes < 60) {
+            return Std.format("${elapsedInMinutes}分前");
+        }
+
+        var elapsedInHours = Math.round(elapsedInMinutes / 60);
+        if (elapsedInHours < 24) {
+            return Std.format("${elapsedInHours}時間前");
+        }
+
+        var elapsedInDays = Math.round(elapsedInHours / 24);
+        if (elapsedInDays < 30) {
+            return Std.format("${elapsedInDays}日前");
+        }
+
+        var elapsedInMonths = Math.round(elapsedInDays / 30);
+        if (elapsedInMonths < 12) {
+            return Std.format("${elapsedInMonths}ヶ月前");
+        }
+
+        var elapsedInYears = Math.round(elapsedInMonths / 12);
+        return Std.format("${elapsedInYears}年前");
     }
 }
 

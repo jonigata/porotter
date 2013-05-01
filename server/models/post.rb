@@ -38,6 +38,8 @@ class Post < RedisMapper::PlatformModel
     self.store.refered_by.add(timeline)
   end
 
+  delegate :created_at      do self.store end
+
   private
   def version_up
     self.store.version_incr(1).tap do |version|

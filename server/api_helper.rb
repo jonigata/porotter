@@ -450,7 +450,8 @@ module APIHelper
       :userExists => (@user ? true : false),
       :postId => post.store.id,
       :favored => @user ? @user.favors?(post) : '',
-      :content => content
+      :content => content,
+      :elapsed => (Time.now - post.created_at).to_i
     }
   end
 

@@ -6,8 +6,11 @@
     <span class="username">
       @::authorUsername::
     </span>
-    <span class="favored_by">
+    <span class="favored-by">
       ::favoredBy::
+    </span>
+    <span class="elapsed">
+      ::elapsed::
     </span>
     <span class="favorite">
       ::if (userExists)::
