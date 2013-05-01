@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
 class Group < RedisMapper::PlatformModel
-  def self.create
+  def self.create(name, name_editable)
     self.new_instance.tap do |group|
+      group.store.name = name
+      group.store.name_editable = name_editable
     end
   end
 
@@ -26,8 +28,11 @@ class Group < RedisMapper::PlatformModel
     end
   end
 
+  delegate :name do self.store end
+  delegate :name_editable do self.store end
   delegate :list_members, :to_a do self.store.members end
 
-  property      :name,      String
-  set_property  :members,   User
+  property      :name,          String
+  property      :name_editable, Boolean
+  set_property  :members,       User
 end

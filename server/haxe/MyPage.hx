@@ -390,6 +390,7 @@ class MyPage {
 
     static function editGroup(groupId: Int, cb: Array<Int>->Void) {
         var dialog: Dynamic = new JQuery('#edit-group');
+        var groupName: Dynamic = dialog.find('[name="group_name"]');
         var userSelect: Dynamic = dialog.find('[name="user"]');
         var addButton: Dynamic = dialog.find('#add-member');
         var memberShow: Dynamic = dialog.find('#group-members');
@@ -405,7 +406,7 @@ class MyPage {
                 return false;
             });
 
-        setupGroupMembers(memberShow, groupId);
+        setupGroup(groupName, memberShow, groupId);
 
         var updateUI = function() {
             disable(addButton);
@@ -443,7 +444,7 @@ class MyPage {
             setEnabled(submit, beforeMemberSet != afterMemberSet);
         };
             
-        // imgの追加をsetupGroupMembersと両方でやってて冗長
+        // imgの追加をsetupGroupと両方でやってて冗長
         addButton.unbind('click');
         addButton.click(function() {
                 memberShow.find('p').html('');
@@ -512,9 +513,10 @@ class MyPage {
         }
     }
     
-    static private function setupGroupMembers(memberShow: Dynamic, groupId: Int) {
+    static private function setupGroup(
+        groupName: Dynamic, memberShow: Dynamic, groupId: Int) {
         JQuery._static.ajax({
-            url: "/foo/ajax/v/memberlist",
+            url: "/foo/ajax/v/group",
             method: "get",
             data: {
                 group: groupId,
@@ -522,7 +524,12 @@ class MyPage {
         }).done(function(data) {
             var noMembers: Dynamic = memberShow.find('p');
             var memberList: Dynamic = memberShow.find('.group-members');
-            var members: Array<Array<String>> = JQuery._static.parseJSON(data);
+            var jsonData: Dynamic = JQuery._static.parseJSON(data);
+            trace(jsonData);
+            var members: Array<Array<String>> = jsonData.members;
+
+            groupName.val(jsonData.name);
+            setEnabled(groupName, jsonData.nameEditable);
 
             memberList.html('');
 

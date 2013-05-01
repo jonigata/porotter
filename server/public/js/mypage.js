@@ -976,6 +976,7 @@ MyPage.editBoardSettings = function() {
 }
 MyPage.editGroup = function(groupId,cb) {
 	var dialog = new $("#edit-group");
+	var groupName = dialog.find("[name=\"group_name\"]");
 	var userSelect = dialog.find("[name=\"user\"]");
 	var addButton = dialog.find("#add-member");
 	var memberShow = dialog.find("#group-members");
@@ -988,7 +989,7 @@ MyPage.editGroup = function(groupId,cb) {
 		dialog.close();
 		return false;
 	});
-	MyPage.setupGroupMembers(memberShow,groupId);
+	MyPage.setupGroup(groupName,memberShow,groupId);
 	var updateUI = function() {
 		MyPage.disable(addButton);
 		MyPage.clearSelect(userSelect);
@@ -1063,11 +1064,15 @@ MyPage.disable = function(e) {
 MyPage.setEnabled = function(e,f) {
 	if(f) MyPage.enable(e); else MyPage.disable(e);
 }
-MyPage.setupGroupMembers = function(memberShow,groupId) {
-	$.ajax({ url : "/foo/ajax/v/memberlist", method : "get", data : { group : groupId}}).done(function(data) {
+MyPage.setupGroup = function(groupName,memberShow,groupId) {
+	$.ajax({ url : "/foo/ajax/v/group", method : "get", data : { group : groupId}}).done(function(data) {
 		var noMembers = memberShow.find("p");
 		var memberList = memberShow.find(".group-members");
-		var members = $.parseJSON(data);
+		var jsonData = $.parseJSON(data);
+		console.log(jsonData);
+		var members = jsonData.members;
+		groupName.val(jsonData.name);
+		MyPage.setEnabled(groupName,jsonData.nameEditable);
 		memberList.html("");
 		var memberSet = [];
 		var _g = 0;

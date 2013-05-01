@@ -25,6 +25,12 @@ module APIHelper
         get_detail(r.ribbon, r.post)
       end
 
+      get '/v/group' do
+        r = ensure_params(
+          :group => INT_PARAM)
+        get_group(r.group)
+      end
+
       get '/v/userlist' do
         get_userlist
       end
@@ -198,6 +204,19 @@ module APIHelper
     ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
     post = Post.attach_if_exist(post_id) or raise
     JSONP(make_detail_data(ribbon, post))
+  end
+
+  def get_group(group_id)
+    group = Group.attach_if_exist(group_id) or raise
+    JSONP(
+      {
+        :name => group.name,
+        :nameEditable => group.name_editable,
+        :members => 
+        group.list_members.map do |user|
+          [user.store.id, user.store.username, user.store.label, Misc.gravator(user.store.email)]
+        end
+      })
   end
 
   def get_userlist

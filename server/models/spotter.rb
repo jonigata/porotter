@@ -7,7 +7,7 @@ class Spotter < RedisMapper::PlatformModel
     
     self.new_instance.tap do |spotter|
       spotter.store.type = type
-      spotter.store.unique_group = Group.create
+      spotter.store.unique_group = Group.create("#{type}固有グループ", false)
       spotter.set_permission_no_check(permission)
     end
   end
