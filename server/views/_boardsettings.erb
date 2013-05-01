@@ -64,14 +64,44 @@
               </label>
             </td>
           </tr>
+          <tr>
+            <% w = current_board.format_editability.values_at(:everyone, :public_group, :private_group, :same_as_read, :same_as_write).map { |x| x ? " checked" : "" } %>
+            <td class="item-name">edit</td>
+            <td>
+              <label class="radio">
+                <input type="radio" name="edit_permission" value="everyone" <%= w[0] %>>
+                誰でも
+              </label>
+              <label class="radio">
+                <input type="radio" name="edit_permission" value="public_group" <%= w[1] %>>
+                パブリックグループ
+                <select name="public_group">
+                  <option value="0" disabled="disabled">グループを選択</option>
+                </select>
+              </label>
+              <label class="radio">
+                <input type="radio" name="edit_permission" value="private_group" <%= w[2] %>>
+                特有グループ
+                <% eg = current_board.store.edit_spotter.store.unique_group %>
+                <%= erb :_groupmember, :locals => { :group => eg } %>
+                <input id="edit-editable-group" group-id="<%= eg.store.id %>" store="editable_group" class="btn btn-info btn-mini" type="button" value="編集">
+              </label>
+              <label class="radio">
+                <input type="radio" name="edit_permission" value="same_as_read" <%= w[3] %>>
+                readと同じ
+              </label>
+            </td>
+          </tr>
         </table>          
       </td>
     </tr>
   </table>
   <% rgi = JSONP(rg.list_members.map { |x| x.store.id }) %>
   <% wgi = JSONP(wg.list_members.map { |x| x.store.id }) %>
+  <% egi = JSONP(eg.list_members.map { |x| x.store.id }) %>
   <input type="hidden" name="board" value="<%= current_board.store.id %>">
   <input type="hidden" name="readable_group" value="<%= rgi %>">
   <input type="hidden" name="writable_group" value="<%= wgi %>">
+  <input type="hidden" name="editable_group" value="<%= egi %>">
   <input class="btn btn-primary" type="submit" value="保存" onclick="return MyPage.doPost(this);">
 </form>

@@ -15,17 +15,18 @@ class Spotter < RedisMapper::PlatformModel
   def self.check_permission(permission)
     case permission
     when Symbol
-      raise if permission != :everyone
+      raise "unknown permission: #{permission.inspect}" if
+        permission != :everyone
     when Array
       permission.each do |m|
-        raise unless m.kind_of?(User)
+        raise "unexpected array element: #{m.inspect}" unless m.kind_of?(User)
       end
     when Spotter
       # do nothing
     when Group
       # do nothing
     else
-      raise
+      raise "unexpected data type"
     end
   end
 

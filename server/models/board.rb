@@ -41,6 +41,10 @@ class Board < RedisMapper::PlatformModel
     format_permission(self.store.write_spotter)
   end
 
+  def format_editability
+    format_permission(self.store.edit_spotter)
+  end
+
   def secret?
     return self.store.read_spotter.secret?
   end
@@ -57,7 +61,41 @@ class Board < RedisMapper::PlatformModel
     return self.store.edit_spotter.permitted?(user)
   end
 
+  # 以下permision => groupは
+  # :everyon => nil
+  # :public_group => Group
+  # :private_group => Array
+  # :same_as_read => nil
+  # :same_as_write => nil
+
+  def set_readability(permission, group)
+    set_ability(self.store.read_spotter, permission, group)
+  end
+  
+  def set_writability(permission, group)
+    set_ability(self.store.write_spotter, permission, group)
+  end
+  
+  def set_editability(permission, group)
+    set_ability(self.store.edit_spotter, permission, group)
+  end
+  
   private
+  def set_ability(spotter, permission, group)
+    case permission
+    when :everyone
+      spotter.set_permission(:everyone)
+    when :public_group
+      spotter.set_permission(group)
+    when :private_group
+      spotter.set_permission(group)
+    when :same_as_readable
+      spotter.set_permission(self.store.read_spotter)
+    when :same_as_writable
+      spotter.set_permission(self.store.write_spotter)
+    end    
+  end
+  
   def format_permission(spotter)
     {
       :everyone => false,

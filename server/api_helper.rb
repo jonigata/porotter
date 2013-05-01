@@ -168,16 +168,22 @@ module APIHelper
           :board => INT_PARAM,
           :read_permission => [[:everyone, :public_group, :private_group], Symbol],
           :write_permission => [[:everyone, :public_group, :private_group, :same_as_readable], Symbol],
-          :readable_group => [/\[[0-9,]*\]/, String],
-          :writable_group => [/\[[0-9,]*\]/, String]
+          :edit_permission => [[:everyone, :public_group, :private_group, :same_as_readable, :same_as_writable], Symbol],
+
+          # 以下数値か数値の配列
+          :readable_group => [/(\[[0-9,]*\])|([0-9]+)/, String],
+          :writable_group => [/(\[[0-9,]*\])|([0-9]+)/, String],
+          :editable_group => [/(\[[0-9,]*\])|([0-9]+)/, String]
           )
         
         edit_board_settings(
           r.board,
           r.read_permission,
           r.write_permission,
+          r.edit_permission,
           JSON.parse(r.readable_group),
-          JSON.parse(r.writable_group));
+          JSON.parse(r.writable_group),
+          JSON.parse(r.editable_group));
       end
       
       post '/m/ribbontest' do
@@ -378,29 +384,33 @@ module APIHelper
       board_id,
       read_permission,
       write_permission,
+      edit_permission,
       readable_group,
-      writable_group)
+      writable_group,
+      editable_group)
     board = Board.attach_if_exist(board_id) or raise
     board.editable_by?(@user) or halt 403
 
-    readable_group = readable_group.map { |x| User.attach_if_exist(x) }
-    writable_group = writable_group.map { |x| User.attach_if_exist(x) }
-
-    if read_permission == :private_group
-      board.store.unique_readable.set(readable_group)
-      board.set_readability(board.store.unique_readable)
-    else
-      board.set_readability(read_permission)
-    end
-
-    if write_permission == :private_group
-      board.store.unique_writable.set(writable_group)
-      board.set_writability(board.store.unique_writable)
-    else
-      board.set_writability(write_permission)
-    end
+    readable_group = convert_permission_group(read_permission, readable_group)
+    writable_group = convert_permission_group(write_permission, writable_group)
+    editable_group = convert_permission_group(edit_permission, editable_group)
+    
+    board.set_readability(read_permission, readable_group)
+    board.set_writability(write_permission, writable_group)
+    board.set_editability(edit_permission, editable_group)
 
     board.store.label
+  end
+
+  def convert_permission_group(permission, group)
+    case permission
+    when :public_group
+      return Group.attach_if_exist(group)
+    when :private_group
+      return group.map { |x| User.attach_if_exist(x) }      
+    else
+      return group
+    end
   end
 
   def ensure_params(h)
