@@ -137,6 +137,10 @@ class User < RedisMapper::PlatformModel
     board.remove_ribbon(ribbon)
   end
 
+  def rename_ribbon(ribbon, label)
+    ribbon.owner.rename_ribbon(ribbon, label)
+  end
+
   def edit_permission(ribbon, permission)
     # TODO: ribbonチェック
     p permission

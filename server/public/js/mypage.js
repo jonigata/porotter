@@ -911,10 +911,13 @@ MyPage.closeRibbon = function(obj,boardId) {
 		ribbon.closest(".ribbon-outer").remove();
 	});
 }
-MyPage.editPermissions = function(boardId,ribbonId,isPublic) {
-	var dialog = new $("#edit-permission");
-	dialog.find("[name=\"ribbon\"]").val(ribbonId);
-	if(isPublic) dialog.find("[name=\"permission\"][value=\"public\"]").attr("checked","checked"); else dialog.find("[name=\"permission\"][value=\"private\"]").attr("checked","checked");
+MyPage.editRibbonSettings = function(dialog,boardId,ribbonId) {
+	MyPage.setupRadio(dialog,"read_permission");
+	MyPage.setupRadio(dialog,"write_permission");
+	MyPage.setupRadio(dialog,"edit_permission");
+	MyPage.setupEditGroupButton(dialog.find("#edit-readable-group"));
+	MyPage.setupEditGroupButton(dialog.find("#edit-writable-group"));
+	MyPage.setupEditGroupButton(dialog.find("#edit-editable-group"));
 	dialog.justModal();
 }
 MyPage.moveArticle = function(dragging) {
@@ -956,6 +959,7 @@ MyPage.editBoardSettings = function() {
 	var dialog = new $("#board-settings");
 	MyPage.setupRadio(dialog,"read_permission");
 	MyPage.setupRadio(dialog,"write_permission");
+	MyPage.setupRadio(dialog,"edit_permission");
 	MyPage.setupEditGroupButton(dialog.find("#edit-readable-group"));
 	MyPage.setupEditGroupButton(dialog.find("#edit-writable-group"));
 	MyPage.setupEditGroupButton(dialog.find("#edit-editable-group"));

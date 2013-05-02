@@ -276,15 +276,15 @@ class MyPage {
         });
     }        
 
-    static function editPermissions(
-        boardId: Int, ribbonId: Int, isPublic: Bool) {
-        var dialog: Dynamic = new JQuery('#edit-permission');
-        dialog.find('[name="ribbon"]').val(ribbonId);
-        if (isPublic) {
-            dialog.find('[name="permission"][value="public"]').attr('checked', 'checked');
-        } else {
-            dialog.find('[name="permission"][value="private"]').attr('checked', 'checked');
-        }
+    static function editRibbonSettings(
+        dialog: Dynamic, boardId: Int, ribbonId: Int) {
+        setupRadio(dialog, "read_permission");
+        setupRadio(dialog, "write_permission");
+        setupRadio(dialog, "edit_permission");
+
+        setupEditGroupButton(dialog.find('#edit-readable-group'));
+        setupEditGroupButton(dialog.find('#edit-writable-group'));
+        setupEditGroupButton(dialog.find('#edit-editable-group'));
 
         dialog.justModal();
     }
@@ -363,6 +363,7 @@ class MyPage {
         var dialog: Dynamic = new JQuery('#board-settings');
         setupRadio(dialog, "read_permission");
         setupRadio(dialog, "write_permission");
+        setupRadio(dialog, "edit_permission");
 
         setupEditGroupButton(dialog.find('#edit-readable-group'));
         setupEditGroupButton(dialog.find('#edit-writable-group'));

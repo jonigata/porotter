@@ -3,6 +3,8 @@
 class Board < RedisMapper::PlatformModel; end
 
 class Ribbon < RedisMapper::PlatformModel
+  include SpotterHolder
+
   def self.create(
       owner,
       read_source,
@@ -32,24 +34,6 @@ class Ribbon < RedisMapper::PlatformModel
     post
   end
 
-  def secret?
-    return self.store.read_spotter.secret?
-  end
-
-  def readable_by?(user)
-    return self.store.read_spotter.permitted?(user)
-  end
-
-  def writable_by?(user)
-    return false unless write_target
-    return self.store.write_spotter.permitted?(user)
-  end
-
-  def editable_by?(user)
-    return false unless write_target
-    return self.store.edit_spotter.permitted?(user)
-  end
-
   def label
     self.store.read_source.store.label
   end
@@ -62,6 +46,16 @@ class Ribbon < RedisMapper::PlatformModel
     add_article(p3)
   end
 
+  def parent_spotter(type)
+    self.store.owner.__send__("#{type}_spotter".intern)
+  end
+
+  def rename(label)
+    self.store.read_source.store.label = label
+  end
+
+  delegate :label           do self.read_source end
+  delegate :owner           do self.store end
   delegate :read_source     do self.store end
   delegate :write_target    do self.store end
 

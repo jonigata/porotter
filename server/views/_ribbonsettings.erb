@@ -9,88 +9,46 @@
     <tr>
       <td class="item-name">許可</td>
       <td>
+        <%
+           def make_checked_table(h, m)
+             Hash[h.select { |k, v| m.member?(k) }.map { |k, v| [k, v ? " checked" : ""] }]
+           end
+           %>
+        <% r = make_checked_table(ribbon.format_readability, [:everyone, :public_group, :private_group, :same_as_board]) %>
+        <% rg = ribbon.read_spotter.unique_group %>
+        <% w = make_checked_table(ribbon.format_writability, [:everyone, :public_group, :private_group, :same_as_read, :same_as_board]) %>
+        <% wg = ribbon.write_spotter.unique_group %>
+        <% e = make_checked_table(ribbon.format_editability, [:everyone, :public_group, :private_group, :same_as_read, :same_as_write, :same_as_board]) %>
+        <% eg = ribbon.edit_spotter.unique_group %>
         <table>
           <tr>
-            <% r = ribbon.format_readability.values_at(:everyone, :public_group, :private_group, :same_as_board).map { |x| x ? " checked" : "" } %>
             <td class="item-name">read</td>
-            <td>
-              <label class="radio">
-                <input type="radio" name="read_permission" value="everyone" <%= r[0] %>>
-                誰でも
-              </label>
-              <label class="radio">
-                <input type="radio" name="read_permission" value="public_group" <%= r[1] %>>
-                パブリックグループ
-                <select name="public_group">
-                  <option value="0" disabled="disabled">グループを選択</option>
-                </select>
-              </label>
-              <label class="radio">
-                <input type="radio" name="read_permission" value="private_group" <%= r[2] %>>
-                特有グループ
-                <% rg = current_board.read_spotter.unique_group %>
-                <%= erb :_groupmember, :locals => { :group => rg } %>
-                <input id="edit-readable-group" group-id="<%= rg.store.id %>" store="readable_group" class="btn btn-info btn-mini" type="button" value="編集">
-              </label>
-              <hr>
-            </td>
-          </tr>
-          <tr>
-            <% w = current_board.format_writability.values_at(:everyone, :public_group, :private_group, :same_as_read).map { |x| x ? " checked" : "" } %>
-            <td class="item-name">write</td>
-            <td>
-              <label class="radio">
-                <input type="radio" name="write_permission" value="everyone" <%= w[0] %>>
-                誰でも
-              </label>
-              <label class="radio">
-                <input type="radio" name="write_permission" value="public_group" <%= w[1] %>>
-                パブリックグループ
-                <select name="public_group">
-                  <option value="0" disabled="disabled">グループを選択</option>
-                </select>
-              </label>
-              <label class="radio">
-                <input type="radio" name="write_permission" value="private_group" <%= w[2] %>>
-                特有グループ
-                <% wg = current_board.write_spotter.unique_group %>
-                <%= erb :_groupmember, :locals => { :group => wg } %>
-                <input id="edit-writable-group" group-id="<%= wg.store.id %>" store="writable_group" class="btn btn-info btn-mini" type="button" value="編集">
-              </label>
-              <label class="radio">
-                <input type="radio" name="write_permission" value="same_as_read" <%= w[3] %>>
-                readと同じ
-              </label>
-              <hr>
-            </td>
-          </tr>
-          <tr>
-            <% w = current_board.format_editability.values_at(:everyone, :public_group, :private_group, :same_as_read, :same_as_write).map { |x| x ? " checked" : "" } %>
+            <%= erb :_permission, :locals => {
+              :item_name => "read",
+              :checked => r,
+              :group => rg,
+              :group_edit_button_id => "edit-readable-group",
+              :store_name => "readable_group"
+            } %>
             <td class="item-name">edit</td>
-            <td>
-              <label class="radio">
-                <input type="radio" name="edit_permission" value="everyone" <%= w[0] %>>
-                誰でも
-              </label>
-              <label class="radio">
-                <input type="radio" name="edit_permission" value="public_group" <%= w[1] %>>
-                パブリックグループ
-                <select name="public_group">
-                  <option value="0" disabled="disabled">グループを選択</option>
-                </select>
-              </label>
-              <label class="radio">
-                <input type="radio" name="edit_permission" value="private_group" <%= w[2] %>>
-                特有グループ
-                <% eg = current_board.edit_spotter.unique_group %>
-                <%= erb :_groupmember, :locals => { :group => eg } %>
-                <input id="edit-editable-group" group-id="<%= eg.store.id %>" store="editable_group" class="btn btn-info btn-mini" type="button" value="編集">
-              </label>
-              <label class="radio">
-                <input type="radio" name="edit_permission" value="same_as_read" <%= w[3] %>>
-                readと同じ
-              </label>
-            </td>
+            <%= erb :_permission, :locals => {
+              :item_name => "edit",
+              :checked => e,
+              :group => eg,
+              :group_edit_button_id => "edit-editable-group",
+              :store_name => "editable_group"
+            } %>
+          </tr>
+          <tr><td colspan="2"><hr></td></tr>
+          <tr>
+            <td class="item-name">write</td>
+            <%= erb :_permission, :locals => {
+              :item_name => "write",
+              :checked => w,
+              :group => wg,
+              :group_edit_button_id => "edit-writable-group",
+              :store_name => "writable_group"
+            } %>
           </tr>
         </table>          
       </td>
@@ -99,7 +57,7 @@
   <% rgi = JSONP(rg.list_members.map { |x| x.store.id }) %>
   <% wgi = JSONP(wg.list_members.map { |x| x.store.id }) %>
   <% egi = JSONP(eg.list_members.map { |x| x.store.id }) %>
-  <input type="hidden" name="board" value="<%= current_board.store.id %>">
+  <input type="hidden" name="ribbon" value="<%= ribbon.store.id %>">
   <input type="hidden" name="readable_group" value="<%= rgi %>">
   <input type="hidden" name="writable_group" value="<%= wgi %>">
   <input type="hidden" name="editable_group" value="<%= egi %>">

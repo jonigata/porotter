@@ -163,6 +163,8 @@ class Timeline < RedisMapper::PlatformModel
     source_timeline.remove_post(source)
   end
 
+  delegate :label       do self.store end
+
   private
   def version_up
     self.store.version_incr(1).tap do |version|

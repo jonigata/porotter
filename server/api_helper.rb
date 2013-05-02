@@ -163,7 +163,7 @@ module APIHelper
         edit_permission(r.board, r.ribbon, r.permission)
       end
 
-      post '/m/editboardsettings' do
+      post '/m/modifyboardsettings' do
         r = ensure_params(
           :board => INT_PARAM,
           :read_permission => [[:everyone, :public_group, :private_group], Symbol],
@@ -176,9 +176,33 @@ module APIHelper
           :editable_group => [/(\[[0-9,]*\])|([0-9]+)/, String]
           )
         
-        edit_board_settings(
+        modify_board_settings(
           r.board,
           params[:board_label],
+          r.read_permission,
+          r.write_permission,
+          r.edit_permission,
+          JSON.parse(r.readable_group),
+          JSON.parse(r.writable_group),
+          JSON.parse(r.editable_group));
+      end
+      
+      post '/m/modifyribbonsettings' do
+        r = ensure_params(
+          :ribbon => INT_PARAM,
+          :read_permission => [[:everyone, :public_group, :private_group, :same_as_board], Symbol],
+          :write_permission => [[:everyone, :public_group, :private_group, :same_as_readable, :same_as_board], Symbol],
+          :edit_permission => [[:everyone, :public_group, :private_group, :same_as_readable, :same_as_writable, :same_as_board], Symbol],
+
+          # 以下数値か数値の配列
+          :readable_group => [/(\[[0-9,]*\])|([0-9]+)/, String],
+          :writable_group => [/(\[[0-9,]*\])|([0-9]+)/, String],
+          :editable_group => [/(\[[0-9,]*\])|([0-9]+)/, String]
+          )
+        
+        modify_ribbon_settings(
+          r.ribbon,
+          params[:ribbon_label],
           r.read_permission,
           r.write_permission,
           r.edit_permission,
@@ -381,7 +405,7 @@ module APIHelper
     "OK"
   end
 
-  def edit_board_settings(
+  def modify_board_settings(
       board_id,
       board_label,
       read_permission,
@@ -403,7 +427,32 @@ module APIHelper
     board.set_writability(write_permission, writable_group)
     board.set_editability(edit_permission, editable_group)
 
-    board.store.label
+    board.label
+  end
+
+  def modify_ribbon_settings(
+      ribbon_id,
+      ribbon_label,
+      read_permission,
+      write_permission,
+      edit_permission,
+      readable_group,
+      writable_group,
+      editable_group)
+    ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
+    ribbon.editable_by?(@user) or halt 403
+
+    @user.rename_ribbon(ribbon, ribbon_label)
+
+    readable_group = convert_permission_group(read_permission, readable_group)
+    writable_group = convert_permission_group(write_permission, writable_group)
+    editable_group = convert_permission_group(edit_permission, editable_group)
+    
+    ribbon.set_readability(read_permission, readable_group)
+    ribbon.set_writability(write_permission, writable_group)
+    ribbon.set_editability(edit_permission, editable_group)
+
+    ribbon.owner.label
   end
 
   def convert_permission_group(permission, group)
