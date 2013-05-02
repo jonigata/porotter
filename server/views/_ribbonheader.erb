@@ -5,11 +5,11 @@
     <%   else %>
     <img class="ribbon-permission" src="<%= static_url("images/public.png") %>">
     <%   end %>
-    <%== ribbon.read_source.store.label %>
+    <%== ribbon.label %>
   </h1>
-  <% if ribbon.store.owner != current_board %>
-  <%   owner_board = ribbon.store.owner %>
-  <h2>from <%== owner_board.store.owner.store.label %> / <%== owner_board.store.label %></h2>
+  <% if ribbon.owner != current_board %>
+  <%   owner_board = ribbon.owner %>
+  <h2>from <%== owner_board.owner.label %> / <%== owner_board.label %></h2>
   <% end %>
 
   <% if current_board.editable_by?(@user) %>

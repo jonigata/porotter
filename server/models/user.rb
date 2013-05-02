@@ -23,7 +23,7 @@ class User < RedisMapper::PlatformModel
         board = Board.create(user, 'global')
         user.store.boards[board_tag(user, "global")] = board
         
-        board.import(global_timeline, nil)
+        board.import('井戸端会議', global_timeline, nil)
       end
     end
 
@@ -52,15 +52,16 @@ class User < RedisMapper::PlatformModel
           user.store.boards[board_tag(user, "マイボード")] = board
           user.store.start_board = board
             
-          my_posts = Timeline.create(user, 'あなたの投稿')
+          my_posts = Timeline.create(user)
           user.store.my_posts = my_posts
 
-          favorites = Timeline.create(user, 'お気に入り')
+          favorites = Timeline.create(user)
           user.store.favorites = favorites
 
-          global_ribbon = board.import(global_timeline, global_timeline)
-          board.import(my_posts, nil)
-          board.import(favorites, nil)
+          global_ribbon = board.import(
+            '井戸端会議', global_timeline, global_timeline)
+          board.import('あなたの投稿', my_posts, nil)
+          board.import('お気に入り', favorites, nil)
 
           user.add_article(global_ribbon, :Tweet, "最初の投稿です")
 
@@ -128,8 +129,8 @@ class User < RedisMapper::PlatformModel
   end
 
   def add_ribbon(board, label)
-    timeline = Timeline.create(self, label)
-    board.import(timeline, timeline)
+    timeline = Timeline.create(self)
+    board.import(label, timeline, timeline)
   end
 
   def remove_ribbon(board, ribbon)

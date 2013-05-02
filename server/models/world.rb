@@ -5,7 +5,7 @@ class World < RedisMapper::PlatformModel
 
   def self.on_create(world)
     global_group = Group.create('グローバルグループ', false)
-    global_timeline = Timeline.create(nil, '井戸端会議')
+    global_timeline = Timeline.create(nil)
     global_user = User.create_global('ruin837e', global_timeline)
 
     world.store.global_group = global_group

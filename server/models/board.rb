@@ -13,9 +13,10 @@ class Board < RedisMapper::PlatformModel
     end
   end
 
-  def import(read, write)
+  def import(label, read, write)
     Ribbon.create(
       self,
+      label,
       read,
       write,
       self.store.read_spotter,

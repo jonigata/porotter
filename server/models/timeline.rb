@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 
 class Timeline < RedisMapper::PlatformModel
-  def self.create(owner, label)
+  def self.create(owner)
     self.new_instance.tap do |timeline|
       timeline.store.owner = owner
-      timeline.store.label = label
       timeline.store.version = 1
     end
   end
@@ -163,8 +162,6 @@ class Timeline < RedisMapper::PlatformModel
     source_timeline.remove_post(source)
   end
 
-  delegate :label       do self.store end
-
   private
   def version_up
     self.store.version_incr(1).tap do |version|
@@ -174,7 +171,6 @@ class Timeline < RedisMapper::PlatformModel
   end    
 
   property              :owner,             User
-  property              :label,             String
   property              :version,           Integer
   ordered_set_property  :posts,             PostHolder
   dictionary_property   :post_to_holder,    Post, PostHolder

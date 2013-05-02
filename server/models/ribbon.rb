@@ -7,6 +7,7 @@ class Ribbon < RedisMapper::PlatformModel
 
   def self.create(
       owner,
+      label,
       read_source,
       write_target,
       read_spotter,
@@ -14,6 +15,7 @@ class Ribbon < RedisMapper::PlatformModel
       edit_spotter)
     self.new_instance.tap do |ribbon|
       ribbon.store.owner = owner
+      ribbon.store.label = label
       ribbon.store.read_spotter = read_spotter
       ribbon.store.write_spotter = write_spotter
       ribbon.store.edit_spotter = edit_spotter
@@ -34,10 +36,6 @@ class Ribbon < RedisMapper::PlatformModel
     post
   end
 
-  def label
-    self.store.read_source.store.label
-  end
-
   def do_test(author)
     add_article(p1 = Post.create(author, :Tweet, '1', true))
     add_article(p2 = Post.create(author, :Tweet, '2', true))
@@ -51,15 +49,16 @@ class Ribbon < RedisMapper::PlatformModel
   end
 
   def rename(label)
-    self.store.read_source.store.label = label
+    self.store.label = label
   end
 
-  delegate :label           do self.read_source end
+  delegate :label           do self.store end
   delegate :owner           do self.store end
   delegate :read_source     do self.store end
   delegate :write_target    do self.store end
 
   property  :owner,         Board
+  property  :label,         String
   property  :read_spotter,  Spotter
   property  :write_spotter, Spotter
   property  :edit_spotter,  Spotter
