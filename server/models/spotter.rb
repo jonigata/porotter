@@ -165,10 +165,13 @@ module SpotterHolder
       when :everyone
         result[:everyone] = true
       when :outsource
-        if spotter.store.source == self.store.read_spotter
+        source = spotter.store.source
+        if source == self.store.read_spotter
           result[:same_as_read] = true
-        elsif spotter.store.source == self.store.write_spotter
+        elsif source == self.store.write_spotter
           result[:same_as_write] = true
+        elsif source == self.parent_spotter(spotter.type)
+          result[:same_as_board] = true
         end
       when :group
         result[spotter.unique? ? :private_group : :public_group] = true

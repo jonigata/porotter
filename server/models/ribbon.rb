@@ -16,11 +16,11 @@ class Ribbon < RedisMapper::PlatformModel
     self.new_instance.tap do |ribbon|
       ribbon.store.owner = owner
       ribbon.store.label = label
-      ribbon.store.read_spotter = read_spotter
-      ribbon.store.write_spotter = write_spotter
-      ribbon.store.edit_spotter = edit_spotter
       ribbon.store.read_source = read_source
       ribbon.store.write_target = write_target
+      ribbon.store.read_spotter = Spotter.create(:read, read_spotter)
+      ribbon.store.write_spotter = Spotter.create(:write, write_spotter)
+      ribbon.store.edit_spotter = Spotter.create(:edit, edit_spotter)
     end
   end
 
@@ -50,6 +50,10 @@ class Ribbon < RedisMapper::PlatformModel
 
   def rename(label)
     self.store.label = label
+  end
+
+  def writable_by?(user)
+    self.write_target && write_spotter.permitted?(user)
   end
 
   delegate :label           do self.store end
