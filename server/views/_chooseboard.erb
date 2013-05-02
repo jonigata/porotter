@@ -3,7 +3,7 @@
   <li><a href="<%= local_url('/logout') %>">ログアウト</a></li>
   <li class="divider"></li>
   <% boards.values.each do |board| %>
-  <li><a href="<%= local_url("/users/#{@user.store.username}/#{board.store.label}") %>" board-id="<%== board.store.id %>"><%== board.store.label %></a></li>
+  <li><a href="<%= local_url("/users/#{board.owner.username}/#{board.store.label}") %>" board-id="<%== board.store.id %>"><%= board.owner.username %>/<%== board.store.label %></a></li>
   <% end %>
   <li class="divider"></li>
   <li><a href="#" onclick="MyPage.makeBoard();return false;">ボード作成</a></li>

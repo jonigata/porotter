@@ -25,7 +25,7 @@
           <% end %>
         </ul>
 
-        <% if @user == refered %>
+        <% if @user %>
         <ul class="nav pull-right">
           <li class="dropdown">
             <a class="dropdown-toggle" data-toggle="dropdown" href="#">
@@ -33,7 +33,7 @@
               <%== @user.store.label %>
               <span class="caret"></span>
             </a>
-            <%=  erb :_chooseboard, :locals => { :boards => boards } %>
+            <%=  erb :_chooseboard, :locals => { :boards => @user.store.boards } %>
           </li>
         </ul>
         <% end %>

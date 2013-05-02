@@ -21,7 +21,7 @@ class User < RedisMapper::PlatformModel
         user.store.hashed_password = Misc.hash_pw(salt, password)
 
         board = Board.create(user, 'global')
-        user.store.boards['global'] = board
+        user.store.boards[board_tag(user, "global")] = board
         
         board.import(global_timeline, nil)
       end
@@ -37,7 +37,7 @@ class User < RedisMapper::PlatformModel
         username !~ /^\w+$/
       raise "That username is taken." if username == 'all'
 
-      global_timeline = World.singleton.store.global_timeline
+      global_timeline = World.singleton.global_timeline
 
       self.make_index(:username, username) do 
         self.new_instance do |user|
@@ -49,7 +49,7 @@ class User < RedisMapper::PlatformModel
           user.store.hashed_password = Misc.hash_pw(salt, password)
 
           board = Board.create(user, 'マイボード')
-          user.store.boards['マイボード'] = board
+          user.store.boards[board_tag(user, "マイボード")] = board
           user.store.start_board = board
             
           my_posts = Timeline.create(user, 'あなたの投稿')
@@ -110,19 +110,21 @@ class User < RedisMapper::PlatformModel
   end
 
   def add_board(label)
-    raise if self.store.boards.member?(label)
+    tag = board_tag(self, label)
+    raise if self.store.boards.member?(tag)
     board = Board.create(self, label)
-    self.store.boards[label] = board
+    self.store.boards[tag] = board
   end
 
   def find_board(label)
-    self.store.boards[label]
+    self.store.boards[board_tag(self, label)]
   end
 
   def rename_board(board, label)
-    self.store.boards.remove(board.label)
+    tag = board_tag(self, board.label)
+    self.store.boards.remove(tag)
     board.set_label(label)
-    self.store.boards[label] = board
+    self.store.boards[tag] = board
   end
 
   def add_ribbon(board, label)
@@ -148,7 +150,7 @@ class User < RedisMapper::PlatformModel
   end
 
   def join_board(board)
-    self.store.boards[board.store.label] = board
+    self.store.boards[board_tag(board.owner, board.label)] = board
   end
 
   def join_ribbon(board, ribbon)
@@ -159,8 +161,18 @@ class User < RedisMapper::PlatformModel
     board.restore_ribbon(ribbon)
   end
 
+  private
+  def self.board_tag(user, label)
+    "#{user.username}\n#{label}"
+  end
+
+  def board_tag(user, label)
+    self.class.board_tag(user, label)
+  end
+
   index_accessor :username
 
+  delegate :username        do self.store end
   delegate :start_board     do self.store end
 
   property              :username,          String

@@ -124,6 +124,7 @@ class Board < RedisMapper::PlatformModel
     end
   end
 
+  delegate :owner                       do self.store end
   delegate :label                       do self.store end
   delegate :read_spotter                do self.store end
   delegate :write_spotter               do self.store end

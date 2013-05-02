@@ -21,6 +21,8 @@ class World < RedisMapper::PlatformModel
     self.store.global_group.list_members
   end
 
+  delegate :global_timeline         do self.store end
+
   property      :global_group,      Group
   property      :global_timeline,   Timeline
   property      :global_user,       User
