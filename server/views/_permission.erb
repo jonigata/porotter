@@ -1,0 +1,66 @@
+<td>
+  <label class="radio">
+    <input
+       type="radio"
+       name="<%= item_name %>_permission"
+       value="everyone"
+       <%= checked[:everyone] %>>
+    誰でも
+  </label>
+  <label class="radio">
+    <input
+       type="radio"
+       name="<%= item_name %>_permission"
+       value="public_group" <%= checked[:public_group] %>>
+    パブリックグループ
+    <select name="public_group">
+      <option value="0" disabled="disabled">グループを選択</option>
+    </select>
+  </label>
+  <label class="radio">
+    <input
+       type="radio"
+       name="<%= item_name %>_permission"
+       value="private_group"
+       <%= checked[:private_group] %>>
+    特有グループ
+    <%= erb :_groupmember, :locals => { :group => group } %>
+    <input
+       id="<%= group_edit_button_id %>"
+       group-id="<%= group.store.id %>"
+       class="btn btn-info btn-mini"
+       store="<%= store_name %>"
+       type="button"
+       value="編集">
+  </label>
+  <% if checked[:same_as_read] %>
+  <label class="radio">
+    <input
+       type="radio"
+       name="<%= item_name %>_permission"
+       value="same_as_read"
+       <%= checked[:same_as_read] %>>
+    readと同じ
+  </label>
+  <% end %>
+  <% if checked[:same_as_write] %>
+  <label class="radio">
+    <input
+       type="radio"
+       name="<%= item_name %>_permission"
+       value="same_as_write"
+       <%= checked[:same_as_write] %>>
+    writeと同じ
+  </label>
+  <% end %>
+  <% if checked[:same_as_board] %>
+  <label class="radio">
+    <input
+       type="radio"
+       name="<%= item_name %>_permission"
+       value="same_as_board"
+       <%= checked[:same_as_board] %>>
+    ボードと同じ
+  </label>
+  <% end %>
+</td>

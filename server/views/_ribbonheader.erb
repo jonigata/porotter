@@ -1,5 +1,12 @@
 <div class="ribbon-header">
-  <h1><%== ribbon.read_source.store.label %></h1>
+  <h1>
+    <%   if ribbon.secret? %>
+    <img class="ribbon-permission" src="<%= static_url("images/private.png") %>">
+    <%   else %>
+    <img class="ribbon-permission" src="<%= static_url("images/public.png") %>">
+    <%   end %>
+    <%== ribbon.read_source.store.label %>
+  </h1>
   <% if ribbon.store.owner != current_board %>
   <%   owner_board = ribbon.store.owner %>
   <h2>from <%== owner_board.store.owner.store.label %> / <%== owner_board.store.label %></h2>
@@ -7,11 +14,7 @@
 
   <% if current_board.editable_by?(@user) %>
   <img class="close-button" src="<%= static_url("images/remove.png") %>" onclick="MyPage.closeRibbon(this, <%= current_board.store.id %>);return false;">
-  <%   if ribbon.secret? %>
-  <img class="secret-indicator" src="<%= static_url("images/private.png") %>" onclick="MyPage.editPermissions(<%= current_board.store.id %>, <%= ribbon.store.id %>, false);return false;">
-  <%   else %>
-  <img class="secret-indicator" src="<%= static_url("images/public.png") %>" onclick="MyPage.editPermissions(<%= current_board.store.id %>, <%= ribbon.store.id %>, true);return false;">
-  <%   end %>
+  <img class="secret-indicator" src="<%= static_url("images/settings.png") %>" onclick="MyPage.editPermissions(<%= current_board.store.id %>, <%= ribbon.store.id %>, true);return false;">
 
   <img class="secret-indicator" src="<%= static_url("images/keyboard.png") %>" onclick="MyPage.doRibbonTest(<%= ribbon.store.id %>);return false;">
 

@@ -107,6 +107,7 @@ class Board < RedisMapper::PlatformModel
       :private_group => false,
       :same_as_read => false,
       :same_as_write => false,
+      :same_as_board => false,
     }.tap do |result|
       permission = spotter.store.permission
       case permission
