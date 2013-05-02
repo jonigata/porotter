@@ -124,7 +124,7 @@ class User < RedisMapper::PlatformModel
     tag = board_tag(self, board.label)
     self.store.boards.remove(tag)
     board.set_label(label)
-    self.store.boards[tag] = board
+    self.store.boards[board_tag(self, label)] = board
   end
 
   def add_ribbon(board, label)
