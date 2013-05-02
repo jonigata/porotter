@@ -322,6 +322,10 @@ module RedisMapper
       def to_a
         range(0, -1)
       end
+
+      def first
+        restriction.from_redis(redis.lindex(root_key, 0))
+      end
     end
 
     class ModelArray < ModelStructureBase

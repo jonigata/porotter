@@ -298,7 +298,7 @@ module APIHelper
 
   def post_new_article(ribbon_id, content)
     ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
-    ribbon.editable_by?(@user) or halt 403
+    ribbon.writable_by?(@user) or halt 403
 
     @user.add_article(ribbon, :Tweet, content).store.id.to_s
   end

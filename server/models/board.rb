@@ -13,17 +13,18 @@ class Board < RedisMapper::PlatformModel
     end
   end
 
-  def import(label, read, write)
-    Ribbon.create(
-      self,
-      label,
-      read,
-      write,
-      self.store.read_spotter,
-      self.store.write_spotter,
-      self.store.edit_spotter).tap do |ribbon|
-      self.store.ribbons.push(ribbon)
-    end
+  def import_ribbon(ribbon)
+    self.store.ribbons.push(ribbon)
+  end
+
+  def make_ribbon(label)
+    timeline = Timeline.create(self.owner)
+    make_ribbon_aux(label, timeline, timeline)
+  end
+
+  def make_readonly_ribbon(label)
+    timeline = Timeline.create(self.owner)
+    make_ribbon_aux(label, timeline, nil)
   end
 
   def set_label(label)
@@ -47,6 +48,25 @@ class Board < RedisMapper::PlatformModel
   def parent_spotter
     raise
   end
+
+  def first_ribbon
+    return self.store.ribbons.first
+  end
+
+  private
+  def make_ribbon_aux(label, read_source, write_target)
+    Ribbon.create(
+      self,
+      label,
+      read_source,
+      write_target,
+      self.store.read_spotter,
+      self.store.write_spotter,
+      self.store.edit_spotter).tap do |ribbon|
+      self.store.ribbons.push(ribbon)
+    end
+  end
+
 
   delegate :owner                       do self.store end
   delegate :label                       do self.store end

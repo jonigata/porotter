@@ -7,7 +7,7 @@ class Board < RedisMapper::PlatformModel; end
 class Timeline < RedisMapper::PlatformModel; end
 
 class User < RedisMapper::PlatformModel
-  def self.create_global(password, global_timeline)
+  def self.create_global(password)
     # init_platformから１度だけ呼び出される
     username = 'global'
 
@@ -23,7 +23,10 @@ class User < RedisMapper::PlatformModel
         board = Board.create(user, 'global')
         user.store.boards[board_tag(user, "global")] = board
         
-        board.import('井戸端会議', global_timeline, nil)
+        ribbon = board.make_ribbon('井戸端会議')
+        ribbon.set_readability(:everyone, nil)
+        ribbon.set_writability(:everyone, nil)
+        ribbon.set_editability(:private_group, [])
       end
     end
 
@@ -52,16 +55,13 @@ class User < RedisMapper::PlatformModel
           user.store.boards[board_tag(user, "マイボード")] = board
           user.store.start_board = board
             
-          my_posts = Timeline.create(user)
-          user.store.my_posts = my_posts
+          global_ribbon = self.global_ribbon
 
-          favorites = Timeline.create(user)
-          user.store.favorites = favorites
-
-          global_ribbon = board.import(
-            '井戸端会議', global_timeline, global_timeline)
-          board.import('あなたの投稿', my_posts, nil)
-          board.import('お気に入り', favorites, nil)
+          board.import_ribbon(global_ribbon)
+          user.store.my_posts = 
+            board.make_readonly_ribbon('あなたの投稿').read_source
+          user.store.favorites = 
+            board.make_readonly_ribbon('お気に入り').read_source
 
           user.add_article(global_ribbon, :Tweet, "最初の投稿です")
 
@@ -83,9 +83,10 @@ class User < RedisMapper::PlatformModel
 
   def add_article(ribbon, type, content)
     # TODO: ribbonチェック
-    post = Post.create(self, type, content, true)
-    ribbon.add_article(post)
-    self.store.my_posts.add_post(post)
+    Post.create(self, type, content, true).tap do |post|
+      ribbon.add_article(post)
+      self.store.my_posts.add_post(post)
+    end
   end
 
   def add_comment(ribbon, parent, type, content)
@@ -129,8 +130,7 @@ class User < RedisMapper::PlatformModel
   end
 
   def add_ribbon(board, label)
-    timeline = Timeline.create(self)
-    board.import(label, timeline, timeline)
+    board.make_ribbon(label)
   end
 
   def remove_ribbon(board, ribbon)
@@ -167,6 +167,10 @@ class User < RedisMapper::PlatformModel
   end
 
   private
+  def self.global_ribbon
+    return self.store_class.find_by_username('global').find_board('global').first_ribbon
+  end
+
   def self.board_tag(user, label)
     "#{user.username}\n#{label}"
   end
@@ -178,6 +182,7 @@ class User < RedisMapper::PlatformModel
   index_accessor :username
 
   delegate :username        do self.store end
+  delegate :label           do self.store end
   delegate :start_board     do self.store end
 
   property              :username,          String
