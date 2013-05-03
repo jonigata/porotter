@@ -25,10 +25,11 @@
     <div class="hidden"
          id="basic-data"
          base-url="<%= base_url %>"
-         username="<%= @user.store.username %>"
-         refered-name="<%= refered.store.username %>"
-         owner-name="<%= current_board.store.owner.store.username %>"
-         board-name="<%= current_board.store.label %>">
+         username="<%= @user.username %>"
+         refered-name="<%= refered.username %>"
+         owner-name="<%= current_board.owner.username %>"
+         board-name="<%= current_board.label %>"
+         board-id="<%= current_board.store.id %>">
     </div>
   </body>
 </html>

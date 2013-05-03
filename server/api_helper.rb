@@ -281,7 +281,10 @@ module APIHelper
     target = User.attach_if_exist(target_id) or raise
     JSONP(
       target.store.boards.map do |boardname, board|
-        [board.store.id, board.store.label]
+        {
+          :boardId => board.store.id,
+          :label => board.store.label
+        }
       end)
   end
 

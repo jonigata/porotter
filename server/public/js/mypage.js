@@ -852,13 +852,21 @@ MyPage.joinBoard = function() {
 	var boardSelect = dialog.find("[name=\"board\"]");
 	var submit = dialog.find("[type=\"submit\"]");
 	var username = MyPage.getUserName();
+	var boardMenu = new $("#board-menu");
+	var boardExists = function(boardId) {
+		var options = boardMenu.find("[board-id=\"" + boardId + "\"]");
+		return 0 < options.length;
+	};
 	MyPage.clearSelect(userSelect);
 	MyPage.setupUserSelect(userSelect,function() {
 	},function(userId) {
 		MyPage.disable(submit);
 		MyPage.clearSelect(boardSelect);
 		if(userId == 0) return;
-		MyPage.setupBoardSelect(boardSelect,userId,true,function(boardId) {
+		MyPage.setupBoardSelect(boardSelect,userId,function(boardId) {
+			console.log(boardId);
+			return !boardExists(boardId);
+		},function(boardId) {
 			MyPage.setEnabled(submit,boardId != 0);
 		});
 	});
@@ -878,6 +886,7 @@ MyPage.joinRibbon = function(ownername) {
 	var boardSelect = dialog.find("[name=\"board\"]");
 	var ribbonSelect = dialog.find("[name=\"ribbon\"]");
 	var submit = dialog.find("[type=\"submit\"]");
+	var currentBoardId = MyPage.getBoardId();
 	MyPage.clearSelect(userSelect);
 	MyPage.setupUserSelect(userSelect,function() {
 	},function(userId) {
@@ -885,7 +894,9 @@ MyPage.joinRibbon = function(ownername) {
 		MyPage.clearSelect(boardSelect);
 		MyPage.clearSelect(ribbonSelect);
 		if(userId == 0) return;
-		MyPage.setupBoardSelect(boardSelect,userId,false,function(boardId) {
+		MyPage.setupBoardSelect(boardSelect,userId,function(boardId) {
+			return boardId != currentBoardId;
+		},function(boardId) {
 			MyPage.disable(submit);
 			MyPage.clearSelect(ribbonSelect);
 			if(boardId == 0) return;
@@ -1080,16 +1091,20 @@ MyPage.makeBoardUrl = function(boardname) {
 	return "" + base_url + "/" + username + "/" + boardname;
 }
 MyPage.getUserName = function() {
-	var data = new $("#basic-data");
-	return data.attr("username");
+	return MyPage.getBasicDataAttr("username");
 }
 MyPage.getOwnerName = function() {
-	var data = new $("#basic-data");
-	return data.attr("owner-name");
+	return MyPage.getBasicDataAttr("owner-name");
 }
 MyPage.getReferedName = function() {
+	return MyPage.getBasicDataAttr("refered-name");
+}
+MyPage.getBoardId = function() {
+	return Std.parseInt(MyPage.getBasicDataAttr("board-id"));
+}
+MyPage.getBasicDataAttr = function(a) {
 	var data = new $("#basic-data");
-	return data.attr("refered-name");
+	return data.attr(a);
 }
 MyPage.postForm = function(form,f) {
 	$.ajax({ url : form.attr("action"), method : form.attr("method"), data : form.serialize()}).done(function(data) {
@@ -1129,7 +1144,7 @@ MyPage.setupUserSelect = function(userSelect,onLoad,onChange) {
 		onLoad();
 	});
 }
-MyPage.setupBoardSelect = function(boardSelect,userId,disableDup,f) {
+MyPage.setupBoardSelect = function(boardSelect,userId,filter,onChange) {
 	$.ajax({ url : "/foo/ajax/v/boardlist?user=" + userId, method : "get"}).done(function(data) {
 		boardSelect.append("<option value=\"0\">ボードを選択</option>");
 		var boards = $.parseJSON(data);
@@ -1137,15 +1152,14 @@ MyPage.setupBoardSelect = function(boardSelect,userId,disableDup,f) {
 		while(_g < boards.length) {
 			var v = boards[_g];
 			++_g;
-			var boardId = v[0];
-			var boardlabel = v[1];
-			var disabled = "";
-			if(disableDup && 0 < new $("[board-id=\"" + boardId + "\"]").length) disabled = " disabled=\"disabled\"";
+			var boardId = v.boardId;
+			var boardlabel = v.label;
+			var disabled = filter(boardId)?"":" disabled=\"disabled\"";
 			boardSelect.append("<option value=\"" + boardId + "\"" + disabled + ">" + boardlabel + "</option>");
 		}
 		boardSelect.unbind("change");
 		boardSelect.change(function(e) {
-			f(MyPage.getSelected(e.target).val());
+			onChange(MyPage.getSelected(e.target).val());
 		});
 		MyPage.enable(boardSelect);
 	});

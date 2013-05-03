@@ -180,6 +180,12 @@ class MyPage {
 
         var username = getUserName();
 
+        var boardMenu = new JQuery('#board-menu');
+        var boardExists = function(boardId: Int): Bool {
+            var options = boardMenu.find(Std.format('[board-id="$boardId"]'));
+            return 0 < options.length;
+        };
+
         clearSelect(userSelect);
         setupUserSelect(
             userSelect,
@@ -192,7 +198,10 @@ class MyPage {
                 setupBoardSelect(
                     boardSelect,
                     userId,
-                    true,
+                    function(boardId: Int) {
+                        trace(boardId);
+                        return !boardExists(boardId);
+                    },
                     function(boardId: Int) {
                         setEnabled(submit, boardId != 0);
                     });
@@ -219,6 +228,8 @@ class MyPage {
         var ribbonSelect: Dynamic = dialog.find('[name="ribbon"]');
         var submit: Dynamic = dialog.find('[type="submit"]');
 
+        var currentBoardId = getBoardId();
+
         clearSelect(userSelect);
         setupUserSelect(
             userSelect,
@@ -232,7 +243,9 @@ class MyPage {
                 setupBoardSelect(
                     boardSelect,
                     userId,
-                    false,
+                    function(boardId: Int) {
+                        return boardId != currentBoardId;
+                    },
                     function(boardId: Int) {
                         disable(submit);
                         clearSelect(ribbonSelect);
@@ -537,18 +550,24 @@ class MyPage {
     }
 
     static private function getUserName(): String {
-        var data: Dynamic = new JQuery('#basic-data');
-        return data.attr('username');
+        return getBasicDataAttr('username');
     }
 
     static private function getOwnerName(): String {
-        var data: Dynamic = new JQuery('#basic-data');
-        return data.attr('owner-name');
+        return getBasicDataAttr('owner-name');
     }
 
     static private function getReferedName(): String {
+        return getBasicDataAttr('refered-name');
+    }
+
+    static private function getBoardId(): Int {
+        return Std.parseInt(getBasicDataAttr('board-id'));
+    }
+
+    static private function getBasicDataAttr(a): String {
         var data: Dynamic = new JQuery('#basic-data');
-        return data.attr('refered-name');
+        return data.attr(a);
     }
 
     static private function postForm(form: Dynamic, f: String->Void) {
@@ -612,7 +631,10 @@ class MyPage {
     }
 
     static private function setupBoardSelect(
-        boardSelect: Dynamic, userId: Int, disableDup: Bool, f: Int->Void) {
+        boardSelect: Dynamic,
+        userId: Int,
+        filter: Int->Bool,
+        onChange: Int->Void) {
         
         JQuery._static.ajax({
             url: Std.format("/foo/ajax/v/boardlist?user=${userId}"),
@@ -622,14 +644,11 @@ class MyPage {
                 
             var boards: Array<Dynamic> = JQuery._static.parseJSON(data);
             for(v in boards) {
-                var boardId: Int = v[0];
-                var boardlabel: String = v[1];
+                var boardId: Int = v.boardId;
+                var boardlabel: String = v.label;
 
-                var disabled: String = '';
-                if (disableDup && 
-                    0 < new JQuery(Std.format('[board-id="$boardId"]')).length) {
-                    disabled = ' disabled="disabled"';
-                }
+                var disabled: String =
+                    filter(boardId) ? '' : ' disabled="disabled"';
 
                 boardSelect.append(
                     Std.format('<option value="$boardId"$disabled>$boardlabel</option>'));
@@ -637,7 +656,7 @@ class MyPage {
             boardSelect.unbind('change');
             boardSelect.change(
                 function(e: Dynamic) {
-                    f(getSelected(e.target).val());
+                    onChange(getSelected(e.target).val());
                 });
             enable(boardSelect);
         });
