@@ -365,8 +365,8 @@ class MyPage {
     }
 
     static function doPost(obj: Dynamic) {
-        postForm(getForm(obj), function(s: String) {
-                redirect(makeBoardUrl(s));
+        postForm(getForm(obj), function(s: Dynamic) {
+                redirect(makeBoardUrl(s[0], s[1]));
             });
         return false;
     }
@@ -546,10 +546,9 @@ class MyPage {
 
     ////////////////////////////////////////////////////////////////
     // private functions
-    static private function makeBoardUrl(boardname): String {
+    static private function makeBoardUrl(username, boardname): String {
         var urlinfo: Dynamic = new JQuery('#basic-data');
         var base_url = urlinfo.attr('base-url');
-        var username = urlinfo.attr('username');
         return Std.format("$base_url/$username/$boardname");
     }
 
@@ -578,7 +577,8 @@ class MyPage {
         JQuery._static.ajax({
             url: form.attr('action'),
             method: form.attr('method'),
-            data: form.serialize()
+            data: form.serialize(),
+            dataType: 'jsonp'
         }).done(function(data) {
             f(data);
         });
@@ -677,8 +677,8 @@ class MyPage {
                 
             var ribbons: Array<Dynamic> = JQuery._static.parseJSON(data);
             for(v in ribbons) {
-                var ribbonId: Int = v[0];
-                var ribbonLabel: String = v[1];
+                var ribbonId: Int = v.ribbonId;
+                var ribbonLabel: String = v.label;
 
                 var disabled: String = '';
                 if (disableDup && 

@@ -280,7 +280,9 @@ module APIHelper
   def get_boardlist(target_id)
     target = User.attach_if_exist(target_id) or raise
     JSONP(
-      target.store.boards.map do |boardname, board|
+      target.store.boards.select do |boardname, board|
+        board.readable_by?(@user)
+      end.map do |boardname, board|
         {
           :boardId => board.store.id,
           :label => board.store.label
@@ -291,8 +293,13 @@ module APIHelper
   def get_ribbonlist(board_id)
     board = Board.attach_if_exist(board_id) or raise
     JSONP(
-      board.list_ribbons.map do |ribbon|
-        [ribbon.store.id, ribbon.label]
+      board.list_ribbons.select do |ribbon|
+        ribbon.readable_by?(@user)
+      end.map do |ribbon|
+        {
+          :ribbonId => ribbon.store.id,
+          :label => ribbon.label
+        }
       end)
   end
 
@@ -353,14 +360,14 @@ module APIHelper
   end
 
   def make_new_board(label)
-    @user.add_board(label)
-    label
+    board = @user.add_board(label)
+    return_board(board)
   end
 
   def join_board(board_id)
     board = Board.attach_if_exist(board_id) or raise
     @user.join_board(board)
-    board.store.label
+    return_board(board)
   end
 
   def make_new_ribbon(board_id, label)
@@ -368,7 +375,7 @@ module APIHelper
     board.editable_by?(@user) or halt 403
 
     @user.add_ribbon(board, label)
-    board.store.label
+    return_board(board)
   end
 
   def join_ribbon(board_id, ribbon_id)
@@ -377,7 +384,7 @@ module APIHelper
 
     ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
     @user.join_ribbon(board, ribbon)
-    board.store.label
+    return_board(board)
   end
 
   def restore_ribbon(board_id, ribbon_id)
@@ -386,7 +393,7 @@ module APIHelper
 
     ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
     @user.restore_ribbon(board, ribbon)
-    board.store.label
+    return_board(board)
   end
 
   def close_ribbon(board_id, ribbon_id)
@@ -395,7 +402,7 @@ module APIHelper
 
     ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
     @user.remove_ribbon(board, ribbon)
-    board.store.label
+    return_board(board)
   end
 
   def edit_permission(board_id, ribbon_id, permission)
@@ -404,7 +411,7 @@ module APIHelper
 
     ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
     @user.edit_permission(ribbon, permission)
-    ribbon.store.owner.store.label
+    return_board(board)
   end
 
   def do_ribbon_test(ribbon_id)
@@ -435,7 +442,7 @@ module APIHelper
     board.set_writability(write_permission, writable_group)
     board.set_editability(edit_permission, editable_group)
 
-    board.label
+    return_board(board)
   end
 
   def modify_ribbon_settings(
@@ -460,7 +467,11 @@ module APIHelper
     ribbon.set_writability(write_permission, writable_group)
     ribbon.set_editability(edit_permission, editable_group)
 
-    ribbon.owner.label
+    return_board(ribbon.owner)
+  end
+
+  def return_board(board)
+    JSONP([board.owner.username, board.label])
   end
 
   def convert_permission_group(permission, group)

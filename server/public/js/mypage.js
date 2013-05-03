@@ -962,7 +962,7 @@ MyPage.transferArticle = function(dragging,sourceRibbon) {
 }
 MyPage.doPost = function(obj) {
 	MyPage.postForm(MyPage.getForm(obj),function(s) {
-		MyPage.redirect(MyPage.makeBoardUrl(s));
+		MyPage.redirect(MyPage.makeBoardUrl(s[0],s[1]));
 	});
 	return false;
 }
@@ -1087,10 +1087,9 @@ MyPage.editGroup = function(data,cb) {
 	updateUI();
 	dialog.justModal({ overlayZIndex : 20050, modalZIndex : 20100});
 }
-MyPage.makeBoardUrl = function(boardname) {
+MyPage.makeBoardUrl = function(username,boardname) {
 	var urlinfo = new $("#basic-data");
 	var base_url = urlinfo.attr("base-url");
-	var username = urlinfo.attr("username");
 	return "" + base_url + "/" + username + "/" + boardname;
 }
 MyPage.getUserName = function() {
@@ -1110,7 +1109,7 @@ MyPage.getBasicDataAttr = function(a) {
 	return data.attr(a);
 }
 MyPage.postForm = function(form,f) {
-	$.ajax({ url : form.attr("action"), method : form.attr("method"), data : form.serialize()}).done(function(data) {
+	$.ajax({ url : form.attr("action"), method : form.attr("method"), data : form.serialize(), dataType : "jsonp"}).done(function(data) {
 		f(data);
 	});
 }
@@ -1175,8 +1174,8 @@ MyPage.setupRibbonSelect = function(ribbonSelect,boardId,disableDup,f) {
 		while(_g < ribbons.length) {
 			var v = ribbons[_g];
 			++_g;
-			var ribbonId = v[0];
-			var ribbonLabel = v[1];
+			var ribbonId = v.ribbonId;
+			var ribbonLabel = v.label;
 			var disabled = "";
 			if(disableDup && 0 < new $("[ribbon-id=\"" + ribbonId + "\"]").length) disabled = " disabled=\"disabled\"";
 			ribbonSelect.append("<option value=\"" + ribbonId + "\"" + disabled + ">" + ribbonLabel + "</option>");

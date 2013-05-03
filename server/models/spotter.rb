@@ -147,7 +147,7 @@ module SpotterHolder
     when :same_as_writable
       spotter.set_permission(self.write_spotter)
     when :same_as_board
-      soptter.set_permission(self.parent_spotter(spotter.type))
+      spotter.set_permission(self.parent_spotter(spotter.type))
     end    
   end
   
