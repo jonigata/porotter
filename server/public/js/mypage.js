@@ -1029,8 +1029,8 @@ MyPage.editGroup = function(groupId,cb) {
 		var selected = userSelect.find(":selected");
 		var userId = selected.attr("user-id");
 		var username = selected.attr("username");
-		var gravatar = selected.attr("icon");
-		var icon = "<img src=\"http://www.gravatar.com/avatar/" + gravatar + "?s=16&d=mm\" user-id=\"" + userId + "\" username=\"" + username + "\" alt=\"gravator\"/>";
+		var hash = selected.attr("icon");
+		var icon = MyPage.gravatar(hash,16);
 		memberList.append(icon);
 		updateUI();
 		enableSubmit();
@@ -1103,7 +1103,7 @@ MyPage.setupGroup = function(groupName,memberShow,groupId) {
 				var username = v[1];
 				var userLabel = v[2];
 				var userIcon = v[3];
-				memberList.append("<img src=\"http://www.gravatar.com/avatar/" + userIcon + "?s=16&d=mm\" user-id=\"" + userId + "\" username=\"" + username + "\" alt=\"gravator\"/>");
+				memberList.append(MyPage.gravatar(userIcon,16));
 			}
 		}
 	});
@@ -1230,7 +1230,7 @@ MyPage.fetchTimeline = function(oldTimeline,newestScore,oldestScore,version) {
 			while(_g1 < srcFavoredBy.length) {
 				var vv = srcFavoredBy[_g1];
 				++_g1;
-				favoredBy += "<img src=\"http://www.gravatar.com/avatar/" + vv + "?s=16&d=mm\" alt=\"gravator\"/>";
+				favoredBy += MyPage.gravatar(vv,16);
 			}
 			post.detail.favoredBy = favoredBy;
 			post.detail.elapsed = MyPage.elapsedInWords(post.detail.elapsed);
@@ -1464,7 +1464,7 @@ MyPage.updateDetail = function(postId,version) {
 			var _g1 = 0, _g = data.favoredBy.length;
 			while(_g1 < _g) {
 				var i1 = _g1++;
-				favoredBy += "<img src=\"http://www.gravatar.com/avatar/" + data.favoredBy[i1] + "?s=16&d=mm\" alt=\"gravator\"/>";
+				favoredBy += MyPage.gravatar(data.favoredBy[i1],16);
 			}
 			data.favoredBy = favoredBy;
 			var output = MyPage.applyTemplate("Detail",data);
@@ -1563,6 +1563,9 @@ MyPage.elapsedInWords = function(elapsedInSeconds) {
 	if(elapsedInMonths < 12) return "" + elapsedInMonths + "ヶ月前";
 	var elapsedInYears = Math.round(elapsedInMonths / 12);
 	return "" + elapsedInYears + "年前";
+}
+MyPage.gravatar = function(hash,size) {
+	return "<img src=\"http://www.gravatar.com/avatar/" + hash + "?s=" + size + "&d=mm\" alt=\"gravatar\"/>";
 }
 var Reflect = function() { }
 $hxClasses["Reflect"] = Reflect;

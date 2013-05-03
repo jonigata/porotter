@@ -183,6 +183,7 @@ class User < RedisMapper::PlatformModel
 
   delegate :username        do self.store end
   delegate :label           do self.store end
+  delegate :email           do self.store end
   delegate :start_board     do self.store end
 
   property              :username,          String

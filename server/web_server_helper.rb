@@ -28,7 +28,7 @@ module WebServerHelper
   end
 
   def gravatar(user, size)
-    "<img src=\"http://www.gravatar.com/avatar/#{Misc.gravatar(user.store.email)}?s=#{size}&d=mm\" alt=\"gravatar\"/>"
+    "<img src=\"http://www.gravatar.com/avatar/#{Misc.gravatar(user.email)}?s=#{size}&d=mm\" alt=\"#{user.label}\" username=\"#{user.username}\"/>"
   end
 
   def render_login_page(login_error, signup_error)

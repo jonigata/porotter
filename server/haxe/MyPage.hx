@@ -454,8 +454,8 @@ class MyPage {
                 var selected = userSelect.find(':selected');
                 var userId = selected.attr('user-id');
                 var username = selected.attr('username');
-                var gravatar = selected.attr('icon');
-                var icon: String = Std.format('<img src="http://www.gravatar.com/avatar/$gravatar?s=16&d=mm" user-id="$userId" username="$username" alt="gravator"/>');
+                var hash = selected.attr('icon');
+                var icon = gravatar(hash, 16);
                 memberList.append(icon);
                 updateUI();
                 enableSubmit();
@@ -552,7 +552,7 @@ class MyPage {
                     var username: String = v[1];
                     var userLabel: String = v[2];
                     var userIcon: String = v[3];
-                    memberList.append(Std.format('<img src="http://www.gravatar.com/avatar/$userIcon?s=16&d=mm" user-id="$userId" username="$username" alt="gravator"/>'));
+                    memberList.append(gravatar(userIcon, 16));
                 }
             }
         });
@@ -749,7 +749,7 @@ class MyPage {
                 var favoredBy = "";
                 var srcFavoredBy: Array<String> = post.detail.favoredBy;
                 for(vv in srcFavoredBy) {
-                    favoredBy += Std.format('<img src="http://www.gravatar.com/avatar/${vv}?s=16&d=mm" alt="gravator"/>');
+                    favoredBy += gravatar(vv, 16);
                 }
                 post.detail.favoredBy = favoredBy;
                 post.detail.elapsed = elapsedInWords(post.detail.elapsed);
@@ -1086,7 +1086,7 @@ class MyPage {
                 }).done(function(data: Dynamic) {
                     var favoredBy = "";
                     for(i in 0...data.favoredBy.length) {
-                        favoredBy += Std.format('<img src="http://www.gravatar.com/avatar/${data.favoredBy[i]}?s=16&d=mm" alt="gravator"/>');
+                        favoredBy += gravatar(data.favoredBy[i], 16);
                     }
                     data.favoredBy = favoredBy;
 
@@ -1218,6 +1218,10 @@ class MyPage {
 
         var elapsedInYears = Math.round(elapsedInMonths / 12);
         return Std.format("${elapsedInYears}年前");
+    }
+
+    static private function gravatar(hash: String, size: Int): String {
+        return Std.format('<img src="http://www.gravatar.com/avatar/${hash}?s=${size}&d=mm" alt="gravatar"/>');
     }
 }
 
