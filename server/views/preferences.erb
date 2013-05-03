@@ -35,7 +35,7 @@
         </form>
         <p>
           gravatar: 
-          <img src="http://www.gravatar.com/avatar/<%= Misc.gravator(@user.store.email) %>?s=40&d=mm" alt="gravator"/>
+          <%= gravatar(@user, 40) %>
         </p>
       </section>
     </div>

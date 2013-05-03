@@ -27,8 +27,8 @@ module WebServerHelper
     return nil
   end
 
-  def gravator(mail)
-    Misc.gravator(mail)
+  def gravatar(user, size)
+    "<img src=\"http://www.gravatar.com/avatar/#{Misc.gravatar(user.store.email)}?s=#{size}&d=mm\" alt=\"gravatar\"/>"
   end
 
   def render_login_page(login_error, signup_error)

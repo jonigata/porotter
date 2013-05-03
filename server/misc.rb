@@ -108,7 +108,7 @@ module Misc
     rand(max - min + 1) + min
   end
 
-  def self.gravator(email)
+  def self.gravatar(email)
     Digest::MD5.new.update((email || "").downcase.strip)
   end
 

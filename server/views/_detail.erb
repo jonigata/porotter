@@ -12,7 +12,7 @@
     </span>
     <span class="favored_by">
       <% post.store.favored_by.each do |src| %>
-      <img src="http://www.gravatar.com/avatar/<%= Misc.gravator(src.store.email) %>?s=16&d=mm" alt="gravator"/>
+      <%= gravatar(src, 16) %>
       <% end %>
     </span>
     <span class="favorite">

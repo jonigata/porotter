@@ -1,6 +1,6 @@
 <div class="group-members">
   <% group.list_members.each do |member| %>
   <%   p member %>
-  <img src="http://www.gravatar.com/avatar/<%= gravator(member.store.email) %>?s=16&d=mm" alt="gravator"/>
+  <%= gravatar(member, 16) %>
   <% end %>
 </div>

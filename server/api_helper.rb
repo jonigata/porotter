@@ -245,7 +245,7 @@ module APIHelper
         :nameEditable => group.name_editable,
         :members => 
         group.list_members.map do |user|
-          [user.store.id, user.store.username, user.store.label, Misc.gravator(user.store.email)]
+          [user.store.id, user.store.username, user.store.label, Misc.gravatar(user.store.email)]
         end
       })
   end
@@ -253,7 +253,7 @@ module APIHelper
   def get_userlist
     JSONP(
       World.singleton.list_users.map do |user|
-        [user.store.id, user.store.username, user.store.label, Misc.gravator(user.store.email)]
+        [user.store.id, user.store.username, user.store.label, Misc.gravatar(user.store.email)]
       end)
   end
 
@@ -268,7 +268,7 @@ module APIHelper
     group = Group.attach_if_exist(group_id) or raise
     JSONP(
       group.list_members.map do |user|
-        [user.store.id, user.store.username, user.store.label, Misc.gravator(user.store.email)]
+        [user.store.id, user.store.username, user.store.label, Misc.gravatar(user.store.email)]
       end)
   end
 
@@ -494,7 +494,7 @@ module APIHelper
       :authorLabel => author.store.label,
       :authorUsername => author.store.username,
       :favoredBy => post.store.favored_by.map {
-        |x| Misc.gravator(x.store.email)
+        |x| Misc.gravatar(x.store.email)
       },
       :userExists => (@user ? true : false),
       :postId => post.store.id,
@@ -522,7 +522,7 @@ module APIHelper
           :removed => removed,
           :postId => post.store.id,
           :postVersion => post.store.version,
-          :icon => Misc.gravator(post.store.author.store.email),
+          :icon => Misc.gravatar(post.store.author.store.email),
           :detail => detail,
           :commentsId => detail[:commentsId],
           :commentsLength => detail[:commentsLength],
