@@ -857,7 +857,8 @@ MyPage.joinBoard = function() {
 		var options = boardMenu.find("[board-id=\"" + boardId + "\"]");
 		return 0 < options.length;
 	};
-	MyPage.clearSelect(userSelect);
+	boardSelect.val(0);
+	MyPage.disable(boardSelect);
 	MyPage.setupUserSelect(userSelect,function() {
 		userSelect.find("option").each(function(i,elem) {
 			var e = new $(elem);
@@ -886,7 +887,10 @@ MyPage.joinRibbon = function(ownername) {
 	var ribbonSelect = dialog.find("[name=\"ribbon\"]");
 	var submit = dialog.find("[type=\"submit\"]");
 	var currentBoardId = MyPage.getBoardId();
-	MyPage.clearSelect(userSelect);
+	boardSelect.val(0);
+	MyPage.disable(boardSelect);
+	ribbonSelect.val(0);
+	MyPage.disable(ribbonSelect);
 	MyPage.setupUserSelect(userSelect,function() {
 	},function(userId) {
 		MyPage.disable(submit);

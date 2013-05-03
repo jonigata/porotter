@@ -186,7 +186,8 @@ class MyPage {
             return 0 < options.length;
         };
 
-        clearSelect(userSelect);
+        boardSelect.val(0);
+        disable(boardSelect);
         setupUserSelect(
             userSelect,
             function() {
@@ -229,7 +230,10 @@ class MyPage {
 
         var currentBoardId = getBoardId();
 
-        clearSelect(userSelect);
+        boardSelect.val(0);
+        disable(boardSelect);
+        ribbonSelect.val(0);
+        disable(ribbonSelect);
         setupUserSelect(
             userSelect,
             function() {
