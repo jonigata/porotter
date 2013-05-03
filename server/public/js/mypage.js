@@ -1527,7 +1527,7 @@ MyPage.clearSelect = function(select) {
 }
 MyPage.setupRadio = function(root,name) {
 	var radios = root.find("[name=\"" + name + "\"]");
-	var f = function() {
+	var onChange = function() {
 		radios.each(function(i,elem) {
 			var radio = new $(elem);
 			var label = radio.closest("label.radio");
@@ -1535,13 +1535,11 @@ MyPage.setupRadio = function(root,name) {
 			var checked = radio["is"](":checked");
 			MyPage.setEnabled(inputs,checked);
 		});
-	};
-	f();
-	radios.unbind("change");
-	radios.change(function() {
-		f();
 		return true;
-	});
+	};
+	onChange();
+	radios.unbind("change");
+	radios.change(onChange);
 }
 MyPage.elapsedInWords = function(elapsedInSeconds) {
 	if(elapsedInSeconds <= 10) return "今"; else if(elapsedInSeconds < 60) return "" + elapsedInSeconds + "秒前";

@@ -1164,7 +1164,7 @@ class MyPage {
     static private function setupRadio(root: Dynamic, name: String) {
         var radios: Dynamic = root.find(Std.format('[name="$name"]'));
 
-        var f = function() {
+        var onChange = function() {
             radios.each(
                 function(i: Int, elem: Dynamic) {
                     var radio: Dynamic = new JQuery(elem);
@@ -1174,11 +1174,12 @@ class MyPage {
                     var checked = radio.is(':checked');
                     setEnabled(inputs, checked);
                 });
+            return true;
         };
 
-        f();
+        onChange();
         radios.unbind('change');
-        radios.change(function() { f(); return true; });
+        radios.change(onChange);
     }
 
     static private function elapsedInWords(elapsedInSeconds: Int): String {
