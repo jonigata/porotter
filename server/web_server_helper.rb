@@ -69,6 +69,8 @@ module WebServerHelper
   end
 
   error do
-    'エラーが発生しました。 - ' + env['sinatra.error'].name
+    ('エラーが発生しました。 - ' + env['sinatra.error'].name).tap do |s|
+      puts s
+    end
   end
 end

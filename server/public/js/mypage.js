@@ -1027,9 +1027,10 @@ MyPage.updateGroupDisplay = function(display,data) {
 		while(_g < members.length) {
 			var v = members[_g];
 			++_g;
-			display.append(MyPage.gravatar(v.gravatar,16,v.userId,v.username));
+			display.append(MyPage.gravatar(v.gravatar,16,v.userId,v.username,v.label));
 		}
 	}
+	display.find("img").tooltip();
 	var memberSet = [];
 	var _g = 0;
 	while(_g < members.length) {
@@ -1584,10 +1585,11 @@ MyPage.elapsedInWords = function(elapsedInSeconds) {
 	var elapsedInYears = Math.round(elapsedInMonths / 12);
 	return "" + elapsedInYears + "年前";
 }
-MyPage.gravatar = function(hash,size,userId,username) {
+MyPage.gravatar = function(hash,size,userId,username,label) {
+	if(label == null) label = "";
 	if(username == null) username = "";
 	if(userId == null) userId = 0;
-	return "<img src=\"http://www.gravatar.com/avatar/" + hash + "?s=" + size + "&d=mm\" alt=\"gravatar\" user-id=\"" + userId + "\" username=\"" + username + "\"/>";
+	return "<img src=\"http://www.gravatar.com/avatar/" + hash + "?s=" + size + "&d=mm\" alt=\"gravatar\" user-id=\"" + userId + "\" username=\"" + username + "\" title=\"" + label + "\" data-toggle=\"tooltip\"/>";
 }
 var Reflect = function() { }
 $hxClasses["Reflect"] = Reflect;

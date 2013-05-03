@@ -459,9 +459,11 @@ class MyPage {
             display.html('<p>ユーザが含まれていません</p>');
         } else {
             for(v in members) {
-                display.append(gravatar(v.gravatar, 16, v.userId, v.username));
+                display.append(
+                    gravatar(v.gravatar, 16, v.userId, v.username, v.label));
             }
         }
+        display.find('img').tooltip();
 
         // member-setを作成
         var memberSet: Array<Int> = [];
@@ -1279,8 +1281,12 @@ class MyPage {
     }
 
     static private function gravatar(
-        hash: String, size: Int, userId: Int=0, username: String=""): String {
-        return Std.format('<img src="http://www.gravatar.com/avatar/${hash}?s=${size}&d=mm" alt="gravatar" user-id="$userId" username="$username"/>');
+        hash: String,
+        size: Int,
+        userId: Int=0,
+        username: String="",
+        label: String=""): String {
+        return Std.format('<img src="http://www.gravatar.com/avatar/${hash}?s=${size}&d=mm" alt="gravatar" user-id="$userId" username="$username" title="$label" data-toggle="tooltip"/>');
     }
 }
 
