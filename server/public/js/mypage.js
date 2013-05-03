@@ -1533,15 +1533,7 @@ MyPage.setupRadio = function(root,name) {
 			var label = radio.closest("label.radio");
 			var inputs = label.find("input:not(:radio),select");
 			var checked = radio["is"](":checked");
-			if(checked) {
-				console.log("enable");
-				console.log(inputs.get());
-				inputs.removeAttr("disabled");
-			} else {
-				console.log("disable");
-				console.log(inputs.get());
-				inputs.attr("disabled","disabled");
-			}
+			MyPage.setEnabled(inputs,checked);
 		});
 	};
 	f();

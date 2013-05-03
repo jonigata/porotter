@@ -1172,15 +1172,7 @@ class MyPage {
                     var inputs: Dynamic = label.find(
                         'input:not(:radio),select');
                     var checked = radio.is(':checked');
-                    if (checked) {
-                        trace('enable');
-                        trace(inputs.get());
-                        inputs.removeAttr('disabled');
-                    } else {
-                        trace('disable');
-                        trace(inputs.get());
-                        inputs.attr('disabled', 'disabled');
-                    }
+                    setEnabled(inputs, checked);
                 });
         };
 
