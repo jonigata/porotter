@@ -1533,13 +1533,33 @@ MyPage.setupRadio = function(root,name) {
 			var label = radio.closest("label.radio");
 			var inputs = label.find("input:not(:radio),select");
 			var checked = radio["is"](":checked");
-			MyPage.setEnabled(inputs,checked);
+			MyPage.setStatus(inputs,"loaded",true);
+			MyPage.setStatus(inputs,"active",checked);
+			MyPage.updateEnabled(inputs,["active","loaded"]);
 		});
 		return true;
 	};
 	onChange();
 	radios.unbind("change");
 	radios.change(onChange);
+}
+MyPage.setStatus = function(e,s,f) {
+	if(f) e.addClass(s); else e.removeClass(s);
+}
+MyPage.updateEnabled = function(all,statuses) {
+	all.each(function(i,elem) {
+		var e = new $(elem);
+		var _g = 0;
+		while(_g < statuses.length) {
+			var s = statuses[_g];
+			++_g;
+			if(!e.hasClass(s)) {
+				MyPage.disable(e);
+				return;
+			}
+		}
+		MyPage.enable(e);
+	});
 }
 MyPage.elapsedInWords = function(elapsedInSeconds) {
 	if(elapsedInSeconds <= 10) return "今"; else if(elapsedInSeconds < 60) return "" + elapsedInSeconds + "秒前";

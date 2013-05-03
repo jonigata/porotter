@@ -1172,7 +1172,9 @@ class MyPage {
                     var inputs: Dynamic = label.find(
                         'input:not(:radio),select');
                     var checked = radio.is(':checked');
-                    setEnabled(inputs, checked);
+                    setStatus(inputs, 'loaded', true);
+                    setStatus(inputs, 'active', checked);
+                    updateEnabled(inputs, ['active', 'loaded']);
                 });
             return true;
         };
@@ -1180,6 +1182,30 @@ class MyPage {
         onChange();
         radios.unbind('change');
         radios.change(onChange);
+    }
+
+    static private function setStatus(e: Dynamic, s: String, f: Bool) {
+        if(f) {
+            e.addClass(s);
+        } else {
+            e.removeClass(s);
+        }
+    }
+
+    static private function updateEnabled(
+        all: Dynamic, statuses: Array<String>) {
+        // statusがすべてonならenable, さもなければdisable
+        all.each(
+            function(i: Int, elem: Dynamic) {
+                var e: Dynamic = new JQuery(elem);
+                for(s in statuses) {
+                    if (!e.hasClass(s)) {
+                        disable(e);
+                        return;
+                    }
+                }
+                enable(e);
+            });
     }
 
     static private function elapsedInWords(elapsedInSeconds: Int): String {
