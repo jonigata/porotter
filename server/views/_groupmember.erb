@@ -1,5 +1,10 @@
-<div class="group-members">
-  <% group.list_members.each do |member| %>
-  <%= gravatar(member, 16) %>
+<div class="group-members" id="<%= item_name%>-group-display">
+  <% members = group.list_members %>
+  <% if members.empty? %>
+  <p>ユーザが含まれていません</p>
+  <% else %>
+  <%   members.each do |member| %>
+  <%=    gravatar(member, 16) %>
+  <%   end %>
   <% end %>
 </div>

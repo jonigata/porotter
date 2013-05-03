@@ -183,7 +183,7 @@ class MyPage {
         clearSelect(userSelect);
         setupUserSelect(
             userSelect,
-            function(s: String) { return s != getUserName(); },
+            function() {},
             function(userId: Int) {
                 disable(submit);
                 clearSelect(boardSelect);
@@ -197,6 +197,13 @@ class MyPage {
                         setEnabled(submit, boardId != 0);
                     });
             });
+        userSelect.find('option').each(
+            function(i: Int,elem: Dynamic) {
+                var e = new JQuery(elem);
+                setEnabled(e, e.attr('username') != getUserName());
+            });
+
+
         dialog.justModal();
     }
 
@@ -215,7 +222,7 @@ class MyPage {
         clearSelect(userSelect);
         setupUserSelect(
             userSelect,
-            function(s) { return true; },
+            function() {},
             function(userId: Int) {
                 disable(submit);
                 clearSelect(boardSelect);
@@ -361,6 +368,7 @@ class MyPage {
 
     static function editBoardSettings() {
         var dialog: Dynamic = new JQuery('#board-settings');
+
         setupRadio(dialog, "read_permission");
         setupRadio(dialog, "write_permission");
         setupRadio(dialog, "edit_permission");
@@ -373,92 +381,145 @@ class MyPage {
     }
 
     static function setupEditGroupButton(button: Dynamic) {
-        button.unbind('click');
-        button.click(
-            function(e: Dynamic) {
-                var button: Dynamic = new JQuery(e.target);
-                var groupId = Std.parseInt(button.attr('group-id'));
-                var storeName = button.attr('store');
-                var filter = Std.format('[name="$storeName"]');
-                var store: Dynamic = button.closest('form').find(filter);
-                editGroup(
-                    groupId,
-                    function(v: Array<Int>){
-                        store.attr('value', JSON.stringify(v));
-                        trace(store.attr('value'));
-                    });
-                return false;
-            });
+        updateStatus(button, ['active', 'loaded'], 'loaded', false);
+
+        var groupId = Std.parseInt(button.attr('group-id'));
+        var storeName = button.attr('store');
+        var displayId = button.attr('display');
+        var form: Dynamic = button.closest('form');
+        var store: Dynamic = form.find(Std.format('[name="$storeName"]'));
+        var display: Dynamic = form.find(Std.format('#$displayId'));
+        
+        JQuery._static.ajax({
+            url: "/foo/ajax/v/group",
+            method: "get",
+            data: {
+                group: groupId,
+            },
+            dataType: 'jsonp'
+        }).done(function(data) {
+            updateStatus(button, ['active', 'loaded'], 'loaded', true);
+
+            updateGroupStore(store, data);
+            updateGroupDisplay(display, data);
+
+            button.unbind('click');
+            button.click(
+                function(e: Dynamic) {
+                    editGroup(
+                        data,
+                        function(data: Dynamic) {
+                            updateGroupStore(store, data);
+                            updateGroupDisplay(display, data);
+                        });
+                    return false;
+                });
+         });
     }
 
-    static function editGroup(groupId: Int, cb: Array<Int>->Void) {
-        var dialog: Dynamic = new JQuery('#edit-group');
-        var groupName: Dynamic = dialog.find('[name="group_name"]');
-        var userSelect: Dynamic = dialog.find('[name="user"]');
-        var addButton: Dynamic = dialog.find('#add-member');
-        var memberShow: Dynamic = dialog.find('#group-members');
-        var memberList: Dynamic = memberShow.find('.group-members');
-        var submit: Dynamic = dialog.find('input:submit');
+    static private function updateGroupStore(store: Dynamic, data: Dynamic) {
+        // <input type="hidden" name="readable_store">の修正
+        // ex: store.attr('value',"[1,7,9,36]")
         var memberSet: Array<Int> = [];
+        var members: Array<Dynamic> = data.members;
+        for(v in members) {
+            memberSet.push(v.userId);
+        }
+        trace(memberSet);
+        memberSet.sort(function(a: Int, b: Int) { return a - b; });
+        trace(memberSet);
 
+        store.attr('value', JSON.stringify(memberSet));
+    }
+
+    static private function updateGroupDisplay(
+        display: Dynamic, data: Dynamic) {
+
+        var members: Array<Dynamic> = data.members;
+
+        display.html('');
+        if (members.length == 0) {
+            display.html('<p>ユーザが含まれていません</p>');
+        } else {
+            for(v in members) {
+                display.append(gravatar(v.gravatar, 16, v.userId, v.username));
+            }
+        }
+
+        // member-setを作成
+        var memberSet: Array<Int> = [];
+        for(v in members) {
+            memberSet.push(v.userId);
+        }
+        memberSet.sort(function(a: Int, b: Int) { return a - b; });
+
+        display.attr('member-set', JSON.stringify(memberSet));
+    }
+
+    static function editGroup(data: Dynamic, cb: Dynamic->Void) {
+        var dialog: Dynamic = new JQuery('#edit-group');
+        var display: Dynamic = dialog.find('.group-members');
+
+        // 完了ボタン
+        var submit: Dynamic = dialog.find('input:submit');
         submit.unbind('click');
         submit.click(
             function() {
-                cb(memberSet);
+                cb(data);
                 dialog.close();
                 return false;
             });
 
-        setupGroup(groupName, memberShow, groupId);
+        // メンバー一覧
+        updateGroupDisplay(display, data);
+        var oldMemberSet = display.attr('member-set');
 
+        // グループ名
+        var groupName: Dynamic = dialog.find('[name="group_name"]');
+        groupName.attr('value', data.name);
+        setEnabled(groupName, data.nameEditable);
+
+        // 追加ユーザセレクト
+        var userSelect: Dynamic = dialog.find('[name="user"]');
         var updateUI = function() {
-            disable(addButton);
-
-            // TODO: ajax起動する必要ない
-            clearSelect(userSelect);
-            setupUserSelect(
-                userSelect,
-                function(username: String) {
-                    var filter = Std.format('[username="$username"]');
-                    return memberList.find(filter).length == 0;
-                },
-                function(userId: Int) {
-                    setEnabled(addButton, userId != 0);
-                });
-        };
-
-        var enableSubmit = function() {
-            var beforeMemberSet: String = memberList.attr('member-set');
-            trace('beforeMemberSet');
-            trace(beforeMemberSet);
-
-            memberSet = [];
-                
-            memberList.find('img').each(
-                function(i: Int, elem: Dynamic) {
+            userSelect.val(0);
+            userSelect.find('option').each(
+                function(i: Int,elem: Dynamic) {
                     var e = new JQuery(elem);
-                    memberSet.push(Std.parseInt(e.attr('user-id')));
+                    var userId = e.attr('user-id');
+                    var filter = Std.format('[user-id="$userId"]');
+                    setEnabled(e, display.find(filter).length == 0);
                 });
-            memberSet.sort(function(a: Int, b: Int) { return a - b; });
-            var afterMemberSet: String = JSON.stringify(memberSet);
-            trace('afterMemberSet');
-            trace(afterMemberSet);
-
-            setEnabled(submit, beforeMemberSet != afterMemberSet);
         };
-            
-        // imgの追加をsetupGroupと両方でやってて冗長
+
+        // 追加ユーザボタン
+        var addButton: Dynamic = dialog.find('#add-member');
+        disable(addButton);
+        setupUserSelect(
+            userSelect,
+            function() {
+                updateUI();
+            },
+            function(userId: Int) {
+                setEnabled(addButton, userId != 0);
+            });
+
         addButton.unbind('click');
         addButton.click(function() {
-                memberShow.find('p').html('');
-                var selected = userSelect.find(':selected');
-                var userId = selected.attr('user-id');
-                var username = selected.attr('username');
-                var hash = selected.attr('icon');
-                var icon = gravatar(hash, 16);
-                memberList.append(icon);
+                display.find('p').remove('');
+                var s = userSelect.find(':selected');
+                var member = {
+                  userId : Std.parseInt(s.attr('user-id')),
+                  username : s.attr('username'),
+                  label : s.attr('label'),
+                  gravatar : s.attr('icon')
+                };
+                data.members.push(member);
+
+                updateGroupDisplay(display, data);
                 updateUI();
-                enableSubmit();
+
+                setEnabled(submit, oldMemberSet != display.attr('member-set'));
             });
 
         updateUI();
@@ -516,53 +577,12 @@ class MyPage {
         }
     }
     
-    static private function setupGroup(
-        groupName: Dynamic, memberShow: Dynamic, groupId: Int) {
-        JQuery._static.ajax({
-            url: "/foo/ajax/v/group",
-            method: "get",
-            data: {
-                group: groupId,
-            }
-        }).done(function(data) {
-            var noMembers: Dynamic = memberShow.find('p');
-            var memberList: Dynamic = memberShow.find('.group-members');
-            var jsonData: Dynamic = JQuery._static.parseJSON(data);
-            trace(jsonData);
-            var members: Array<Array<String>> = jsonData.members;
-
-            groupName.val(jsonData.name);
-            setEnabled(groupName, jsonData.nameEditable);
-
-            memberList.html('');
-
-            var memberSet: Array<Int> = [];
-            for(v in members) { memberSet.push(Std.parseInt(v[0])); }
-            memberSet.sort(function(a: Int, b: Int) { return a - b; });
-            var memberSetString: String = JSON.stringify(memberSet);
-            trace(memberSetString);
-            memberList.attr('member-set', memberSetString);
-
-            if (members.length == 0) {
-                noMembers.html('ユーザが含まれていません');
-            } else {
-                noMembers.html('');
-                for(v in members) {
-                    var userId: Int = Std.parseInt(v[0]);
-                    var username: String = v[1];
-                    var userLabel: String = v[2];
-                    var userIcon: String = v[3];
-                    memberList.append(gravatar(userIcon, 16));
-                }
-            }
-        });
-    }
-
     static private function setupUserSelect(
         userSelect: Dynamic,
-        enabler: String->Bool,
-        f: Int->Void) {
+        onLoad: Void->Void,
+        onChange: Int->Void) {
 
+        disable(userSelect);
         clearSelect(userSelect);
         JQuery._static.ajax({
             url: "/foo/ajax/v/userlist",
@@ -574,21 +594,20 @@ class MyPage {
             for(v in users) {
                 var userId: Int = v[0];
                 var username: String = v[1];
-                var userlabel: String = v[2];
+                var userLabel: String = v[2];
                 var userIcon: String = v[3];
-                if (!enabler(username)) {
-                    continue;
-                }
 
                 userSelect.append(
-                    Std.format('<option value="$userId" user-id="$userId" username="$username" icon="$userIcon">$username - $userlabel</option>'));
+                    Std.format('<option value="$userId" user-id="$userId" username="$username" label="$userLabel" icon="$userIcon">$username - $userLabel</option>'));
             }
             userSelect.unbind('change');
             userSelect.change(
                 function(e: Dynamic) {
-                    f(getSelected(e.target).val());
+                    onChange(getSelected(e.target).val());
                 });
             enable(userSelect);
+
+            onLoad();
         });
     }
 
@@ -1060,14 +1079,14 @@ class MyPage {
         }
     }
 
-    static private function updateTimeline(timelineId: Int, version: Int) {
+    static private function loadTimeline(timelineId: Int, version: Int) {
         new JQuery(Std.format('[timeline-id="$timelineId"]')).each(
             function(i: Int, elem: Dynamic) {
                 fillNewerTimeline(new JQuery(elem), version);
             });
     }
 
-    static function updateDetail(postId: Int, version: Int) {
+    static function loadDetail(postId: Int, version: Int) {
         var posts = new JQuery(Std.format('[post-id="$postId"]'));
         posts.each(
             function(i: Int, e: Dynamic) {
@@ -1112,10 +1131,10 @@ class MyPage {
             subscribePosts();
         });
         io.on("watch-timeline", function(data: Dynamic<Int>) {
-            updateTimeline(data.timeline, data.version);
+            loadTimeline(data.timeline, data.version);
         });
         io.on("watch-post", function(data: Dynamic<Int>) {
-            updateDetail(data.post, data.version);
+            loadDetail(data.post, data.version);
         });
     }
 
@@ -1172,9 +1191,8 @@ class MyPage {
                     var inputs: Dynamic = label.find(
                         'input:not(:radio),select');
                     var checked = radio.is(':checked');
-                    setStatus(inputs, 'loaded', true);
-                    setStatus(inputs, 'active', checked);
-                    updateEnabled(inputs, ['active', 'loaded']);
+                    updateStatus(
+                        inputs, ['active', 'loaded'], 'active', checked);
                 });
             return true;
         };
@@ -1184,16 +1202,14 @@ class MyPage {
         radios.change(onChange);
     }
 
-    static private function setStatus(e: Dynamic, s: String, f: Bool) {
+    static private function updateStatus(
+        all: Dynamic, statuses: Array<String>, s: String, f: Bool) {
         if(f) {
-            e.addClass(s);
+            all.addClass(s);
         } else {
-            e.removeClass(s);
+            all.removeClass(s);
         }
-    }
 
-    static private function updateEnabled(
-        all: Dynamic, statuses: Array<String>) {
         // statusがすべてonならenable, さもなければdisable
         all.each(
             function(i: Int, elem: Dynamic) {
@@ -1239,8 +1255,9 @@ class MyPage {
         return Std.format("${elapsedInYears}年前");
     }
 
-    static private function gravatar(hash: String, size: Int): String {
-        return Std.format('<img src="http://www.gravatar.com/avatar/${hash}?s=${size}&d=mm" alt="gravatar"/>');
+    static private function gravatar(
+        hash: String, size: Int, userId: Int=0, username: String=""): String {
+        return Std.format('<img src="http://www.gravatar.com/avatar/${hash}?s=${size}&d=mm" alt="gravatar" user-id="$userId" username="$username"/>');
     }
 }
 

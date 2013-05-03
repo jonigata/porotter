@@ -24,12 +24,14 @@
        value="private_group"
        <%= checked[:private_group] %>>
     特有グループ
-    <%= erb :_groupmember, :locals => { :group => group } %>
+    <div class="group-members" id="<%= item_name%>-group-display">
+    </div>
     <input
        id="<%= group_edit_button_id %>"
        group-id="<%= group.store.id %>"
        class="btn btn-info btn-mini"
        store="<%= store_name %>"
+       display="<%= item_name %>-group-display"
        type="button"
        value="編集">
   </label>

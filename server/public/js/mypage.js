@@ -853,8 +853,7 @@ MyPage.joinBoard = function() {
 	var submit = dialog.find("[type=\"submit\"]");
 	var username = MyPage.getUserName();
 	MyPage.clearSelect(userSelect);
-	MyPage.setupUserSelect(userSelect,function(s) {
-		return s != MyPage.getUserName();
+	MyPage.setupUserSelect(userSelect,function() {
 	},function(userId) {
 		MyPage.disable(submit);
 		MyPage.clearSelect(boardSelect);
@@ -862,6 +861,10 @@ MyPage.joinBoard = function() {
 		MyPage.setupBoardSelect(boardSelect,userId,true,function(boardId) {
 			MyPage.setEnabled(submit,boardId != 0);
 		});
+	});
+	userSelect.find("option").each(function(i,elem) {
+		var e = new $(elem);
+		MyPage.setEnabled(e,e.attr("username") != MyPage.getUserName());
 	});
 	dialog.justModal();
 }
@@ -876,8 +879,7 @@ MyPage.joinRibbon = function(ownername) {
 	var ribbonSelect = dialog.find("[name=\"ribbon\"]");
 	var submit = dialog.find("[type=\"submit\"]");
 	MyPage.clearSelect(userSelect);
-	MyPage.setupUserSelect(userSelect,function(s) {
-		return true;
+	MyPage.setupUserSelect(userSelect,function() {
 	},function(userId) {
 		MyPage.disable(submit);
 		MyPage.clearSelect(boardSelect);
@@ -966,74 +968,107 @@ MyPage.editBoardSettings = function() {
 	dialog.justModal();
 }
 MyPage.setupEditGroupButton = function(button) {
-	button.unbind("click");
-	button.click(function(e) {
-		var button1 = new $(e.target);
-		var groupId = Std.parseInt(button1.attr("group-id"));
-		var storeName = button1.attr("store");
-		var filter = "[name=\"" + storeName + "\"]";
-		var store = button1.closest("form").find(filter);
-		MyPage.editGroup(groupId,function(v) {
-			store.attr("value",JSON.stringify(v));
-			console.log(store.attr("value"));
+	MyPage.updateStatus(button,["active","loaded"],"loaded",false);
+	var groupId = Std.parseInt(button.attr("group-id"));
+	var storeName = button.attr("store");
+	var displayId = button.attr("display");
+	var form = button.closest("form");
+	var store = form.find("[name=\"" + storeName + "\"]");
+	var display = form.find("#" + displayId);
+	$.ajax({ url : "/foo/ajax/v/group", method : "get", data : { group : groupId}, dataType : "jsonp"}).done(function(data) {
+		MyPage.updateStatus(button,["active","loaded"],"loaded",true);
+		MyPage.updateGroupStore(store,data);
+		MyPage.updateGroupDisplay(display,data);
+		button.unbind("click");
+		button.click(function(e) {
+			MyPage.editGroup(data,function(data1) {
+				MyPage.updateGroupStore(store,data1);
+				MyPage.updateGroupDisplay(display,data1);
+			});
+			return false;
 		});
-		return false;
 	});
 }
-MyPage.editGroup = function(groupId,cb) {
-	var dialog = new $("#edit-group");
-	var groupName = dialog.find("[name=\"group_name\"]");
-	var userSelect = dialog.find("[name=\"user\"]");
-	var addButton = dialog.find("#add-member");
-	var memberShow = dialog.find("#group-members");
-	var memberList = memberShow.find(".group-members");
-	var submit = dialog.find("input:submit");
+MyPage.updateGroupStore = function(store,data) {
 	var memberSet = [];
+	var members = data.members;
+	var _g = 0;
+	while(_g < members.length) {
+		var v = members[_g];
+		++_g;
+		memberSet.push(v.userId);
+	}
+	console.log(memberSet);
+	memberSet.sort(function(a,b) {
+		return a - b;
+	});
+	console.log(memberSet);
+	store.attr("value",JSON.stringify(memberSet));
+}
+MyPage.updateGroupDisplay = function(display,data) {
+	var members = data.members;
+	display.html("");
+	if(members.length == 0) display.html("<p>ユーザが含まれていません</p>"); else {
+		var _g = 0;
+		while(_g < members.length) {
+			var v = members[_g];
+			++_g;
+			display.append(MyPage.gravatar(v.gravatar,16,v.userId,v.username));
+		}
+	}
+	var memberSet = [];
+	var _g = 0;
+	while(_g < members.length) {
+		var v = members[_g];
+		++_g;
+		memberSet.push(v.userId);
+	}
+	memberSet.sort(function(a,b) {
+		return a - b;
+	});
+	display.attr("member-set",JSON.stringify(memberSet));
+}
+MyPage.editGroup = function(data,cb) {
+	var dialog = new $("#edit-group");
+	var display = dialog.find(".group-members");
+	var submit = dialog.find("input:submit");
 	submit.unbind("click");
 	submit.click(function() {
-		cb(memberSet);
+		cb(data);
 		dialog.close();
 		return false;
 	});
-	MyPage.setupGroup(groupName,memberShow,groupId);
+	MyPage.updateGroupDisplay(display,data);
+	var oldMemberSet = display.attr("member-set");
+	var groupName = dialog.find("[name=\"group_name\"]");
+	groupName.attr("value",data.name);
+	MyPage.setEnabled(groupName,data.nameEditable);
+	var userSelect = dialog.find("[name=\"user\"]");
 	var updateUI = function() {
-		MyPage.disable(addButton);
-		MyPage.clearSelect(userSelect);
-		MyPage.setupUserSelect(userSelect,function(username) {
-			var filter = "[username=\"" + username + "\"]";
-			return memberList.find(filter).length == 0;
-		},function(userId) {
-			MyPage.setEnabled(addButton,userId != 0);
-		});
-	};
-	var enableSubmit = function() {
-		var beforeMemberSet = memberList.attr("member-set");
-		console.log("beforeMemberSet");
-		console.log(beforeMemberSet);
-		memberSet = [];
-		memberList.find("img").each(function(i,elem) {
+		userSelect.val(0);
+		userSelect.find("option").each(function(i,elem) {
 			var e = new $(elem);
-			memberSet.push(Std.parseInt(e.attr("user-id")));
+			var userId = e.attr("user-id");
+			var filter = "[user-id=\"" + userId + "\"]";
+			MyPage.setEnabled(e,display.find(filter).length == 0);
 		});
-		memberSet.sort(function(a,b) {
-			return a - b;
-		});
-		var afterMemberSet = JSON.stringify(memberSet);
-		console.log("afterMemberSet");
-		console.log(afterMemberSet);
-		MyPage.setEnabled(submit,beforeMemberSet != afterMemberSet);
 	};
+	var addButton = dialog.find("#add-member");
+	MyPage.disable(addButton);
+	MyPage.setupUserSelect(userSelect,function() {
+		updateUI();
+	},function(userId) {
+		MyPage.setEnabled(addButton,userId != 0);
+	});
 	addButton.unbind("click");
 	addButton.click(function() {
-		memberShow.find("p").html("");
-		var selected = userSelect.find(":selected");
-		var userId = selected.attr("user-id");
-		var username = selected.attr("username");
-		var hash = selected.attr("icon");
-		var icon = MyPage.gravatar(hash,16);
-		memberList.append(icon);
+		display.find("p").remove("");
+		var s = userSelect.find(":selected");
+		var member = { userId : Std.parseInt(s.attr("user-id")), username : s.attr("username"), label : s.attr("label"), gravatar : s.attr("icon")};
+		data.members.push(member);
+		MyPage.updateGroupDisplay(display,data);
 		updateUI();
-		enableSubmit();
+		MyPage.setEnabled(submit,oldMemberSet != display.attr("member-set"));
 	});
 	updateUI();
 	dialog.justModal({ overlayZIndex : 20050, modalZIndex : 20100});
@@ -1070,45 +1105,8 @@ MyPage.disable = function(e) {
 MyPage.setEnabled = function(e,f) {
 	if(f) MyPage.enable(e); else MyPage.disable(e);
 }
-MyPage.setupGroup = function(groupName,memberShow,groupId) {
-	$.ajax({ url : "/foo/ajax/v/group", method : "get", data : { group : groupId}}).done(function(data) {
-		var noMembers = memberShow.find("p");
-		var memberList = memberShow.find(".group-members");
-		var jsonData = $.parseJSON(data);
-		console.log(jsonData);
-		var members = jsonData.members;
-		groupName.val(jsonData.name);
-		MyPage.setEnabled(groupName,jsonData.nameEditable);
-		memberList.html("");
-		var memberSet = [];
-		var _g = 0;
-		while(_g < members.length) {
-			var v = members[_g];
-			++_g;
-			memberSet.push(Std.parseInt(v[0]));
-		}
-		memberSet.sort(function(a,b) {
-			return a - b;
-		});
-		var memberSetString = JSON.stringify(memberSet);
-		console.log(memberSetString);
-		memberList.attr("member-set",memberSetString);
-		if(members.length == 0) noMembers.html("ユーザが含まれていません"); else {
-			noMembers.html("");
-			var _g = 0;
-			while(_g < members.length) {
-				var v = members[_g];
-				++_g;
-				var userId = Std.parseInt(v[0]);
-				var username = v[1];
-				var userLabel = v[2];
-				var userIcon = v[3];
-				memberList.append(MyPage.gravatar(userIcon,16));
-			}
-		}
-	});
-}
-MyPage.setupUserSelect = function(userSelect,enabler,f) {
+MyPage.setupUserSelect = function(userSelect,onLoad,onChange) {
+	MyPage.disable(userSelect);
 	MyPage.clearSelect(userSelect);
 	$.ajax({ url : "/foo/ajax/v/userlist", method : "get"}).done(function(data) {
 		userSelect.append("<option value=\"0\">所有者を選択</option>");
@@ -1119,16 +1117,16 @@ MyPage.setupUserSelect = function(userSelect,enabler,f) {
 			++_g;
 			var userId = v[0];
 			var username = v[1];
-			var userlabel = v[2];
+			var userLabel = v[2];
 			var userIcon = v[3];
-			if(!enabler(username)) continue;
-			userSelect.append("<option value=\"" + userId + "\" user-id=\"" + userId + "\" username=\"" + username + "\" icon=\"" + userIcon + "\">" + username + " - " + userlabel + "</option>");
+			userSelect.append("<option value=\"" + userId + "\" user-id=\"" + userId + "\" username=\"" + username + "\" label=\"" + userLabel + "\" icon=\"" + userIcon + "\">" + username + " - " + userLabel + "</option>");
 		}
 		userSelect.unbind("change");
 		userSelect.change(function(e) {
-			f(MyPage.getSelected(e.target).val());
+			onChange(MyPage.getSelected(e.target).val());
 		});
 		MyPage.enable(userSelect);
+		onLoad();
 	});
 }
 MyPage.setupBoardSelect = function(boardSelect,userId,disableDup,f) {
@@ -1448,12 +1446,12 @@ MyPage.subscribePosts = function() {
 		MyPage.io.push("watch-post",{ targets : targets.get()});
 	}
 }
-MyPage.updateTimeline = function(timelineId,version) {
+MyPage.loadTimeline = function(timelineId,version) {
 	new $("[timeline-id=\"" + timelineId + "\"]").each(function(i,elem) {
 		MyPage.fillNewerTimeline(new $(elem),version);
 	});
 }
-MyPage.updateDetail = function(postId,version) {
+MyPage.loadDetail = function(postId,version) {
 	var posts = new $("[post-id=\"" + postId + "\"]");
 	posts.each(function(i,e) {
 		var post = new $(e);
@@ -1487,10 +1485,10 @@ MyPage.startWatch = function() {
 		MyPage.subscribePosts();
 	});
 	MyPage.io.on("watch-timeline",function(data) {
-		MyPage.updateTimeline(data.timeline,data.version);
+		MyPage.loadTimeline(data.timeline,data.version);
 	});
 	MyPage.io.on("watch-post",function(data) {
-		MyPage.updateDetail(data.post,data.version);
+		MyPage.loadDetail(data.post,data.version);
 	});
 }
 MyPage.openComments = function(comments) {
@@ -1533,9 +1531,7 @@ MyPage.setupRadio = function(root,name) {
 			var label = radio.closest("label.radio");
 			var inputs = label.find("input:not(:radio),select");
 			var checked = radio["is"](":checked");
-			MyPage.setStatus(inputs,"loaded",true);
-			MyPage.setStatus(inputs,"active",checked);
-			MyPage.updateEnabled(inputs,["active","loaded"]);
+			MyPage.updateStatus(inputs,["active","loaded"],"active",checked);
 		});
 		return true;
 	};
@@ -1543,17 +1539,15 @@ MyPage.setupRadio = function(root,name) {
 	radios.unbind("change");
 	radios.change(onChange);
 }
-MyPage.setStatus = function(e,s,f) {
-	if(f) e.addClass(s); else e.removeClass(s);
-}
-MyPage.updateEnabled = function(all,statuses) {
+MyPage.updateStatus = function(all,statuses,s,f) {
+	if(f) all.addClass(s); else all.removeClass(s);
 	all.each(function(i,elem) {
 		var e = new $(elem);
 		var _g = 0;
 		while(_g < statuses.length) {
-			var s = statuses[_g];
+			var s1 = statuses[_g];
 			++_g;
-			if(!e.hasClass(s)) {
+			if(!e.hasClass(s1)) {
 				MyPage.disable(e);
 				return;
 			}
@@ -1574,8 +1568,10 @@ MyPage.elapsedInWords = function(elapsedInSeconds) {
 	var elapsedInYears = Math.round(elapsedInMonths / 12);
 	return "" + elapsedInYears + "年前";
 }
-MyPage.gravatar = function(hash,size) {
-	return "<img src=\"http://www.gravatar.com/avatar/" + hash + "?s=" + size + "&d=mm\" alt=\"gravatar\"/>";
+MyPage.gravatar = function(hash,size,userId,username) {
+	if(username == null) username = "";
+	if(userId == null) userId = 0;
+	return "<img src=\"http://www.gravatar.com/avatar/" + hash + "?s=" + size + "&d=mm\" alt=\"gravatar\" user-id=\"" + userId + "\" username=\"" + username + "\"/>";
 }
 var Reflect = function() { }
 $hxClasses["Reflect"] = Reflect;

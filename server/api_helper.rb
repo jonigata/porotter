@@ -245,7 +245,12 @@ module APIHelper
         :nameEditable => group.name_editable,
         :members => 
         group.list_members.map do |user|
-          [user.store.id, user.store.username, user.store.label, Misc.gravatar(user.store.email)]
+          {
+            :userId => user.store.id,
+            :username => user.store.username,
+            :label => user.store.label,
+            :gravatar => Misc.gravatar(user.store.email)
+          }
         end
       })
   end
