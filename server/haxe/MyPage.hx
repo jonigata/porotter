@@ -189,7 +189,13 @@ class MyPage {
         clearSelect(userSelect);
         setupUserSelect(
             userSelect,
-            function() {},
+            function() {
+                userSelect.find('option').each(
+                    function(i: Int,elem: Dynamic) {
+                        var e = new JQuery(elem);
+                        setEnabled(e, e.attr('username') != getUserName());
+                    });
+            },
             function(userId: Int) {
                 disable(submit);
                 clearSelect(boardSelect);
@@ -199,19 +205,12 @@ class MyPage {
                     boardSelect,
                     userId,
                     function(boardId: Int) {
-                        trace(boardId);
                         return !boardExists(boardId);
                     },
                     function(boardId: Int) {
                         setEnabled(submit, boardId != 0);
                     });
             });
-        userSelect.find('option').each(
-            function(i: Int,elem: Dynamic) {
-                var e = new JQuery(elem);
-                setEnabled(e, e.attr('username') != getUserName());
-            });
-
 
         dialog.justModal();
     }
@@ -233,7 +232,8 @@ class MyPage {
         clearSelect(userSelect);
         setupUserSelect(
             userSelect,
-            function() {},
+            function() {
+            },
             function(userId: Int) {
                 disable(submit);
                 clearSelect(boardSelect);

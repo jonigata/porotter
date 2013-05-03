@@ -859,20 +859,19 @@ MyPage.joinBoard = function() {
 	};
 	MyPage.clearSelect(userSelect);
 	MyPage.setupUserSelect(userSelect,function() {
+		userSelect.find("option").each(function(i,elem) {
+			var e = new $(elem);
+			MyPage.setEnabled(e,e.attr("username") != MyPage.getUserName());
+		});
 	},function(userId) {
 		MyPage.disable(submit);
 		MyPage.clearSelect(boardSelect);
 		if(userId == 0) return;
 		MyPage.setupBoardSelect(boardSelect,userId,function(boardId) {
-			console.log(boardId);
 			return !boardExists(boardId);
 		},function(boardId) {
 			MyPage.setEnabled(submit,boardId != 0);
 		});
-	});
-	userSelect.find("option").each(function(i,elem) {
-		var e = new $(elem);
-		MyPage.setEnabled(e,e.attr("username") != MyPage.getUserName());
 	});
 	dialog.justModal();
 }
