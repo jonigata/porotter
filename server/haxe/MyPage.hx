@@ -419,7 +419,7 @@ class MyPage {
 
     static private function updateGroupStore(store: Dynamic, data: Dynamic) {
         // <input type="hidden" name="readable_store">の修正
-        // ex: store.attr('value',"[1,7,9,36]")
+        // ex: store.val("[1,7,9,36]")
         var memberSet: Array<Int> = [];
         var members: Array<Dynamic> = data.members;
         for(v in members) {
@@ -429,7 +429,7 @@ class MyPage {
         memberSet.sort(function(a: Int, b: Int) { return a - b; });
         trace(memberSet);
 
-        store.attr('value', JSON.stringify(memberSet));
+        store.val(JSON.stringify(memberSet));
     }
 
     static private function updateGroupDisplay(
@@ -476,7 +476,7 @@ class MyPage {
 
         // グループ名
         var groupName: Dynamic = dialog.find('[name="group_name"]');
-        groupName.attr('value', data.name);
+        groupName.val(data.name);
         setEnabled(groupName, data.nameEditable);
 
         // 追加ユーザセレクト

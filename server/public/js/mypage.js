@@ -1003,7 +1003,7 @@ MyPage.updateGroupStore = function(store,data) {
 		return a - b;
 	});
 	console.log(memberSet);
-	store.attr("value",JSON.stringify(memberSet));
+	store.val(JSON.stringify(memberSet));
 }
 MyPage.updateGroupDisplay = function(display,data) {
 	var members = data.members;
@@ -1041,7 +1041,7 @@ MyPage.editGroup = function(data,cb) {
 	MyPage.updateGroupDisplay(display,data);
 	var oldMemberSet = display.attr("member-set");
 	var groupName = dialog.find("[name=\"group_name\"]");
-	groupName.attr("value",data.name);
+	groupName.val(data.name);
 	MyPage.setEnabled(groupName,data.nameEditable);
 	var userSelect = dialog.find("[name=\"user\"]");
 	var updateUI = function() {
