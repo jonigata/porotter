@@ -32,25 +32,25 @@ class MyPage {
                 var timeline: Dynamic = new JQuery(elem);
                 fillTimeline(timeline, null);
 
-                timeline.sortable({
-                    connectWith: '[timeline-id][editable="true"]',
-                    update: function(event: Dynamic, ui: Dynamic) {
-                        if (ui.sender == null) {
-                            if (ui.item.parent()[0] == timeline[0]) {
-                                trace("same timeline move");
-                                moveArticle(ui.item);
-                            } else {
-                                // discard
-                                trace("discard");
-                            }
-                        } else {
-                            trace("different timeline move");
-                            transferArticle(ui.item, ui.sender);
-                        }
-                    },
-                });
-
-        
+                if (timeline.is('[editable="true"]')) {
+                    timeline.sortable({
+                          connectWith: '[timeline-id][editable="true"]',
+                                update: function(event: Dynamic, ui: Dynamic) {
+                                if (ui.sender == null) {
+                                    if (ui.item.parent()[0] == timeline[0]) {
+                                        trace("same timeline move");
+                                        moveArticle(ui.item);
+                                    } else {
+                                        // discard
+                                        trace("discard");
+                                    }
+                                } else {
+                                    trace("different timeline move");
+                                    transferArticle(ui.item, ui.sender);
+                                }
+                            },
+                                });
+                }
             });
 
         startWatch();

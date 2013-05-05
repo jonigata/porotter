@@ -766,7 +766,7 @@ MyPage.init = function() {
 	new $("[timeline-id]").each(function(i,elem) {
 		var timeline = new $(elem);
 		MyPage.fillTimeline(timeline,null);
-		timeline.sortable({ connectWith : "[timeline-id][editable=\"true\"]", update : function(event,ui) {
+		if(timeline["is"]("[editable=\"true\"]")) timeline.sortable({ connectWith : "[timeline-id][editable=\"true\"]", update : function(event,ui) {
 			if(ui.sender == null) {
 				if(ui.item.parent()[0] == timeline[0]) {
 					console.log("same timeline move");
