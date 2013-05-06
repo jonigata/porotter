@@ -1240,18 +1240,7 @@ MyPage.fetchTimeline = function(oldTimeline,newestScore,oldestScore,version) {
 		while(_g < posts.length) {
 			var post = posts[_g];
 			++_g;
-			var favoredBy = "";
-			var srcFavoredBy = post.detail.favoredBy;
-			var _g1 = 0;
-			while(_g1 < srcFavoredBy.length) {
-				var vv = srcFavoredBy[_g1];
-				++_g1;
-				favoredBy += MyPage.gravatar(vv,16);
-			}
-			post.detail.favoredBy = favoredBy;
-			post.detail.elapsed = MyPage.elapsedInWords(post.detail.elapsed);
-			post.detail.writable = writable;
-			post.detail = MyPage.applyTemplate("Detail",post.detail);
+			post.detail = MyPage.formatDetail(post.detail,writable);
 		}
 		data.intervals = "[[" + Std.string(data.newestScore) + ", " + Std.string(data.oldestScore) + "]]";
 		MyPage.finishLoad(oldTimeline,function() {
@@ -1475,21 +1464,31 @@ MyPage.loadDetail = function(postId,version) {
 	posts.each(function(i,e) {
 		var post = new $(e);
 		var ribbonId = post.closest(".ribbon").attr("ribbon-id");
+		var writable = post.closest(".timeline").attr("writable") == "true";
 		var level = Std.parseInt(post.parent().attr("level"));
 		$.ajax({ url : "/foo/ajax/v/detail", data : { ribbon : ribbonId, post : postId, level : level}, dataType : "jsonp"}).done(function(data) {
-			var favoredBy = "";
-			var _g1 = 0, _g = data.favoredBy.length;
-			while(_g1 < _g) {
-				var i1 = _g1++;
-				favoredBy += MyPage.gravatar(data.favoredBy[i1],16);
-			}
-			data.favoredBy = favoredBy;
-			var output = MyPage.applyTemplate("Detail",data);
+			var output = MyPage.formatDetail(data,writable);
 			var entry = post.find("> .entry");
 			entry.find("> .detail").replaceWith(output);
 			MyPage.updateCommentDisplayText(entry);
 		});
 	});
+}
+MyPage.formatDetail = function(detail,writable) {
+	var favoredBy = "";
+	var srcFavoredBy = detail.favoredBy;
+	var _g = 0;
+	while(_g < srcFavoredBy.length) {
+		var vv = srcFavoredBy[_g];
+		++_g;
+		favoredBy += MyPage.gravatar(vv,16);
+	}
+	detail.favoredBy = favoredBy;
+	detail.elapsed = MyPage.elapsedInWords(detail.elapsed);
+	detail.writable = writable;
+	console.log(detail.writable);
+	console.log(detail.userExists);
+	return MyPage.applyTemplate("Detail",detail);
 }
 MyPage.applyTemplate = function(codename,data) {
 	var templateCode = haxe.Resource.getString(codename);

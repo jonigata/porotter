@@ -791,15 +791,7 @@ class MyPage {
             data.level = level;
             var posts: Array<Dynamic> = data.posts;
             for(post in posts) {
-                var favoredBy = "";
-                var srcFavoredBy: Array<String> = post.detail.favoredBy;
-                for(vv in srcFavoredBy) {
-                    favoredBy += gravatar(vv, 16);
-                }
-                post.detail.favoredBy = favoredBy;
-                post.detail.elapsed = elapsedInWords(post.detail.elapsed);
-                post.detail.writable = writable;
-                post.detail = applyTemplate("Detail", post.detail);
+                post.detail = formatDetail(post.detail, writable);
             }
             data.intervals =
                 Std.format("[[${data.newestScore}, ${data.oldestScore}]]");
@@ -1119,6 +1111,8 @@ class MyPage {
             function(i: Int, e: Dynamic) {
                 var post = new JQuery(e);
                 var ribbonId = post.closest('.ribbon').attr('ribbon-id');
+                var writable =
+                    post.closest('.timeline').attr('writable') == 'true';
                 var level = Std.parseInt(post.parent().attr('level'));
 
                 JQuery._static.ajax({
@@ -1130,18 +1124,26 @@ class MyPage {
                     },
                     dataType: 'jsonp'
                 }).done(function(data: Dynamic) {
-                    var favoredBy = "";
-                    for(i in 0...data.favoredBy.length) {
-                        favoredBy += gravatar(data.favoredBy[i], 16);
-                    }
-                    data.favoredBy = favoredBy;
-
-                    var output = applyTemplate("Detail", data);
+                    var output = formatDetail(data, writable);
                     var entry = post.find('> .entry');
                     entry.find('> .detail').replaceWith(output);
                     updateCommentDisplayText(entry);
                 });
             });
+    }
+
+    static function formatDetail(detail: Dynamic, writable: Bool) {
+        var favoredBy = "";
+        var srcFavoredBy: Array<String> = detail.favoredBy;
+        for(vv in srcFavoredBy) {
+            favoredBy += gravatar(vv, 16);
+        }
+        detail.favoredBy = favoredBy;
+        detail.elapsed = elapsedInWords(detail.elapsed);
+        detail.writable = writable;
+        trace(detail.writable);
+        trace(detail.userExists);
+        return applyTemplate("Detail", detail);
     }
 
     static private function applyTemplate(codename: String, data: Dynamic): String {

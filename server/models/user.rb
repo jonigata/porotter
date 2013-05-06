@@ -82,7 +82,6 @@ class User < RedisMapper::PlatformModel
   end
 
   def add_article(ribbon, type, content)
-    # TODO: ribbonチェック
     Post.create(self, type, content, true).tap do |post|
       ribbon.add_article(post)
       self.store.my_posts.add_post(post)
@@ -90,24 +89,20 @@ class User < RedisMapper::PlatformModel
   end
 
   def add_comment(ribbon, parent, type, content)
-    # TODO: ribbonチェック
     ribbon.add_comment(parent, Post.create(self, type, content, false))
   end
 
   def favor(ribbon, post)
-    # TODO: ribbonチェック
     self.store.favorites.add_post(post)
     post.favored_by(self)
   end
 
   def unfavor(ribbon, post)
-    # TODO: ribbonチェック
     self.store.favorites.remove_post(post)
     post.unfavored_by(self)
   end
 
   def favors?(post)
-    # TODO: ribbonチェック
     self.store.favorites.member?(post)
   end
 

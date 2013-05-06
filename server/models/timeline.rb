@@ -36,7 +36,8 @@ class Timeline < RedisMapper::PlatformModel
   end
 
   def member?(post)
-    self.store.post_to_holder.member?(post)
+    holder = self.store.post_to_holder[post]
+    holder && !holder.removed
   end
 
   def fetch(newest_score, oldest_score, count)
