@@ -221,18 +221,17 @@ module APIHelper
   
   private
   def get_timeline(ribbon_id, timeline_id, newest_score, oldest_score, count)
-    # TODO: @userがribbonにアクセス権を持っているかどうかのチェック
-    # TODO: timelineがribbonに所属しているかどうかのチェック
     ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
+    ribbon.readable_by?(@user) or halt 403
     timeline = Timeline.attach_if_exist(timeline_id) or raise
+    ribbon.timeline == timeline or raise
     JSONP(make_timeline_data(
         ribbon, timeline, newest_score, oldest_score, count))
   end
 
   def get_detail(ribbon_id, post_id)
-    # TODO: @userがribbonにアクセス権を持っているかどうかのチェック
-    # TODO: timelineがribbonに所属しているかどうかのチェック
     ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
+    ribbon.readable_by?(@user) or halt 403
     post = Post.attach_if_exist(post_id) or raise
     JSONP(make_detail_data(ribbon, post))
   end
@@ -292,6 +291,7 @@ module APIHelper
 
   def get_ribbonlist(board_id)
     board = Board.attach_if_exist(board_id) or raise
+    board.readable_by?(@user) or halt 403
     JSONP(
       board.list_ribbons.select do |ribbon|
         ribbon.readable_by?(@user)
@@ -305,6 +305,7 @@ module APIHelper
 
   def get_removedribbonlist(board_id)
     board = Board.attach_if_exist(board_id) or raise
+    board.readable_by?(@user) or halt 403
     JSONP(
       board.list_removed_ribbons.map do |ribbon|
         [ribbon.store.id, ribbon.label]
@@ -320,7 +321,7 @@ module APIHelper
 
   def post_new_comment(ribbon_id, parent_id, type, content)
     ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
-    ribbon.editable_by?(@user) or halt 403
+    ribbon.writable_by?(@user) or halt 403
 
     parent = Post.attach_if_exist(parent_id) or raise
     @user.add_comment(ribbon, parent, type, params[:content]).store.id.to_s
@@ -328,20 +329,20 @@ module APIHelper
 
   def move_article(ribbon_id, source_id, target_id)
     ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
+    ribbon.editable_by?(@user) or halt 403
     source = Post.attach_if_exist(source_id) or raise
     target = Post.attach_if_exist(target_id)
-    ribbon.editable_by?(@user) or halt 403
 
-    ribbon.write_target.move_post(source, target)    
+    ribbon.timeline.move_post(source, target)    
   end
 
   def transfer_article(source_ribbon_id, target_ribbon_id, source_id, target_id)
     source_ribbon = Ribbon.attach_if_exist(source_ribbon_id) or raise
+    source_ribbon.editable_by?(@user) or halt 403
     target_ribbon = Ribbon.attach_if_exist(target_ribbon_id) or raise
+    target_ribbon.editable_by?(@user) or halt 403
     source = Post.attach_if_exist(source_id) or raise
     target = Post.attach_if_exist(target_id)
-    source_ribbon.editable_by?(@user) or halt 403
-    target_ribbon.editable_by?(@user) or halt 403
 
     target_ribbon.timeline.transfer_post_from(
       source_ribbon.timeline, source, target)    
@@ -349,12 +350,14 @@ module APIHelper
 
   def favor(ribbon_id, target_id)
     ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
+    ribbon.writable_by?(@user) or halt 403
     post = Post.attach_if_exist(target_id) or raise
     @user.favor(ribbon, post)
   end
 
   def unfavor(ribbon_id, target_id)
     ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
+    ribbon.writable_by?(@user) or halt 403
     post = Post.attach_if_exist(target_id) or raise
     @user.unfavor(ribbon, post)
   end
@@ -366,6 +369,7 @@ module APIHelper
 
   def join_board(board_id)
     board = Board.attach_if_exist(board_id) or raise
+    board.readable_by?(@user) or halt 403
     @user.join_board(board)
     return_board(board)
   end
@@ -383,6 +387,7 @@ module APIHelper
     board.editable_by?(@user) or halt 403
 
     ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
+    ribbon.readable_by?(@user) or halt 403
     @user.join_ribbon(board, ribbon)
     return_board(board)
   end
@@ -392,6 +397,7 @@ module APIHelper
     board.editable_by?(@user) or halt 403
 
     ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
+    ribbon.readable_by?(@user) or halt 403
     @user.restore_ribbon(board, ribbon)
     return_board(board)
   end
@@ -407,9 +413,9 @@ module APIHelper
 
   def edit_permission(board_id, ribbon_id, permission)
     board = Board.attach_if_exist(board_id) or raise
-    board.editable_by?(@user) or halt 403
 
     ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
+    ribbon.editable_by?(@user) or halt 403
     @user.edit_permission(ribbon, permission)
     return_board(board)
   end
