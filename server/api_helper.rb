@@ -343,8 +343,8 @@ module APIHelper
     source_ribbon.editable_by?(@user) or halt 403
     target_ribbon.editable_by?(@user) or halt 403
 
-    target_ribbon.write_target.transfer_post_from(
-      source_ribbon.read_source, source, target)    
+    target_ribbon.timeline.transfer_post_from(
+      source_ribbon.timeline, source, target)    
   end
 
   def favor(ribbon_id, target_id)

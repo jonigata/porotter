@@ -59,9 +59,9 @@ class User < RedisMapper::PlatformModel
 
           board.import_ribbon(global_ribbon)
           user.store.my_posts = 
-            board.make_readonly_ribbon('あなたの投稿').read_source
+            board.make_readonly_ribbon('あなたの投稿').timeline
           user.store.favorites = 
-            board.make_readonly_ribbon('お気に入り').read_source
+            board.make_readonly_ribbon('お気に入り').timeline
 
           user.add_article(global_ribbon, :Tweet, "最初の投稿です")
 

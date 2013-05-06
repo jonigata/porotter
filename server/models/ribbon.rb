@@ -8,16 +8,14 @@ class Ribbon < RedisMapper::PlatformModel
   def self.create(
       owner,
       label,
-      read_source,
-      write_target,
+      timeline,
       read_spotter,
       write_spotter,
       edit_spotter)
     self.new_instance.tap do |ribbon|
       ribbon.store.owner = owner
       ribbon.store.label = label
-      ribbon.store.read_source = read_source
-      ribbon.store.write_target = write_target
+      ribbon.store.timeline = timeline
       ribbon.store.read_spotter = Spotter.create(:read, read_spotter)
       ribbon.store.write_spotter = Spotter.create(:write, write_spotter)
       ribbon.store.edit_spotter = Spotter.create(:edit, edit_spotter)
@@ -25,7 +23,7 @@ class Ribbon < RedisMapper::PlatformModel
   end
 
   def add_article(post)
-    timeline = self.store.write_target
+    timeline = self.store.timeline
     return nil unless timeline
     timeline.add_post(post)
     post
@@ -40,7 +38,7 @@ class Ribbon < RedisMapper::PlatformModel
     add_article(p1 = Post.create(author, :Tweet, '1', true))
     add_article(p2 = Post.create(author, :Tweet, '2', true))
     add_article(p3 = Post.create(author, :Tweet, '3', true))
-    self.store.write_target.remove_post(p3)
+    self.store.timeline.remove_post(p3)
     add_article(p3)
   end
 
@@ -53,19 +51,20 @@ class Ribbon < RedisMapper::PlatformModel
   end
 
   def writable_by?(user)
-    self.write_target && write_spotter.permitted?(user)
+    write_spotter.permitted?(user)
   end
 
   delegate :label           do self.store end
   delegate :owner           do self.store end
-  delegate :read_source     do self.store end
-  delegate :write_target    do self.store end
+  delegate :timeline        do self.store end
+  delegate :read_spotter    do self.store end
+  delegate :write_spotter   do self.store end
+  delegate :edit_spotter    do self.store end
 
   property  :owner,         Board
   property  :label,         String
+  property  :timeline,      Timeline
   property  :read_spotter,  Spotter
   property  :write_spotter, Spotter
   property  :edit_spotter,  Spotter
-  property  :read_source,   Timeline
-  property  :write_target,  Timeline
 end

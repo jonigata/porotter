@@ -19,12 +19,15 @@ class Board < RedisMapper::PlatformModel
 
   def make_ribbon(label)
     timeline = Timeline.create(self.owner)
-    make_ribbon_aux(label, timeline, timeline)
+    make_ribbon_aux(label, timeline)
   end
 
   def make_readonly_ribbon(label)
     timeline = Timeline.create(self.owner)
-    make_ribbon_aux(label, timeline, nil)
+    make_ribbon_aux(label, timeline).tap do |ribbon|
+      ribbon.write_spotter.set_permission([])
+      ribbon.edit_spotter.set_permission([])
+    end
   end
 
   def set_label(label)
@@ -54,12 +57,11 @@ class Board < RedisMapper::PlatformModel
   end
 
   private
-  def make_ribbon_aux(label, read_source, write_target)
+  def make_ribbon_aux(label, timeline)
     Ribbon.create(
       self,
       label,
-      read_source,
-      write_target,
+      timeline,
       self.store.read_spotter,
       self.store.write_spotter,
       self.store.edit_spotter).tap do |ribbon|
