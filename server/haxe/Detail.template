@@ -14,6 +14,7 @@
     </span>
     <span class="favorite">
       ::if (userExists)::
+      ::if (writable)::
       ::if (favored)::
       <a href="#" onclick="MyPage.unfavor(::ribbonId::, ::postId::);return false;">
         そうでもない
@@ -22,6 +23,7 @@
       <a href="#" onclick="MyPage.favor(::ribbonId::, ::postId::);return false;">
         そうかも
       </a>
+      ::end::
       ::end::
       ::end::
     </span>

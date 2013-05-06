@@ -771,6 +771,7 @@ class MyPage {
         var ribbonId = Std.parseInt(oldTimeline.attr('ribbon-id'));
         var timelineId = Std.parseInt(oldTimeline.attr('timeline-id'));
         var level = Std.parseInt(oldTimeline.attr('level'));
+        var writable = oldTimeline.attr('writable') == 'true';
 
         if (!startLoad(oldTimeline, version)) {
             return;
@@ -797,6 +798,7 @@ class MyPage {
                 }
                 post.detail.favoredBy = favoredBy;
                 post.detail.elapsed = elapsedInWords(post.detail.elapsed);
+                post.detail.writable = writable;
                 post.detail = applyTemplate("Detail", post.detail);
             }
             data.intervals =

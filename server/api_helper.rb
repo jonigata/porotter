@@ -167,8 +167,8 @@ module APIHelper
         r = ensure_params(
           :board => INT_PARAM,
           :read_permission => [[:everyone, :public_group, :private_group], Symbol],
-          :write_permission => [[:everyone, :public_group, :private_group, :same_as_readable], Symbol],
-          :edit_permission => [[:everyone, :public_group, :private_group, :same_as_readable, :same_as_writable], Symbol],
+          :write_permission => [[:everyone, :public_group, :private_group, :same_as_read], Symbol],
+          :edit_permission => [[:everyone, :public_group, :private_group, :same_as_read, :same_as_write], Symbol],
 
           # 以下数値か数値の配列
           :readable_group => [/(\[[0-9,]*\])|([0-9]+)/, String],
@@ -191,8 +191,8 @@ module APIHelper
         r = ensure_params(
           :ribbon => INT_PARAM,
           :read_permission => [[:everyone, :public_group, :private_group, :same_as_board], Symbol],
-          :write_permission => [[:everyone, :public_group, :private_group, :same_as_readable, :same_as_board], Symbol],
-          :edit_permission => [[:everyone, :public_group, :private_group, :same_as_readable, :same_as_writable, :same_as_board], Symbol],
+          :write_permission => [[:everyone, :public_group, :private_group, :same_as_read, :same_as_board], Symbol],
+          :edit_permission => [[:everyone, :public_group, :private_group, :same_as_read, :same_as_writ, :same_as_board], Symbol],
 
           # 以下数値か数値の配列
           :readable_group => [/(\[[0-9,]*\])|([0-9]+)/, String],
