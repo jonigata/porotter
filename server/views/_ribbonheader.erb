@@ -14,7 +14,11 @@
 
   <% if current_board.editable_by?(@user) %>
   <img class="close-button" src="<%= static_url("images/remove.png") %>" onclick="MyPage.closeRibbon(this, <%= current_board.store.id %>);return false;">
+
+  <%   if ribbon.editable_by?(@user) %>
   <img class="secret-indicator" src="<%= static_url("images/settings.png") %>" onclick="MyPage.editRibbonSettings($(this).parent().find('.dialog'), <%= current_board.store.id %>, <%= ribbon.store.id %>);return false;">
+  <%   end %>
+
   <img class="secret-indicator" src="<%= static_url("images/keyboard.png") %>" onclick="MyPage.doRibbonTest(<%= ribbon.store.id %>);return false;">
 
   <div class="dialog">
