@@ -61,6 +61,7 @@ html {
         margin: 0;
         width: 100%;
         height: 100%;
+        overflow: hidden;
 
         @include border-box;
     }
@@ -85,77 +86,89 @@ html {
     @include border-box;
     height: 100%;
     padding-top: 48px;
+    overflow: hidden;
+    position: relative;
 
-    .ribbon-outer {
-        @include border-box;
-        float: left;
-        padding: 16px;
-        height: 100%;
-        .ribbon {
-            @include border-radius;
-            @include border-box;
-            padding: 8px;
-            width: 360px;
-            background-color: #eeeeee;
+    ul {
+        height: 100%; 
+        li {
+            float: left;
+            list-style:none;
+            margin: 0;
             height: 100%;
-            overflow: hidden;
+        }
+    }
+}
 
-            .ribbon-inner {
-                @include border-box;
-                height: 100%;
-                overflow-x: hidden;
-                overflow-y: auto;
-                textarea {
-                    width: 240px;
-                }
-                .ribbon-header {
-                    h1 {
-                        float: left;
-                        font-size: 24px;
-                        margin: 8px;
-                        .ribbon-permission {
-                            width: 22px;
-                            height: 22px;
-                            vertical-align: top;
-                            margin-top: 8px;
-                        }
+.ribbon-outer {
+    @include border-box;
+    float: left;
+    padding: 16px;
+    height: 100%;
+    .ribbon {
+        @include border-radius;
+        @include border-box;
+        padding: 8px;
+        width: 360px;
+        background-color: #eeeeee;
+        height: 100%;
+        overflow: hidden;
+
+        .ribbon-inner {
+            @include border-box;
+            height: 100%;
+            overflow-x: hidden;
+            overflow-y: auto;
+            textarea {
+                width: 240px;
+            }
+            .ribbon-header {
+                h1 {
+                    float: left;
+                    font-size: 24px;
+                    margin: 8px;
+                    .ribbon-permission {
+                        width: 22px;
+                        height: 22px;
+                        vertical-align: top;
+                        margin-top: 8px;
                     }
-                    .indicators {
+                }
+                .indicators {
+                    float: right;
+                    .secret-indicator {
+                        width: 12px;
+                        height: 12px;
+                        margin-top: 4px;
+                        margin-right: 8px;
                         float: right;
-                        .secret-indicator {
-                            width: 12px;
-                            height: 12px;
-                            margin-top: 4px;
-                            margin-right: 8px;
-                            float: right;
-                        }
-                        .close-button {
-                            width: 12px;
-                            height: 12px;
-                            float: right;
-                            margin-top: 4px;
-                            margin-right: 4px;
-                        }
                     }
-                    h2 {
-                        clear:both;
-                        font-size: 10px;
-                        line-height: 12px;
-                        padding: 0px;
-                        margin: 0px;
-                        margin-top: 22px;
+                    .close-button {
+                        width: 12px;
+                        height: 12px;
+                        float: right;
+                        margin-top: 4px;
+                        margin-right: 4px;
                     }
-                    @include clearfix;
                 }
-                .no-article {
-                    height: 48px;
-                    text-align: center;
-                    color: #AAA;
+                h2 {
+                    clear:both;
+                    font-size: 10px;
+                    line-height: 12px;
+                    padding: 0px;
+                    margin: 0px;
+                    margin-top: 22px;
                 }
+                @include clearfix;
             }
-            form {
-                margin-bottom: 8px;
+            .no-article {
+                height: 48px;
+                text-align: center;
+                color: #AAA;
             }
+        }
+        form {
+            margin-bottom: 8px;
         }
     }
 }
@@ -253,6 +266,57 @@ html {
                 display: none;
                 margin-top: 4px;
             }
+        }
+    }
+}
+
+.controls {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+
+    .floating-button {
+        position: absolute;
+        border-radius: 5px;
+        -webkit-border-radius: 5px;
+        -moz-border-radius: 5px;
+        background: rgba(0, 0, 0, 0.2);
+        color: #fff;
+        text-decoration: none;
+        width: 48px;
+        height: 48px;
+        pointer-events: auto;
+
+        span {
+            width: 48px;
+            height: 48px;
+            display: table-cell;
+            vertical-align: middle;
+            text-align: center;
+        }
+
+    }
+
+    .prev-slide {
+        top: 45%;
+        left: -8px;
+
+        .left-button {
+            width: 16px;
+            height: 24px;
+        }
+    }
+
+    .next-slide {
+        top: 45%;
+        right: -8px;
+
+        .right-button {
+            width: 16px;
+            height: 24px;
         }
     }
 }

@@ -7,6 +7,7 @@
   <script src="<%= static_url("js/bootstrap-tooltip.js") %>"></script>
   <script src="<%= static_url("js/jquery.cookie.js") %>"></script>
   <script src="<%= static_url("js/jquery.justModal.js") %>"></script>
+  <script src="<%= static_url("js/lemmon-slider.js") %>"></script>
   <script src="<%= static_url("js/mypage.js") %>"></script>
   <script src="<%= rocketio_js %>"></script>
 
@@ -17,6 +18,7 @@
     $(function() {
       MyPage.init();
       $('.dropdown-toggle').dropdown();
+      $('.workspace').lemmonSlider();
     });
   </script>
 </head>
