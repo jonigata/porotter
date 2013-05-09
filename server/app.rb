@@ -34,4 +34,8 @@ class Porotter < Sinatra::Base
     board = refered.find_board(boardname) or go_to_login_page
     erb :board, :locals => { :base_url => local_url("/users"), :refered => refered, :current_board => board, :boards => refered.store.boards }
   end
+
+  get '/test' do
+    erb :preferences  
+  end
 end

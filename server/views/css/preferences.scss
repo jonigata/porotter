@@ -1,0 +1,69 @@
+@mixin clearfix {
+    zoom: 1;
+
+    &:before,
+    &:after {
+        display: block;
+        height: 0;
+        visibility: hidden;
+        content: "\0020";
+    }
+
+    &:after {
+        clear: both;
+    }
+}
+
+@mixin border-box {
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -o-box-sizing: border-box;
+    -ms-box-sizing: border-box;
+}
+
+@mixin flexbox {
+    display: -webkit-flex;
+    display: -moz-flexbox;
+    display: -ms-flexbox;
+    display: -o-flexbox;
+    display: flexbox;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+}
+
+@mixin flex($n) {
+    -webkit-flex: $n;
+    flex: $n;
+}
+
+html {
+    width: 100%;
+    height: 100%;
+    body {
+        @include border-box;
+        @include flexbox;
+        
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+
+        > header {
+            width: 100%;
+            
+            .secret-indicator {
+                width: 14px;
+                height: 14px;
+            }
+            .user-icon {
+                width: 12px;
+                height: 12px;
+            }
+        }
+        > div {
+            @include flex(1);
+            padding-left: 32px;
+        }
+    }
+}

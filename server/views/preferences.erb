@@ -4,16 +4,23 @@
     <meta charset="utf-8">
     <title>ぽろったー</title>
 
-    <link rel="stylesheet" href="<%= static_url("css/mypage.css") %>">
+    <link rel="stylesheet" href="<%= static_url("css/bootstrap.css") %>">
+    <link rel="stylesheet" href="<%= static_url("css/preferences.css") %>">
   </head>
 
   <body>
     <header>
-      <h1>ぽろったー</h1>
-      <p class="subtitle">ぽろったーは、リアルタイムに配信される情報にコメントを付けながら交流できるシステムです。</p>
+      <div class="navbar">
+        <div class="navbar-inner">
+          <div class="container">
+            <a class="brand" href="#">ぽろったー</a>
+            <ul class="nav">
+              <li><a href="<%= local_url("../") %>">もどる</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </header>
-
-    <a href="<%= local_url("../") %>">もどる</a>
 
     <div class="preferences">
       <section class="item">
