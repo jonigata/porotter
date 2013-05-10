@@ -766,7 +766,8 @@ MyPage.init = function() {
 	new $("[timeline-id]").each(function(i,elem) {
 		var timeline = new $(elem);
 		MyPage.fillTimeline(timeline,null);
-		if(timeline["is"]("[editable=\"true\"]")) timeline.sortable({ connectWith : "[timeline-id][editable=\"true\"]", update : function(event,ui) {
+		if(!timeline["is"]("[editable=\"true\"]")) return;
+		timeline.sortable({ handle : ".drag-handle", connectWith : "[timeline-id][editable=\"true\"]", update : function(event,ui) {
 			if(ui.sender == null) {
 				if(ui.item.parent()[0] == timeline[0]) {
 					console.log("same timeline move");
@@ -1331,7 +1332,14 @@ MyPage.mergeTimeline = function(oldTimeline,newTimeline) {
 	oldTimeline.attr("intervals",JSON.stringify(intervals.to_array()));
 	console.log("old(after)");
 	MyPage.traceTimeline(oldTimeline);
+	MyPage.setupDragHandles(oldTimeline);
 	MyPage.setupNoArticle(oldTimeline);
+}
+MyPage.setupDragHandles = function(timeline) {
+	if(!timeline["is"]("[editable=\"true\"]")) return;
+	var articles = timeline.find("> .post");
+	articles.find("> .avatar").addClass("drag-handle");
+	articles.find("> .entry > .detail").addClass("drag-handle");
 }
 MyPage.setupNoArticle = function(timeline) {
 	timeline.find("> .no-article").remove();

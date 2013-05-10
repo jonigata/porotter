@@ -32,25 +32,27 @@ class MyPage {
                 var timeline: Dynamic = new JQuery(elem);
                 fillTimeline(timeline, null);
 
-                if (timeline.is('[editable="true"]')) {
-                    timeline.sortable({
-                          connectWith: '[timeline-id][editable="true"]',
-                                update: function(event: Dynamic, ui: Dynamic) {
-                                if (ui.sender == null) {
-                                    if (ui.item.parent()[0] == timeline[0]) {
-                                        trace("same timeline move");
-                                        moveArticle(ui.item);
-                                    } else {
-                                        // discard
-                                        trace("discard");
-                                    }
-                                } else {
-                                    trace("different timeline move");
-                                    transferArticle(ui.item, ui.sender);
-                                }
-                            },
-                                });
+                if (!timeline.is('[editable="true"]')) {
+                    return;
                 }
+                timeline.sortable({
+                      handle: '.drag-handle',  
+                      connectWith: '[timeline-id][editable="true"]',
+                            update: function(event: Dynamic, ui: Dynamic) {
+                            if (ui.sender == null) {
+                                if (ui.item.parent()[0] == timeline[0]) {
+                                    trace("same timeline move");
+                                    moveArticle(ui.item);
+                                } else {
+                                    // discard
+                                    trace("discard");
+                                }
+                            } else {
+                                trace("different timeline move");
+                                transferArticle(ui.item, ui.sender);
+                            }
+                        }
+                    });
             });
 
         startWatch();
@@ -913,9 +915,19 @@ class MyPage {
         trace('old(after)');
         traceTimeline(oldTimeline);
 
+        setupDragHandles(oldTimeline);
         setupNoArticle(oldTimeline);
     }
 
+    static private function setupDragHandles(timeline: Dynamic) {
+        if (!timeline.is('[editable="true"]')) {
+            return;
+        }
+        var articles = timeline.find('> .post');
+        articles.find('> .avatar').addClass('drag-handle');
+        articles.find('> .entry > .detail').addClass('drag-handle');
+    }
+    
     static private function setupNoArticle(timeline: Dynamic) {
         timeline.find('> .no-article').remove();
         if (timeline.find('> article').length == 0) {
