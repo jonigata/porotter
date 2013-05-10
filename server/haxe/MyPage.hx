@@ -1143,10 +1143,12 @@ class MyPage {
         detail.writable = writable;
         trace(detail.writable);
         trace(detail.userExists);
+        trace(detail.postType);
         return applyTemplate("Detail", detail);
     }
 
-    static private function applyTemplate(codename: String, data: Dynamic): String {
+    static private function applyTemplate(codename: String, data: Dynamic)
+        : String {
         var templateCode = haxe.Resource.getString(codename);
         var template = new haxe.Template(templateCode);
         return template.execute(data);

@@ -3,7 +3,7 @@
 module PlugIns
   module Stamp
     def self.display(service, post)
-      content = post.store.content
+      content = post.content
       url = service.static_url("stamps/#{content}")
       "<img src=\"#{url}\">"
     end

@@ -12,6 +12,7 @@
      class="post"
      score="::__current__.score::"
      post-id="::__current__.postId::"
+     post-type="::__current__.postType::"
      version="::__current__.postVersion::"
      removed="::__current__.removed::"
      >

@@ -224,7 +224,6 @@ module APIHelper
     ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
     ribbon.readable_by?(@user) or halt 403
     timeline = Timeline.attach_if_exist(timeline_id) or raise
-    ribbon.timeline == timeline or raise
     JSONP(make_timeline_data(
         ribbon, timeline, newest_score, oldest_score, count))
   end
@@ -333,7 +332,7 @@ module APIHelper
     source = Post.attach_if_exist(source_id) or raise
     target = Post.attach_if_exist(target_id)
 
-    ribbon.timeline.move_post(source, target)    
+    @user.move_article(ribbon, source, target)
   end
 
   def transfer_article(source_ribbon_id, target_ribbon_id, source_id, target_id)
@@ -344,8 +343,7 @@ module APIHelper
     source = Post.attach_if_exist(source_id) or raise
     target = Post.attach_if_exist(target_id)
 
-    target_ribbon.timeline.transfer_post_from(
-      source_ribbon.timeline, source, target)    
+    @user.transfer_article(source_ribbon, target_ribbon, source, target)
   end
 
   def favor(ribbon_id, target_id)
@@ -546,6 +544,7 @@ module APIHelper
           :score => score,
           :removed => removed,
           :postId => post.store.id,
+          :postType => post.type,
           :postVersion => post.store.version,
           :icon => Misc.gravatar(post.store.author.store.email),
           :detail => detail,

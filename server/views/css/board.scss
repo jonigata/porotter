@@ -198,9 +198,8 @@ html {
             margin-left: 48px;
 
             .author {
-                .label {
-                    font-weight: bold;
-                }
+                height: 18px;
+                line-height: 18px;
 
                 .username {
                     font-size: 85%;
@@ -229,9 +228,10 @@ html {
             }
 
             .content {
-                margin-top: 6px;
-
-                margin-bottom: 6px;
+                margin-top: 2px;
+                margin-bottom: 4px;
+                padding-right: 8px;
+                word-break: break-all;
             }
 
             .comments {
@@ -266,6 +266,39 @@ html {
                 }
                 display: none;
                 margin-top: 4px;
+            }
+        }
+    }
+    [post-type="ArticleLog"] {
+        .avatar {
+            width: 16px;
+            height: 16px;
+
+            .icon {
+                width: 16px;
+                height: 16px;
+            }
+        }
+        .entry {
+            margin-left: 20px;
+            .author {
+                float: left;
+
+                strong {
+                    display: none;
+                }
+                .favored-by {
+                    display: none;
+                }
+                .favorite {
+                    display: none;
+                }
+                .elapsed {
+                    margin-left: 0px;
+                }
+            }
+            .content {
+                color: #999;
             }
         }
     }

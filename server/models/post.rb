@@ -48,7 +48,8 @@ class Post < RedisMapper::PlatformModel
     end
   end
 
-  delegate :type do self.store end
+  delegate :type    do self.store end
+  delegate :content do self.store end
 
   property  :type,          Symbol
   property  :version,       Integer
