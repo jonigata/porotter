@@ -17,7 +17,9 @@
   <script>
     $(function() {
       MyPage.init();
-      $('.workspace').lemmonSlider();
+      $('.workspace').lemmonSlider({
+        controls: '.controls',
+      });
       $('.dropdown-toggle').dropdown();
     });
   </script>

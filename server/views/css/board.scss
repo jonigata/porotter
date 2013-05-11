@@ -58,47 +58,123 @@ html {
     width: 100%;
     height: 100%;
     body {
+        @include border-box;
+
         margin: 0;
         width: 100%;
         height: 100%;
         overflow: hidden;
         position: relative;
 
-        @include border-box;
-    }
-    header {
-        overflow: visible;
-        height: 0;
-        .secret-indicator {
-            width: 14px;
-            height: 14px;
+        header {
+            overflow: visible;
+            height: 0;
+            .secret-indicator {
+                width: 14px;
+                height: 14px;
+            }
+            .user-icon {
+                width: 12px;
+                height: 12px;
+            }
         }
-        .user-icon {
-            width: 12px;
-            height: 12px;
+
+        .pane-holder {
+            @include border-box;
+
+            width: 100%;
+            height: 100%;
+            padding-top: 48px;
+
+            .information-pane {
+                @include border-box;
+
+                width: 240px;
+                height: 100%;
+                float: right;
+            }
+            .workspace-pane {
+                @include border-box;
+
+                width: 100%;
+                height: 100%;
+                padding-right: 240px;
+                position: relative;
+
+                .workspace {
+                    @include border-box;
+
+                    width: 100%;
+                    height: 100%;
+                    overflow: hidden;
+
+                    ul {
+                        height: 100%;
+                        li {
+                            float: left;
+                            list-style:none;
+                            margin: 0;
+                            height: 100%;
+                        }
+                    }
+                    .controls {
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        right: 240px;
+                        bottom: 0;
+                        pointer-events: none;
+
+                        .floating-button {
+                            position: absolute;
+                            border-radius: 5px;
+                            -webkit-border-radius: 5px;
+                            -moz-border-radius: 5px;
+                            background: rgba(0, 0, 0, 0.2);
+                            color: #fff;
+                            text-decoration: none;
+                            width: 48px;
+                            height: 48px;
+                            pointer-events: auto;
+
+                            span {
+                                width: 48px;
+                                height: 48px;
+                                display: table-cell;
+                                vertical-align: middle;
+                                text-align: center;
+                            }
+
+                        }
+
+                        .prev-slide {
+                            top: 45%;
+                            left: -8px;
+
+                            .left-button {
+                                width: 16px;
+                                height: 24px;
+                            }
+                        }
+
+                        .next-slide {
+                            top: 45%;
+                            right: -8px;
+
+                            .right-button {
+                                width: 16px;
+                                height: 24px;
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
 
 .hidden {
     display: none;
-}
-
-.workspace {
-    @include border-box;
-    height: 100%;
-    overflow: hidden;
-    padding-top: 48px;
-
-    ul {
-        height: 100%; 
-        li {
-            float: left;
-            list-style:none;
-            margin: 0;
-            height: 100%;
-        }
-    }
 }
 
 .ribbon-outer {
@@ -300,57 +376,6 @@ html {
             .content {
                 color: #999;
             }
-        }
-    }
-}
-
-.controls {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    pointer-events: none;
-
-    .floating-button {
-        position: absolute;
-        border-radius: 5px;
-        -webkit-border-radius: 5px;
-        -moz-border-radius: 5px;
-        background: rgba(0, 0, 0, 0.2);
-        color: #fff;
-        text-decoration: none;
-        width: 48px;
-        height: 48px;
-        pointer-events: auto;
-
-        span {
-            width: 48px;
-            height: 48px;
-            display: table-cell;
-            vertical-align: middle;
-            text-align: center;
-        }
-
-    }
-
-    .prev-slide {
-        top: 45%;
-        left: -8px;
-
-        .left-button {
-            width: 16px;
-            height: 24px;
-        }
-    }
-
-    .next-slide {
-        top: 45%;
-        right: -8px;
-
-        .right-button {
-            width: 16px;
-            height: 24px;
         }
     }
 }

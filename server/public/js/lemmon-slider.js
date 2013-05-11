@@ -34,16 +34,22 @@
 		if ( ! data ){
 		    
 		    var $sliderContainer = $slider.find( options.slider ),
-			$sliderControls = $slider.next().filter( '.controls' ),
+			$sliderControls = $slider.find( options.controls ),
 			$items = $sliderContainer.find( options.items ),
-			originalWidth = 1;
-
-		    $items.each(function(){ originalWidth += $( this ).outerWidth( true ); });
+			originalWidth =
+                            $sliderContainer.outerWidth(true) -
+                            $sliderContainer.innerWidth();
+                    
+		    $items.each(function(){
+                        originalWidth += $( this ).outerWidth(true);
+                    });
 		    $sliderContainer.width( originalWidth );
                     
-                    // not necessary to scroll
-                    if ( originalWidth <= $slider.width() ) {
+                    console.log(originalWidth);
+                    console.log($slider.width());
 
+                    // not necessary to scroll
+                    if (originalWidth <= $slider.width()) {
                         $sliderControls.hide();
                         return;
                     }
@@ -216,7 +222,7 @@
 	    return this.each(function(){
 		
 		var $slider = $( this ),
-		    $sliderControls = $slider.next().filter( '.controls' ),
+		    $sliderControls = $slider.find( options.controls ),
 		    data = $slider.data( 'slider' );
 		
 		$slider.unbind( 'nextSlide' );
@@ -353,6 +359,7 @@
 	'loop'        : true,
 	'slideToLast' : false,
 	'slider'      : '> *:first',
+        'controls'    : '> .controls',
 	// since 0.2
 	'infinite'    : false,
         'focusCenter' : false

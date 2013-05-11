@@ -5,43 +5,49 @@
   <body>
     <%= erb :_preamble, :locals => { :refered => refered, :current_board => current_board } %>
 
-    <div class="workspace">
-      <ul>
-        <% current_board.list_ribbons.each do |ribbon| %>
-        <li>
-          <div class="ribbon-outer">
-            <section class="ribbon" ribbon-id="<%= ribbon.store.id %>">
-              <div class="ribbon-inner">
-                <%= erb :_ribbonheader, :locals => { :current_board => current_board, :ribbon => ribbon } %>
-                <% if ribbon.writable_by?(@user) %>
-                <%=  erb :_newarticle, :locals => { :ribbon => ribbon }  %>
-                <% end %>
-                <section class="timeline" level="0" ribbon-id="<%= ribbon.store.id %>" timeline-id="<%= ribbon.timeline.store.id %>" version="0" editable="<%= ribbon.editable_by?(@user) %>" writable="<%= ribbon.writable_by?(@user) %>">
+    <div class="pane-holder">
+      <div class="information-pane">
+        information
+      </div>
+      <div class="workspace-pane">
+        <div class="workspace">
+          <ul>
+            <% current_board.list_ribbons.each do |ribbon| %>
+            <li>
+              <div class="ribbon-outer">
+                <section class="ribbon" ribbon-id="<%= ribbon.store.id %>">
+                  <div class="ribbon-inner">
+                    <%= erb :_ribbonheader, :locals => { :current_board => current_board, :ribbon => ribbon } %>
+                    <% if ribbon.writable_by?(@user) %>
+                    <%=  erb :_newarticle, :locals => { :ribbon => ribbon }  %>
+                    <% end %>
+                    <section class="timeline" level="0" ribbon-id="<%= ribbon.store.id %>" timeline-id="<%= ribbon.timeline.store.id %>" version="0" editable="<%= ribbon.editable_by?(@user) %>" writable="<%= ribbon.writable_by?(@user) %>">
+                    </section>
+                  </div>
                 </section>
               </div>
-            </section>
+            </li>
+            <% end %>
+          </ul>
+          <div class="controls">
+            <a class="prev-slide floating-button" href="#">
+              <span>
+                <svg class="left-button" viewBox="0 0 32 32" preserveAspectRatio="none">
+                  <polygon points="32,0 0,16, 32,32" style="fill:#fff"/>
+                </svg>
+              </span>
+            </a>
+            <a class="next-slide floating-button" href="#">
+              <span>
+                <svg class="right-button" viewBox="0 0 32 32" preserveAspectRatio="none">
+                  <polygon points="0,0 32,16, 0,32" style="fill:#fff"/>
+                </svg>
+              </span>
+            </a>
           </div>
-        </li>
-        <% end %>
-      </ul>
+        </div>
+      </div>
 
-    </div>
-
-    <div class="controls">
-      <a class="prev-slide floating-button" href="#">
-        <span>
-          <svg class="left-button" viewBox="0 0 32 32" preserveAspectRatio="none">
-            <polygon points="32,0 0,16, 32,32" style="fill:#fff"/>
-          </svg>
-        </span>
-      </a>
-      <a class="next-slide floating-button" href="#">
-        <span>
-          <svg class="right-button" viewBox="0 0 32 32" preserveAspectRatio="none">
-            <polygon points="0,0 32,16, 0,32" style="fill:#fff"/>
-          </svg>
-        </span>
-      </a>
     </div>
 
     <div class="hidden"
