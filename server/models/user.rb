@@ -93,19 +93,11 @@ class User < RedisMapper::PlatformModel
   end
 
   def move_article(ribbon, source, target)
-    ribbon.timeline.move_post(source, target)    
-    ribbon.add_comment(
-      source, Post.create(self, :ArticleLog, "移動: タイムライン内", false))
+    ribbon.move_article(self, source, target)
   end
 
   def transfer_article(source_ribbon, target_ribbon, source, target)
-    target_ribbon.timeline.transfer_post_from(
-      source_ribbon.timeline, source, target)    
-
-    message = Sanitize.clean(
-      "移動: #{source_ribbon.label} → #{target_ribbon.label}")
-    target_ribbon.add_comment(
-      source, Post.create(self, :ArticleLog, message, false))
+    target_ribbon.transfer_article(self, source_ribbon, source, target)    
   end
 
   def favor(ribbon, post)

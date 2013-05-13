@@ -10,11 +10,12 @@ class Board < RedisMapper::PlatformModel
       board.store.read_spotter = Spotter.create(:read, [owner])
       board.store.write_spotter = Spotter.create(:write, [owner])
       board.store.edit_spotter = Spotter.create(:edit, [owner])
+      board.store.activity = Timeline.create(owner)
     end
   end
 
   def import_ribbon(ribbon)
-    self.store.ribbons.push(ribbon)
+    import_ribbon_aux(ribbon)
   end
 
   def make_ribbon(label)
@@ -56,6 +57,13 @@ class Board < RedisMapper::PlatformModel
     return self.store.ribbons.first
   end
 
+  def add_activity(content)
+    Post.create(self, :ArticleLog, content, false).tap do |post|
+      puts "*** activity: #{content.inspect}"
+      self.store.activity.add_post(post)
+    end
+  end
+
   private
   def make_ribbon_aux(label, timeline)
     Ribbon.create(
@@ -65,10 +73,14 @@ class Board < RedisMapper::PlatformModel
       self.store.read_spotter,
       self.store.write_spotter,
       self.store.edit_spotter).tap do |ribbon|
-      self.store.ribbons.push(ribbon)
+      import_ribbon_aux(ribbon)
     end
   end
 
+  def import_ribbon_aux(ribbon)
+    self.store.ribbons.push(ribbon)
+    ribbon.add_referer(self)
+  end
 
   delegate :owner                       do self.store end
   delegate :label                       do self.store end
@@ -83,4 +95,5 @@ class Board < RedisMapper::PlatformModel
   property      :edit_spotter,      Spotter
   list_property :ribbons,           Ribbon
   list_property :removed_ribbons,   Ribbon
+  property      :activity,          Timeline
 end
