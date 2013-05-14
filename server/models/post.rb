@@ -9,7 +9,7 @@ class Post < RedisMapper::PlatformModel
       post.store.content = content
       post.store.created_at = post.store.updated_at = Time.now
       post.store.comments =
-        has_comments ? Timeline.create(author) : nil
+        has_comments ? Timeline.create(author, false) : nil
     end
   end
 

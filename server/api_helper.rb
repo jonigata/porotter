@@ -221,9 +221,13 @@ module APIHelper
   
   private
   def get_timeline(ribbon_id, timeline_id, newest_score, oldest_score, count)
-    ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
-    ribbon.readable_by?(@user) or halt 403
     timeline = Timeline.attach_if_exist(timeline_id) or raise
+    if ribbon_id == 0
+      raise if !timeline.independent?
+    else
+      ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
+      ribbon.readable_by?(@user) or halt 403
+    end
     JSONP(make_timeline_data(
         ribbon, timeline, newest_score, oldest_score, count))
   end
@@ -510,7 +514,7 @@ module APIHelper
     content = PlugIns.module_eval(post.type.to_s).display(
       PluginService.new(settings), post)
     {
-      :ribbonId => ribbon.store.id,
+      :ribbonId => ribbon ? ribbon.store.id : 0,
       :commentsId => comments ? comments.store.id : 0,
       :commentsLength => comments ? comments.length : 0,
       :commentsVersion => comments ? comments.store.version : 0,
@@ -533,7 +537,7 @@ module APIHelper
     posts, res_newest_score, res_oldest_score = timeline.fetch(
       newest_score, oldest_score, count)
     {
-      :ribbonId => ribbon.store.id,
+      :ribbonId => ribbon ? ribbon.store.id : 0,
       :timelineId => timeline.store.id,
       :timelineVersion => timeline.store.version,
       :newestScore => res_newest_score,
@@ -553,7 +557,7 @@ module APIHelper
           :commentsVersion => detail[:commentsVersion],
           :comments => [],
           :userExists => @user ? true : false,
-          :editable => ribbon.editable_by?(@user),
+          :editable => ribbon ? ribbon.editable_by?(@user) : false,
           :chatIconUrl => local_url('/images/chat.png')
         }
       end,

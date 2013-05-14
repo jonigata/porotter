@@ -104,6 +104,10 @@ html {
                 padding: 8px;
                 position: relative;
                 z-index: 1;
+
+                h1 {
+                    font-size: 24px;
+                }
             }
             .workspace-pane {
                 @include border-box;
