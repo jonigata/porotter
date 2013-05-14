@@ -316,6 +316,7 @@ module APIHelper
   end
 
   def post_new_article(ribbon_id, content)
+    check_post_content(content)
     ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
     ribbon.writable_by?(@user) or halt 403
 
@@ -323,6 +324,7 @@ module APIHelper
   end
 
   def post_new_comment(ribbon_id, parent_id, type, content)
+    check_post_content(content)
     ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
     ribbon.writable_by?(@user) or halt 403
 
@@ -563,5 +565,10 @@ module APIHelper
       end,
     }
   end
+
+  def check_post_content(content)
+    raise if content =~ /^\s*$/
+  end
+
 end
 
