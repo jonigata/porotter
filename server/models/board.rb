@@ -14,20 +14,23 @@ class Board < RedisMapper::PlatformModel
     end
   end
 
-  def import_ribbon(ribbon)
+  def import_ribbon(user, ribbon)
     import_ribbon_aux(ribbon)
+    add_activity(user, "リボンのインポート: #{ribbon.label}")
   end
 
-  def make_ribbon(label)
+  def make_ribbon(user, label)
     timeline = Timeline.create(self.owner, false)
     make_ribbon_aux(label, timeline)
+    add_activity(user, "リボンの作成: #{label}")
   end
 
-  def make_readonly_ribbon(label)
+  def make_readonly_ribbon(user, label)
     timeline = Timeline.create(self.owner, false)
     make_ribbon_aux(label, timeline).tap do |ribbon|
       ribbon.write_spotter.set_permission([])
       ribbon.edit_spotter.set_permission([])
+      add_activity(user, "閲覧リボンの作成: #{label}")
     end
   end
 
@@ -35,14 +38,16 @@ class Board < RedisMapper::PlatformModel
     self.store.label = label
   end
 
-  def remove_ribbon(ribbon)
+  def remove_ribbon(user, ribbon)
     self.store.removed_ribbons.push(ribbon)
     self.store.ribbons.remove(ribbon)
+    add_activity(user, "リボンの削除: #{ribbon.label}")
   end
 
-  def restore_ribbon(ribbon)
+  def restore_ribbon(user, ribbon)
     self.store.ribbons.push(ribbon)
     self.store.removed_ribbons.remove(ribbon)
+    add_activity(user, "リボンの復活: #{ribbon.label}")
   end
 
   def rename_ribbon(ribbon, label)
