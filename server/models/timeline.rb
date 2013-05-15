@@ -21,10 +21,6 @@ class Timeline < RedisMapper::PlatformModel
       post.refered_by(self)
       self.store.posts.add(version, holder)
     end
-
-    self.store.watchers.each do |watcher|
-      watcher.add_post(post)
-    end
   end
 
   def remove_post(post)
@@ -121,10 +117,6 @@ class Timeline < RedisMapper::PlatformModel
     end
   end
 
-  def watch(target)
-    target.store.watchers.add(self)
-  end
-
   def move_post(source, target)
     # sourceをbump up
     # puts "bump up(source): #{source.store.id}"
@@ -175,5 +167,4 @@ class Timeline < RedisMapper::PlatformModel
   property              :version,           Integer
   ordered_set_property  :posts,             PostHolder
   dictionary_property   :post_to_holder,    Post, PostHolder
-  set_property          :watchers,          Timeline
 end
