@@ -21,8 +21,9 @@ class Board < RedisMapper::PlatformModel
 
   def make_ribbon(user, label)
     timeline = Timeline.create(self.owner, false)
-    make_ribbon_aux(label, timeline)
-    add_activity(user, "リボンの作成: #{label}")
+    make_ribbon_aux(label, timeline).tap do
+      add_activity(user, "リボンの作成: #{label}")
+    end
   end
 
   def make_readonly_ribbon(user, label)
@@ -64,7 +65,7 @@ class Board < RedisMapper::PlatformModel
 
   def add_activity(user, content)
     Post.create(user, :ArticleLog, content, false).tap do |post|
-      puts "*** activity: #{content.inspect}"
+      puts "*** activity: \"#{content}\""
       self.store.activity.add_post(post)
     end
   end
