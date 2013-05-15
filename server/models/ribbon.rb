@@ -27,13 +27,21 @@ class Ribbon < RedisMapper::PlatformModel
     timeline = self.store.timeline
     return nil unless timeline
     timeline.add_post(post)
-    broadcast_activity("#{post.author.username}の新規投稿: #{post.content}")
+
+    author = post.author
+    broadcast_activity(author, "新規投稿: #{post.content}")
+
     post
   end
 
   def add_comment(parent, post)
     parent.add_comment(post)
-    broadcast_activity("#{post.author.username}のコメント: #{post.content}")
+
+    if post.type != :ArticleLog
+      author = post.author
+      broadcast_activity(author, "コメント: #{post.content}")
+    end
+    
     post
   end
 
@@ -41,7 +49,8 @@ class Ribbon < RedisMapper::PlatformModel
     self.timeline.move_post(source, target)    
     self.add_comment(
       source, Post.create(user, :ArticleLog, "移動: タイムライン内", false))
-    broadcast_activity("#{post.author.username}が投稿を移動")
+
+    broadcast_activity(user, "投稿を移動")
   end
 
   def transfer_article(user, source_ribbon, source, target)
@@ -49,7 +58,8 @@ class Ribbon < RedisMapper::PlatformModel
 
     message = Sanitize.clean("移動: #{source_ribbon.label} → #{self.label}")
     self.add_comment(source, Post.create(user, :ArticleLog, message, false))
-    broadcast_activity("#{user.username}が投稿を移動")
+
+    broadcast_activity(user, "投稿を#{message}")
   end
 
   def parent_spotter(type)
@@ -64,9 +74,9 @@ class Ribbon < RedisMapper::PlatformModel
     write_spotter.permitted?(user)
   end
 
-  def broadcast_activity(text)
+  def broadcast_activity(user, text)
     self.store.referers.each do |referer|
-      referer.add_activity(text)
+      referer.add_activity(user, text)
     end
   end
 

@@ -24,7 +24,7 @@
     <div class="entry">
       ::__current__.detail::
 
-      ::if (level == 0)::
+      ::if (__current__.commentsId != 0)::
       <div class="operation">
         <a class="show-comment" href="#" onclick="MyPage.toggleComments(this);return false;">
           <img src="::chatIconUrl::">

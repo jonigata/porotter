@@ -7,7 +7,7 @@
 
     <div class="pane-holder">
       <div class="information-pane">
-        information
+        <%= erb :_information, :locals => { :current_board => current_board } %>
       </div>
       <div class="workspace-pane">
         <div class="workspace">

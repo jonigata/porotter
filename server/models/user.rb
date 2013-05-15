@@ -23,7 +23,7 @@ class User < RedisMapper::PlatformModel
         board = Board.create(user, 'global')
         user.store.boards[board_tag(user, "global")] = board
         
-        ribbon = board.make_ribbon('井戸端会議')
+        ribbon = board.make_ribbon(user, '井戸端会議')
         ribbon.set_readability(:everyone, nil)
         ribbon.set_writability(:everyone, nil)
         ribbon.set_editability(:private_group, [])
@@ -57,11 +57,11 @@ class User < RedisMapper::PlatformModel
             
           global_ribbon = self.global_ribbon
 
-          board.import_ribbon(global_ribbon)
+          board.import_ribbon(user, global_ribbon)
           user.store.my_posts = 
-            board.make_readonly_ribbon('あなたの投稿').timeline
+            board.make_readonly_ribbon(user, 'あなたの投稿').timeline
           user.store.favorites = 
-            board.make_readonly_ribbon('お気に入り').timeline
+            board.make_readonly_ribbon(user, 'お気に入り').timeline
 
           user.add_article(global_ribbon, :Tweet, "最初の投稿です")
 
@@ -132,15 +132,6 @@ class User < RedisMapper::PlatformModel
     self.store.boards[board_tag(self, label)] = board
   end
 
-  def add_ribbon(board, label)
-    board.make_ribbon(label)
-  end
-
-  def remove_ribbon(board, ribbon)
-    # TODO: ribbonチェック
-    board.remove_ribbon(ribbon)
-  end
-
   def rename_ribbon(ribbon, label)
     ribbon.owner.rename_ribbon(ribbon, label)
   end
@@ -165,8 +156,17 @@ class User < RedisMapper::PlatformModel
     board.add_ribbon(ribbon)
   end
 
+  def add_ribbon(board, label)
+    board.make_ribbon(self, label)
+  end
+
+  def remove_ribbon(board, ribbon)
+    # TODO: ribbonチェック
+    board.remove_ribbon(self, ribbon)
+  end
+
   def restore_ribbon(board, ribbon)
-    board.restore_ribbon(ribbon)
+    board.restore_ribbon(self, ribbon)
   end
 
   private

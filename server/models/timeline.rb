@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
 class Timeline < RedisMapper::PlatformModel
-  def self.create(owner)
+  def self.create(owner, independent)
     self.new_instance.tap do |timeline|
       timeline.store.owner = owner
       timeline.store.version = 1
+      timeline.store.independent = independent
     end
   end
 
@@ -99,14 +100,6 @@ class Timeline < RedisMapper::PlatformModel
     ]
   end
 
-  def length
-    self.store.posts.length
-  end
-
-  def empty?
-    self.store.posts.empty?
-  end
-
   def on_post_modified(post)
     # bump up
     holder = self.store.post_to_holder[post]
@@ -155,6 +148,10 @@ class Timeline < RedisMapper::PlatformModel
     source_timeline.remove_post(source)
   end
 
+  delegate :independent?, :independent  do self.store end
+  delegate :length                      do self.store.posts end
+  delegate :empty?                      do self.store.posts end
+
   private
   def version_up
     self.store.version_incr(1).tap do |version|
@@ -165,6 +162,7 @@ class Timeline < RedisMapper::PlatformModel
 
   property              :owner,             User
   property              :version,           Integer
+  property              :independent,       Boolean
   ordered_set_property  :posts,             PostHolder
   dictionary_property   :post_to_holder,    Post, PostHolder
 end

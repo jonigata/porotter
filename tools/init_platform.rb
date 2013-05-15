@@ -4,6 +4,7 @@ require 'rubygems'
 require 'redis'
 require 'hiredis'
 require 'digest'
+require 'json'
 require "#{File.dirname(__FILE__)}/../server/redis_mapper.rb"
 require "#{File.dirname(__FILE__)}/../server/domain_models.rb"
 
