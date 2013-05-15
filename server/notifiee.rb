@@ -2,16 +2,14 @@
 
 class Notifiee
   def initialize
-    # @watchers[timeline_id] = [session_id, ...]
+    # @watchers[object_id] = [session_id, ...]
     @watchers = Hash.new { |h, k| h[k] = Set.new }
     # @watchees[session_id] = Set.new
     @watchees = Hash.new
   end
 
-  def set_targets(session, data)
+  def set_targets(session, targets)
     begin 
-      targets = data["targets"].map { |e| e.to_i }
-
       # targetsから要素が削除されている場合、
       # watchers[some]にはsessionが含まれているのに
       # watchees[session]にはsomeが含まれていないケースが生じるが、
@@ -28,11 +26,11 @@ class Notifiee
   end
 
   def trigger(message)
-    target_id, version = JSON.parse(message)
+    target_id, info = JSON.parse(message)
     deleted = []
     @watchers[target_id].each do |session|
       if @watchees.member?(session) && @watchees[session].member?(target_id)
-        yield target_id, version, session
+        yield target_id, info, session
       else
         deleted.push session
       end
@@ -46,8 +44,15 @@ class Notifiee
 end
 
 def start_watch
+  redis = Redis.new
+
+  board_notifiee = Notifiee.new
   timeline_notifiee = Notifiee.new
   post_notifiee = Notifiee.new
+
+  users = Hash.new # { session => { :user => user-id, :board => board-id } }
+  observers =
+    Hash.new { |h, k| h[k] = Set.new } # { board-id => [user-id, ...] }
 
   io = Sinatra::RocketIO
   io.on :connect do |session, type|
@@ -56,23 +61,54 @@ def start_watch
 
   io.on :disconnect do |session, type|
     puts "delete client <#{session}> (type:#{type})"
+
+    user_info = users[session]
+    if user_info 
+      user_id = user_info[:user]
+      board_id = user_info[:board]
+
+      board_observers = observers[board_id]
+      board_observers.delete(user_id)
+
+      redis.publish("board-watcher", [board_id, board_observers.to_a].to_json)
+    end
+    board_notifiee.remove_session(session)
     timeline_notifiee.remove_session(session)
     post_notifiee.remove_session(session)
   end
 
+  io.on :describe do |data, session, type|
+    user_id = data["user"].to_i
+    board_id = data["board"].to_i
+
+    users[session] = user_info = { :user => user_id, :board => board_id }
+
+    board_observers = observers[board_id]
+    board_observers << user_id
+
+    redis.publish("board-watcher", [board_id, board_observers.to_a].to_json)
+  end
+
   io.on :'watch-timeline' do |data, session, type|
     # puts "watch-timeline params: #{data}, <#{session}> type: #{type}"
-    timeline_notifiee.set_targets(session, data)
+    timeline_notifiee.set_targets(session, data["targets"].map { |e| e.to_i })
   end
 
   io.on :'watch-post' do |data, session, type|
     # puts "watch-post params: #{data}, <#{session}> type: #{type}"
-    post_notifiee.set_targets(session, data)
+    post_notifiee.set_targets(session, data["targets"].map { |e| e.to_i })
   end
-  
+
+  io.on :'watch-board' do |data, session, type|
+    puts "watch-board params: #{data}, <#{session}> type: #{type}"
+    board_notifiee.set_targets(session, data["targets"].map { |e| e.to_i })
+  end
 
   EM.defer do
-    Redis.new.subscribe("timeline-watcher", "post-watcher") do |on|
+    Redis.new.subscribe( # publishと同じのを使うとブロックする
+      "timeline-watcher",
+      "post-watcher",
+      "board-watcher") do |on|
       on.message do |channel, message|
         case channel
         when "timeline-watcher"
@@ -89,6 +125,14 @@ def start_watch
             post_notifiee.trigger(message) do |post_id, version, session|
               # puts "send post watch message: #{post_id}"
               io.push :'watch-post', {:post => post_id, :version => version}, {:to => session }
+            end
+          end
+        when "board-watcher"
+          # puts "get post-watcher singal(#{message})"
+          EM.next_tick do
+            board_notifiee.trigger(message) do |board_id, observers, session|
+              puts "send board watch message: #{board_id}"
+              io.push :'watch-board', {:board => board_id, :observers => observers}, {:to => session }
             end
           end
         end

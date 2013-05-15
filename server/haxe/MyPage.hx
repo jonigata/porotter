@@ -560,6 +560,10 @@ class MyPage {
         return getBasicDataAttr('username');
     }
 
+    static private function getUserId(): String {
+        return getBasicDataAttr('user-id');
+    }
+
     static private function getOwnerName(): String {
         return getBasicDataAttr('owner-name');
     }
@@ -828,18 +832,18 @@ class MyPage {
 
         oldTimeline.find('> .continue-reading').remove();
 
-        trace('new');
-        traceTimeline(newTimeline);
+        // trace('new');
+        // traceTimeline(newTimeline);
 
         var remover = newTimeline.find('> article[removed="true"]');
-        trace('remover');
+        // trace('remover');
         remover.each(
             function(i: Int, elem: Dynamic) {
                 trace(elem);
             });
 
-        trace('old(before applying remover)');
-        traceTimeline(oldTimeline);
+        // trace('old(before applying remover)');
+        // traceTimeline(oldTimeline);
 
         remover.each(
             function(i: Int, elem: Dynamic) {
@@ -853,8 +857,8 @@ class MyPage {
         newTimeline.find('.removing').remove();
         oldTimeline.find('.removing').remove();
 
-        trace('old(before)');
-        traceTimeline(oldTimeline);
+        // trace('old(before)');
+        // traceTimeline(oldTimeline);
 
         // post-idの同じ物を削除
         newTimeline.children().each(
@@ -897,8 +901,8 @@ class MyPage {
             intervals.from_array(JQuery._static.parseJSON(oldTimelineIntervalsAttr));
         }
 
-        trace('newTimeline intervals');
-        trace(newTimeline.attr('intervals'));
+        // trace('newTimeline intervals');
+        // trace(newTimeline.attr('intervals'));
         var tmpIntervalArray: Array<Array<Int>> =
             JQuery._static.parseJSON(newTimeline.attr('intervals'));
         for(v in tmpIntervalArray) {
@@ -912,8 +916,8 @@ class MyPage {
         }
         oldTimeline.attr('intervals', JSON.stringify(intervals.to_array()));
 
-        trace('old(after)');
-        traceTimeline(oldTimeline);
+        // trace('old(after)');
+        // traceTimeline(oldTimeline);
 
         setupDragHandles(oldTimeline);
         setupNoArticle(oldTimeline);
@@ -1088,6 +1092,19 @@ class MyPage {
         }
     }
 
+    static private function describeSelf() {
+        if (connected) {
+            io.push("describe", {user: getUserId(), board: getBoardId()});
+        }
+    }
+
+    static private function subscribeBoard() {
+        if (connected) {
+            io.push("watch-board",
+                    {user: getUserId(), targets: [getBoardId()]});
+        }
+    }
+
     static private function subscribeTimelines() {
         if (connected) {
             var targets = new JQuery('[timeline-id]:visible').map(
@@ -1153,9 +1170,6 @@ class MyPage {
         detail.favoredBy = favoredBy;
         detail.elapsed = elapsedInWords(detail.elapsed);
         detail.writable = writable;
-        trace(detail.writable);
-        trace(detail.userExists);
-        trace(detail.postType);
         return applyTemplate("Detail", detail);
     }
 
@@ -1166,12 +1180,25 @@ class MyPage {
         return template.execute(data);
     }
 
+    static private function updateBoardWatcher(
+        boardId: Int, observers: Array<Int>) {
+        var observersView: Dynamic = new JQuery('#observers');
+        for(v in observers) {
+            observersView.append(Std.format('<span class="observer" user-id="$v">$v</span>'));
+        }
+    }
+
     static private function startWatch() {
         io = new RocketIO().connect();
         io.on("connect", function(session) {
             connected = true;
+            subscribeBoard();
             subscribeTimelines();
             subscribePosts();
+            describeSelf();
+        });
+        io.on("watch-board", function(data: Dynamic) {
+            updateBoardWatcher(data.board, data.observers);
         });
         io.on("watch-timeline", function(data: Dynamic<Int>) {
             loadTimeline(data.timeline, data.version);

@@ -45,9 +45,6 @@
                     });
 		    $sliderContainer.width( originalWidth );
                     
-                    console.log(originalWidth);
-                    console.log($slider.width());
-
                     // not necessary to scroll
                     if (originalWidth <= $slider.width()) {
                         $sliderControls.hide();

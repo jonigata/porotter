@@ -1097,6 +1097,9 @@ MyPage.makeBoardUrl = function(username,boardname) {
 MyPage.getUserName = function() {
 	return MyPage.getBasicDataAttr("username");
 }
+MyPage.getUserId = function() {
+	return MyPage.getBasicDataAttr("user-id");
+}
 MyPage.getOwnerName = function() {
 	return MyPage.getBasicDataAttr("owner-name");
 }
@@ -1264,15 +1267,10 @@ MyPage.mergeTimeline = function(oldTimeline,newTimeline) {
 		return;
 	}
 	oldTimeline.find("> .continue-reading").remove();
-	console.log("new");
-	MyPage.traceTimeline(newTimeline);
 	var remover = newTimeline.find("> article[removed=\"true\"]");
-	console.log("remover");
 	remover.each(function(i,elem) {
 		console.log(elem);
 	});
-	console.log("old(before applying remover)");
-	MyPage.traceTimeline(oldTimeline);
 	remover.each(function(i,elem) {
 		var e = new $(elem);
 		var postId = e.attr("post-id");
@@ -1283,8 +1281,6 @@ MyPage.mergeTimeline = function(oldTimeline,newTimeline) {
 	});
 	newTimeline.find(".removing").remove();
 	oldTimeline.find(".removing").remove();
-	console.log("old(before)");
-	MyPage.traceTimeline(oldTimeline);
 	newTimeline.children().each(function(i,elem) {
 		var e = new $(elem);
 		var postId = e.attr("post-id");
@@ -1314,8 +1310,6 @@ MyPage.mergeTimeline = function(oldTimeline,newTimeline) {
 	var intervals = new Intervals();
 	var oldTimelineIntervalsAttr = oldTimeline.attr("intervals");
 	if(MyPage.kickUndefined(oldTimelineIntervalsAttr) != null) intervals.from_array($.parseJSON(oldTimelineIntervalsAttr));
-	console.log("newTimeline intervals");
-	console.log(newTimeline.attr("intervals"));
 	var tmpIntervalArray = $.parseJSON(newTimeline.attr("intervals"));
 	var _g = 0;
 	while(_g < tmpIntervalArray.length) {
@@ -1330,8 +1324,6 @@ MyPage.mergeTimeline = function(oldTimeline,newTimeline) {
 		if(v.e != 0) MyPage.insertContinueReading(oldTimeline,v.e);
 	}
 	oldTimeline.attr("intervals",JSON.stringify(intervals.to_array()));
-	console.log("old(after)");
-	MyPage.traceTimeline(oldTimeline);
 	MyPage.setupDragHandles(oldTimeline);
 	MyPage.setupNoArticle(oldTimeline);
 }
@@ -1446,6 +1438,12 @@ MyPage.updateCommentDisplayText = function(entry) {
 		showComment.html("×" + count);
 	}
 }
+MyPage.describeSelf = function() {
+	if(MyPage.connected) MyPage.io.push("describe",{ user : MyPage.getUserId(), board : MyPage.getBoardId()});
+}
+MyPage.subscribeBoard = function() {
+	if(MyPage.connected) MyPage.io.push("watch-board",{ user : MyPage.getUserId(), targets : [MyPage.getBoardId()]});
+}
 MyPage.subscribeTimelines = function() {
 	if(MyPage.connected) {
 		var targets = new $("[timeline-id]:visible").map(function(i,e) {
@@ -1494,9 +1492,6 @@ MyPage.formatDetail = function(detail,writable) {
 	detail.favoredBy = favoredBy;
 	detail.elapsed = MyPage.elapsedInWords(detail.elapsed);
 	detail.writable = writable;
-	console.log(detail.writable);
-	console.log(detail.userExists);
-	console.log(detail.postType);
 	return MyPage.applyTemplate("Detail",detail);
 }
 MyPage.applyTemplate = function(codename,data) {
@@ -1504,12 +1499,26 @@ MyPage.applyTemplate = function(codename,data) {
 	var template = new haxe.Template(templateCode);
 	return template.execute(data);
 }
+MyPage.updateBoardWatcher = function(boardId,observers) {
+	var observersView = new $("#observers");
+	var _g = 0;
+	while(_g < observers.length) {
+		var v = observers[_g];
+		++_g;
+		observersView.append("<span class=\"observer\" user-id=\"" + v + "\">" + v + "</span>");
+	}
+}
 MyPage.startWatch = function() {
 	MyPage.io = new RocketIO().connect();
 	MyPage.io.on("connect",function(session) {
 		MyPage.connected = true;
+		MyPage.subscribeBoard();
 		MyPage.subscribeTimelines();
 		MyPage.subscribePosts();
+		MyPage.describeSelf();
+	});
+	MyPage.io.on("watch-board",function(data) {
+		MyPage.updateBoardWatcher(data.board,data.observers);
 	});
 	MyPage.io.on("watch-timeline",function(data) {
 		MyPage.loadTimeline(data.timeline,data.version);
