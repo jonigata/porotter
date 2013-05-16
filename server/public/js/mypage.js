@@ -1038,6 +1038,13 @@ MyPage.updateGroupDisplay = function(display,data) {
 		console.log("deleted");
 		console.log(ui.draggable);
 		var e1 = new $(ui.draggable);
+		e1.tooltip("hide");
+		var userId = Std.parseInt(e1.attr("user-id"));
+		data.members = data.members.filter(function(x) {
+			return x.userId != userId;
+		});
+		MyPage.updateGroupDisplay(display,data);
+		e1.remove();
 	}});
 	var memberSet = [];
 	var _g = 0;

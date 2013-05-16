@@ -476,7 +476,15 @@ class MyPage {
                 trace('deleted');
                 trace(ui.draggable);
                 var e: Dynamic = new JQuery(ui.draggable);
-                // e.remove();
+/*
+                e.tooltip('hide');
+                var userId: Int = Std.parseInt(e.attr('user-id'));
+                data.members = data.members.filter(function(x: Dynamic) {
+                        return x.userId != userId;
+                    });
+                updateGroupDisplay(display, data);
+                e.remove();
+*/
             }
         });
 
