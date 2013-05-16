@@ -70,6 +70,21 @@ class Board < RedisMapper::PlatformModel
     end
   end
 
+  def add_observer(user)
+    # TODO:
+    #  古いのを消す
+    #  数を制限する
+    return unless user
+    self.store.observers.add(Time.now.to_i, user)
+    publish_observers
+  end
+
+  def remove_observer(user)
+    return unless user
+    self.store.observers.remove(user)
+    publish_observers
+  end
+
   private
   def make_ribbon_aux(label, timeline)
     Ribbon.create(
@@ -88,6 +103,14 @@ class Board < RedisMapper::PlatformModel
     ribbon.add_referer(self)
   end
 
+  private
+  def publish_observers
+    a = self.store.observers.revrange(Time.now.to_i, Time.now.to_i - 60 * 60 * 24).map { |x| x[:value].store.id }
+    redis.publish(
+      "board-watcher",
+      [self.store.id, a].to_json)
+  end
+
   delegate :owner                       do self.store end
   delegate :label                       do self.store end
   delegate :add_ribbon, :push           do self.store.ribbons end
@@ -102,4 +125,5 @@ class Board < RedisMapper::PlatformModel
   list_property :ribbons,           Ribbon
   list_property :removed_ribbons,   Ribbon
   property      :activity,          Timeline
+  ordered_set_property  :observers, User # { unix-time => user }
 end

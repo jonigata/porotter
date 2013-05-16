@@ -51,8 +51,6 @@ def start_watch
   post_notifiee = Notifiee.new
 
   users = Hash.new # { session => { :user => user-id, :board => board-id } }
-  observers =
-    Hash.new { |h, k| h[k] = Set.new } # { board-id => [user-id, ...] }
 
   io = Sinatra::RocketIO
   io.on :connect do |session, type|
@@ -67,10 +65,9 @@ def start_watch
       user_id = user_info[:user]
       board_id = user_info[:board]
 
-      board_observers = observers[board_id]
-      board_observers.delete(user_id)
-
-      redis.publish("board-watcher", [board_id, board_observers.to_a].to_json)
+      Board.attach_if_exist(board_id).tap do |board|
+        board.remove_observer(User.attach_if_exist(user_id)) if board
+      end
     end
     board_notifiee.remove_session(session)
     timeline_notifiee.remove_session(session)
@@ -83,10 +80,9 @@ def start_watch
 
     users[session] = user_info = { :user => user_id, :board => board_id }
 
-    board_observers = observers[board_id]
-    board_observers << user_id
-
-    redis.publish("board-watcher", [board_id, board_observers.to_a].to_json)
+    Board.attach_if_exist(board_id).tap do |board|
+      board.add_observer(User.attach_if_exist(user_id)) if board
+    end
   end
 
   io.on :'watch-timeline' do |data, session, type|
