@@ -1032,6 +1032,13 @@ MyPage.updateGroupDisplay = function(display,data) {
 		}
 	}
 	display.find("img").tooltip();
+	display.find("img").draggable({ revert : "invalid"});
+	var trash = new $(".group-member-trash");
+	trash.droppable({ accept : "[user-id]", drop : function(e,ui) {
+		console.log("deleted");
+		console.log(ui.draggable);
+		var e1 = new $(ui.draggable);
+	}});
 	var memberSet = [];
 	var _g = 0;
 	while(_g < members.length) {

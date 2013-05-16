@@ -466,6 +466,19 @@ class MyPage {
             }
         }
         display.find('img').tooltip();
+        display.find('img').draggable({revert: "invalid"});
+
+        // ゴミ箱
+        var trash: Dynamic = new JQuery(".group-member-trash");
+        trash.droppable({
+            accept: '[user-id]',
+            drop: function(e, ui) {
+                trace('deleted');
+                trace(ui.draggable);
+                var e: Dynamic = new JQuery(ui.draggable);
+                // e.remove();
+            }
+        });
 
         // member-setを作成
         var memberSet: Array<Int> = [];
