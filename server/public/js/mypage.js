@@ -1508,7 +1508,7 @@ MyPage.updateBoardWatcher = function(boardId,observers) {
 		++_g;
 		var userId = v.userId;
 		var label = v.label;
-		var icon = MyPage.gravatar(v.gravatar,16);
+		var icon = MyPage.tooltip(MyPage.gravatar(v.gravatar,16),label);
 		observersView.append("<span class=\"observer\" user-id=\"" + userId + "\">" + icon + "</span>");
 	}
 }
@@ -1613,6 +1613,9 @@ MyPage.gravatar = function(hash,size,userId,username,label) {
 	if(username == null) username = "";
 	if(userId == null) userId = 0;
 	return "<img src=\"http://www.gravatar.com/avatar/" + hash + "?s=" + size + "&d=mm\" alt=\"gravatar\" user-id=\"" + userId + "\" username=\"" + username + "\" title=\"" + label + "\" data-toggle=\"tooltip\"/>";
+}
+MyPage.tooltip = function(s,desc) {
+	return "<a href=\"#\" data-toggle=\"tooltip\" title=\"" + desc + "\" onmouseover=\"" + "$(this).tooltip('show');\" onmouseout=\"" + "$(this).tooltip('hide');\">" + s + "</a>";
 }
 var Reflect = function() { }
 $hxClasses["Reflect"] = Reflect;

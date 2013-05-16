@@ -1187,7 +1187,7 @@ class MyPage {
         for(v in observers) {
             var userId = v.userId;
             var label = v.label;
-            var icon = gravatar(v.gravatar, 16);
+            var icon = tooltip(gravatar(v.gravatar, 16), label);
             observersView.append(Std.format('<span class="observer" user-id="$userId">$icon</span>'));
         }
     }
@@ -1336,6 +1336,11 @@ class MyPage {
         username: String="",
         label: String=""): String {
         return Std.format('<img src="http://www.gravatar.com/avatar/${hash}?s=${size}&d=mm" alt="gravatar" user-id="$userId" username="$username" title="$label" data-toggle="tooltip"/>');
+    }
+
+    static private function tooltip(s: String, desc: String) {
+        return Std.format('<a href="#" data-toggle="tooltip" title="$desc" onmouseover="$(this).tooltip(\'show\');" onmouseout="$(this).tooltip(\'hide\');">$s</a>');
+        
     }
 }
 
