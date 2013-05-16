@@ -519,11 +519,14 @@ module APIHelper
       :ribbonId => ribbon ? ribbon.store.id : 0,
       :commentsId => comments ? comments.store.id : 0,
       :commentsLength => comments ? comments.length : 0,
-      :commentsVersion => comments ? comments.store.version : 0,
-      :authorLabel => author.store.label,
-      :authorUsername => author.store.username,
-      :favoredBy => post.store.favored_by.map {
-        |x| Misc.gravatar(x.store.email)
+      :commentsVersion => comments ? comments.version : 0,
+      :authorLabel => author.label,
+      :authorUsername => author.username,
+      :favoredBy => post.store.favored_by.map { |x|
+        {
+          :label => x.label,
+          :gravatar => Misc.gravatar(x.email)
+        }
       },
       :userExists => (@user ? true : false),
       :postId => post.store.id,

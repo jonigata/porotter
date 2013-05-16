@@ -148,6 +148,7 @@ class Timeline < RedisMapper::PlatformModel
     source_timeline.remove_post(source)
   end
 
+  delegate :version                     do self.store end
   delegate :independent?, :independent  do self.store end
   delegate :length                      do self.store.posts end
   delegate :empty?                      do self.store.posts end

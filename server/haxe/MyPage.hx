@@ -1163,9 +1163,11 @@ class MyPage {
 
     static function formatDetail(detail: Dynamic, writable: Bool) {
         var favoredBy = "";
-        var srcFavoredBy: Array<String> = detail.favoredBy;
+        var srcFavoredBy: Array<Dynamic> = detail.favoredBy;
         for(vv in srcFavoredBy) {
-            favoredBy += gravatar(vv, 16);
+            var label: String = vv.label;
+            var icon: String = vv.gravatar;
+            favoredBy += tooltip(gravatar(icon, 16), label);
         }
         detail.favoredBy = favoredBy;
         detail.elapsed = elapsedInWords(detail.elapsed);

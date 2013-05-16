@@ -1487,7 +1487,9 @@ MyPage.formatDetail = function(detail,writable) {
 	while(_g < srcFavoredBy.length) {
 		var vv = srcFavoredBy[_g];
 		++_g;
-		favoredBy += MyPage.gravatar(vv,16);
+		var label = vv.label;
+		var icon = vv.gravatar;
+		favoredBy += MyPage.tooltip(MyPage.gravatar(icon,16),label);
 	}
 	detail.favoredBy = favoredBy;
 	detail.elapsed = MyPage.elapsedInWords(detail.elapsed);
