@@ -1501,11 +1501,15 @@ MyPage.applyTemplate = function(codename,data) {
 }
 MyPage.updateBoardWatcher = function(boardId,observers) {
 	var observersView = new $("#observers");
+	observersView.html("");
 	var _g = 0;
 	while(_g < observers.length) {
 		var v = observers[_g];
 		++_g;
-		observersView.append("<span class=\"observer\" user-id=\"" + v + "\">" + v + "</span>");
+		var userId = v.userId;
+		var label = v.label;
+		var icon = MyPage.gravatar(v.gravatar,16);
+		observersView.append("<span class=\"observer\" user-id=\"" + userId + "\">" + icon + "</span>");
 	}
 }
 MyPage.startWatch = function() {

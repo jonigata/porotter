@@ -105,7 +105,14 @@ class Board < RedisMapper::PlatformModel
 
   private
   def publish_observers
-    a = self.store.observers.revrange(Time.now.to_i, Time.now.to_i - 60 * 60 * 24).map { |x| x[:value].store.id }
+    a = self.store.observers.revrange(Time.now.to_i, Time.now.to_i - 60 * 60 * 24).map do |x|
+      user = x[:value]
+      {
+        :userId => user.store.id,
+        :label => user.label,
+        :gravatar => user.gravatar
+      }
+    end
     redis.publish(
       "board-watcher",
       [self.store.id, a].to_json)

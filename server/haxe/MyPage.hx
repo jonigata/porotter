@@ -1181,10 +1181,14 @@ class MyPage {
     }
 
     static private function updateBoardWatcher(
-        boardId: Int, observers: Array<Int>) {
+        boardId: Int, observers: Array<Dynamic>) {
         var observersView: Dynamic = new JQuery('#observers');
+        observersView.html('');
         for(v in observers) {
-            observersView.append(Std.format('<span class="observer" user-id="$v">$v</span>'));
+            var userId = v.userId;
+            var label = v.label;
+            var icon = gravatar(v.gravatar, 16);
+            observersView.append(Std.format('<span class="observer" user-id="$userId">$icon</span>'));
         }
     }
 

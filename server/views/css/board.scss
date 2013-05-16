@@ -108,6 +108,9 @@ html {
                 h1 {
                     font-size: 18px;
                 }
+                #observers img {
+                    margin-right: 4px;
+                }
             }
             .workspace-pane {
                 @include border-box;

@@ -169,6 +169,10 @@ class User < RedisMapper::PlatformModel
     board.restore_ribbon(self, ribbon)
   end
 
+  def gravatar
+    Misc.gravatar(email)
+  end
+
   private
   def self.global_ribbon
     return self.store_class.find_by_username('global').find_board('global').first_ribbon
