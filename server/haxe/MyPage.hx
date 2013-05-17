@@ -9,9 +9,8 @@ using ArrayUtil;
 
 import RocketIO;
 
-extern class JSON {
-    static public function stringify(s: Dynamic): String;
-}
+import Misc;
+import BoardSettingsDialog;
 
 @:expose
 class MyPage {
@@ -190,7 +189,7 @@ class MyPage {
 
         boardSelect.val(0);
         disable(boardSelect);
-        setupUserSelect(
+        Misc.setupUserSelect(
             userSelect,
             function() {
                 userSelect.find('option').each(
@@ -204,7 +203,7 @@ class MyPage {
                 clearSelect(boardSelect);
                 if (userId == 0) { return; }
                         
-                setupBoardSelect(
+                Misc.setupBoardSelect(
                     boardSelect,
                     userId,
                     function(boardId: Int) {
@@ -236,7 +235,7 @@ class MyPage {
         disable(boardSelect);
         ribbonSelect.val(0);
         disable(ribbonSelect);
-        setupUserSelect(
+        Misc.setupUserSelect(
             userSelect,
             function() {
             },
@@ -246,18 +245,18 @@ class MyPage {
                 clearSelect(ribbonSelect);
                 if (userId == 0) { return; }
                         
-                setupBoardSelect(
+                Misc.setupBoardSelect(
                     boardSelect,
                     userId,
                     function(boardId: Int) {
                         return boardId != currentBoardId;
                     },
                     function(boardId: Int) {
-                        disable(submit);
-                        clearSelect(ribbonSelect);
+                        Misc.disable(submit);
+                        Misc.clearSelect(ribbonSelect);
                         if (boardId == 0) { return; }
 
-                        setupRibbonSelect(
+                        Misc.setupRibbonSelect(
                             ribbonSelect,
                             boardId,
                             true,
@@ -274,8 +273,8 @@ class MyPage {
         var ribbonSelect: Dynamic = dialog.find('[name="ribbon"]');
         var submit: Dynamic = dialog.find('[type="submit"]');
 
-        clearSelect(ribbonSelect);
-        setupRemovedRibbonSelect(
+        Misc.clearSelect(ribbonSelect);
+        Misc.setupRemovedRibbonSelect(
             ribbonSelect,
             boardId,
             true,
@@ -304,13 +303,13 @@ class MyPage {
 
     static function editRibbonSettings(
         dialog: Dynamic, boardId: Int, ribbonId: Int) {
-        setupRadio(dialog, "read_permission");
-        setupRadio(dialog, "write_permission");
-        setupRadio(dialog, "edit_permission");
+        Misc.setupRadio(dialog, "read_permission");
+        Misc.setupRadio(dialog, "write_permission");
+        Misc.setupRadio(dialog, "edit_permission");
 
-        setupEditGroupButton(dialog.find('#edit-readable-group'));
-        setupEditGroupButton(dialog.find('#edit-writable-group'));
-        setupEditGroupButton(dialog.find('#edit-editable-group'));
+        Misc.setupEditGroupButton(dialog.find('#edit-readable-group'));
+        Misc.setupEditGroupButton(dialog.find('#edit-writable-group'));
+        Misc.setupEditGroupButton(dialog.find('#edit-editable-group'));
 
         dialog.justModal();
     }
@@ -385,190 +384,6 @@ class MyPage {
         });
     }
 
-    static function editBoardSettings() {
-        var dialog: Dynamic = new JQuery('#board-settings');
-
-        setupRadio(dialog, "read_permission");
-        setupRadio(dialog, "write_permission");
-        setupRadio(dialog, "edit_permission");
-
-        setupEditGroupButton(dialog.find('#edit-readable-group'));
-        setupEditGroupButton(dialog.find('#edit-writable-group'));
-        setupEditGroupButton(dialog.find('#edit-editable-group'));
-
-        dialog.justModal();
-    }
-
-    static function setupEditGroupButton(button: Dynamic) {
-        updateStatus(button, ['active', 'loaded'], 'loaded', false);
-
-        var groupId = Std.parseInt(button.attr('group-id'));
-        var storeName = button.attr('store');
-        var displayId = button.attr('display');
-        var form: Dynamic = button.closest('form');
-        var store: Dynamic = form.find(Std.format('[name="$storeName"]'));
-        var display: Dynamic = form.find(Std.format('#$displayId'));
-        
-        JQuery._static.ajax({
-            url: "/foo/ajax/v/group",
-            method: "get",
-            data: {
-                group: groupId,
-            },
-            dataType: 'jsonp'
-        }).done(function(data) {
-            updateStatus(button, ['active', 'loaded'], 'loaded', true);
-
-            updateGroupStore(store, data);
-            updateGroupDisplay(display, data);
-
-            button.unbind('click');
-            button.click(
-                function(e: Dynamic) {
-                    editGroup(
-                        data,
-                        function(data: Dynamic) {
-                            updateGroupStore(store, data);
-                            updateGroupDisplay(display, data);
-                        });
-                    return false;
-                });
-         });
-    }
-
-    static private function updateGroupStore(store: Dynamic, data: Dynamic) {
-        // <input type="hidden" name="readable_store">の修正
-        // ex: store.val("[1,7,9,36]")
-        var memberSet: Array<Int> = [];
-        var members: Array<Dynamic> = data.members;
-        for(v in members) {
-            memberSet.push(v.userId);
-        }
-        trace(memberSet);
-        memberSet.sort(function(a: Int, b: Int) { return a - b; });
-        trace(memberSet);
-
-        store.val(JSON.stringify(memberSet));
-    }
-
-    static private function updateGroupDisplay(
-        display: Dynamic, data: Dynamic) {
-
-        var members: Array<Dynamic> = data.members;
-
-        display.html('');
-        if (members.length == 0) {
-            display.html('<p>ユーザが含まれていません</p>');
-        } else {
-            for(v in members) {
-                display.append(
-                    gravatar(v.gravatar, 16, v.userId, v.username, v.label));
-            }
-        }
-        display.find('img').tooltip();
-        display.find('img').draggable({revert: "invalid"});
-
-        // ゴミ箱
-        var trash: Dynamic = new JQuery(".group-member-trash");
-        trash.droppable({
-            accept: '[user-id]',
-            drop: function(e, ui) {
-                trace('deleted');
-                trace(ui.draggable);
-                var e: Dynamic = new JQuery(ui.draggable);
-                e.tooltip('hide');
-                e.remove();
-                updateMemberSet(display);
-            }
-        });
-
-        updateMemberSet(display);
-    }
-
-    static private function updateMemberSet(display: Dynamic) {
-        // member-setを作成
-        var memberSet: Array<Int> = [];
-        display.find('img').each(
-            function(i: Int, elem: Dynamic) {
-                var e = new JQuery(elem);
-                memberSet.push(Std.parseInt(e.attr('user-id')));
-            });
-        memberSet.sort(function(a: Int, b: Int) { return a - b; });
-
-        display.attr('member-set', JSON.stringify(memberSet));
-    }
-
-    static function editGroup(data: Dynamic, cb: Dynamic->Void) {
-        var dialog: Dynamic = new JQuery('#edit-group');
-        var display: Dynamic = dialog.find('.group-members');
-
-        // 完了ボタン
-        var submit: Dynamic = dialog.find('input:submit');
-        submit.unbind('click');
-        submit.click(
-            function() {
-                cb(data);
-                dialog.close();
-                return false;
-            });
-
-        // メンバー一覧
-        updateGroupDisplay(display, data);
-        var oldMemberSet = display.attr('member-set');
-
-        // グループ名
-        var groupName: Dynamic = dialog.find('[name="group_name"]');
-        groupName.val(data.name);
-        setEnabled(groupName, data.nameEditable);
-
-        // 追加ユーザセレクト
-        var userSelect: Dynamic = dialog.find('[name="user"]');
-        var updateUI = function() {
-            userSelect.val(0);
-            userSelect.find('option').each(
-                function(i: Int,elem: Dynamic) {
-                    var e = new JQuery(elem);
-                    var userId = e.attr('user-id');
-                    var filter = Std.format('[user-id="$userId"]');
-                    setEnabled(e, display.find(filter).length == 0);
-                });
-        };
-
-        // 追加ユーザボタン
-        var addButton: Dynamic = dialog.find('#add-member');
-        disable(addButton);
-        setupUserSelect(
-            userSelect,
-            function() {
-                updateUI();
-            },
-            function(userId: Int) {
-                setEnabled(addButton, userId != 0);
-            });
-
-        addButton.unbind('click');
-        addButton.click(function() {
-                display.find('p').remove('');
-                var s = userSelect.find(':selected');
-                var member = {
-                  userId : Std.parseInt(s.attr('user-id')),
-                  username : s.attr('username'),
-                  label : s.attr('label'),
-                  gravatar : s.attr('icon')
-                };
-                data.members.push(member);
-
-                updateGroupDisplay(display, data);
-                updateUI();
-
-                setEnabled(submit, oldMemberSet != display.attr('member-set'));
-            });
-
-        updateUI();
-
-        dialog.justModal({overlayZIndex: 20050, modalZIndex: 20100});
-    }
-
     ////////////////////////////////////////////////////////////////
     // private functions
     static private function makeBoardUrl(username, boardname): String {
@@ -629,130 +444,6 @@ class MyPage {
         }
     }
     
-    static private function setupUserSelect(
-        userSelect: Dynamic,
-        onLoad: Void->Void,
-        onChange: Int->Void) {
-
-        disable(userSelect);
-        clearSelect(userSelect);
-        JQuery._static.ajax({
-            url: "/foo/ajax/v/userlist",
-            method: "get"
-        }).done(function(data) {
-            userSelect.append('<option value="0">所有者を選択</option>');
-                
-            var users: Array<Dynamic> = JQuery._static.parseJSON(data);
-            for(v in users) {
-                var userId: Int = v[0];
-                var username: String = v[1];
-                var userLabel: String = v[2];
-                var userIcon: String = v[3];
-
-                userSelect.append(
-                    Std.format('<option value="$userId" user-id="$userId" username="$username" label="$userLabel" icon="$userIcon">$username - $userLabel</option>'));
-            }
-            userSelect.unbind('change');
-            userSelect.change(
-                function(e: Dynamic) {
-                    onChange(getSelected(e.target).val());
-                });
-            enable(userSelect);
-
-            onLoad();
-        });
-    }
-
-    static private function setupBoardSelect(
-        boardSelect: Dynamic,
-        userId: Int,
-        filter: Int->Bool,
-        onChange: Int->Void) {
-        
-        JQuery._static.ajax({
-            url: Std.format("/foo/ajax/v/boardlist?user=${userId}"),
-            method: "get"
-        }).done(function(data) {
-            boardSelect.append('<option value="0">ボードを選択</option>');
-                
-            var boards: Array<Dynamic> = JQuery._static.parseJSON(data);
-            for(v in boards) {
-                var boardId: Int = v.boardId;
-                var boardlabel: String = v.label;
-
-                var disabled: String =
-                    filter(boardId) ? '' : ' disabled="disabled"';
-
-                boardSelect.append(
-                    Std.format('<option value="$boardId"$disabled>$boardlabel</option>'));
-            }
-            boardSelect.unbind('change');
-            boardSelect.change(
-                function(e: Dynamic) {
-                    onChange(getSelected(e.target).val());
-                });
-            enable(boardSelect);
-        });
-    }
-
-    static private function setupRibbonSelect(
-        ribbonSelect: Dynamic, boardId: Int, disableDup: Bool, f: Int->Void) {
-        
-        JQuery._static.ajax({
-            url: Std.format("/foo/ajax/v/ribbonlist?board=$boardId"),
-            method: "get"
-        }).done(function(data) {
-            ribbonSelect.append('<option value="0">リボンを選択</option>');
-                
-            var ribbons: Array<Dynamic> = JQuery._static.parseJSON(data);
-            for(v in ribbons) {
-                var ribbonId: Int = v.ribbonId;
-                var ribbonLabel: String = v.label;
-
-                var disabled: String = '';
-                if (disableDup && 
-                    0 < new JQuery(Std.format('[ribbon-id="$ribbonId"]')).length) {
-                    disabled = ' disabled="disabled"';
-                }
-
-                ribbonSelect.append(
-                    Std.format('<option value="$ribbonId"$disabled>$ribbonLabel</option>'));
-            }
-            ribbonSelect.unbind('change');
-            ribbonSelect.change(
-                function(e: Dynamic) {
-                    f(getSelected(e.target).val());
-                });
-            enable(ribbonSelect);
-        });
-    }
-
-    static private function setupRemovedRibbonSelect(
-        ribbonSelect: Dynamic, boardId: Int, disableDup: Bool, f: Int->Void) {
-        
-        JQuery._static.ajax({
-            url: Std.format("/foo/ajax/v/removedribbonlist?board=$boardId"),
-            method: "get"
-        }).done(function(data) {
-            ribbonSelect.append('<option value="0">リボンを選択</option>');
-                
-            var ribbons: Array<Dynamic> = JQuery._static.parseJSON(data);
-            for(v in ribbons) {
-                var ribbonId: Int = v[0];
-                var ribbonLabel: String = v[1];
-
-                ribbonSelect.append(
-                    Std.format('<option value="$ribbonId">$ribbonLabel</option>'));
-            }
-            ribbonSelect.unbind('change');
-            ribbonSelect.change(
-                function(e: Dynamic) {
-                    f(getSelected(e.target).val());
-                });
-            enable(ribbonSelect);
-        });
-    }
-
     static private function postStamp(
         ribbonId: Int, timelineId: Int, source: Dynamic, selected: Dynamic) {
         var form = source.closest('.comment-form').find('> form');
@@ -1188,7 +879,7 @@ class MyPage {
         for(vv in srcFavoredBy) {
             var label: String = vv.label;
             var icon: String = vv.gravatar;
-            favoredBy += tooltip(gravatar(icon, 16), label);
+            favoredBy += Misc.tooltip(Misc.gravatar(icon, 16), label);
         }
         detail.favoredBy = favoredBy;
         detail.elapsed = elapsedInWords(detail.elapsed);
@@ -1210,7 +901,7 @@ class MyPage {
         for(v in observers) {
             var userId = v.userId;
             var label = v.label;
-            var icon = tooltip(gravatar(v.gravatar, 16), label);
+            var icon = Misc.tooltip(Misc.gravatar(v.gravatar, 16), label);
             observersView.append(Std.format('<span class="observer" user-id="$userId">$icon</span>'));
         }
     }
@@ -1268,35 +959,9 @@ class MyPage {
         return x;
     }
 
-    static private function getSelected(select: Dynamic) {
-        return new JQuery(select).find(':selected');
-    }
-
     static private function clearSelect(select: Dynamic) {
         disable(select);
         select.html('');
-    }
-
-    static private function setupRadio(root: Dynamic, name: String) {
-        var radios: Dynamic = root.find(Std.format('[name="$name"]'));
-
-        var onChange = function() {
-            radios.each(
-                function(i: Int, elem: Dynamic) {
-                    var radio: Dynamic = new JQuery(elem);
-                    var label: Dynamic = radio.closest('label.radio');
-                    var inputs: Dynamic = label.find(
-                        'input:not(:radio),select');
-                    var checked = radio.is(':checked');
-                    updateStatus(
-                        inputs, ['active', 'loaded'], 'active', checked);
-                });
-            return true;
-        };
-
-        onChange();
-        radios.unbind('change');
-        radios.change(onChange);
     }
 
     static private function updateStatus(
@@ -1352,18 +1017,5 @@ class MyPage {
         return Std.format("${elapsedInYears}年前");
     }
 
-    static private function gravatar(
-        hash: String,
-        size: Int,
-        userId: Int=0,
-        username: String="",
-        label: String=""): String {
-        return Std.format('<img src="http://www.gravatar.com/avatar/${hash}?s=${size}&d=mm" alt="gravatar" user-id="$userId" username="$username" title="$label" data-toggle="tooltip"/>');
-    }
-
-    static private function tooltip(s: String, desc: String) {
-        return Std.format('<a href="#" data-toggle="tooltip" title="$desc" onmouseover="$(this).tooltip(\'show\');" onmouseout="$(this).tooltip(\'hide\');">$s</a>');
-        
-    }
 }
 

@@ -33,6 +33,22 @@ ArrayUtil.find_index = function(a,f) {
 	}
 	return null;
 }
+var BoardSettingsDialog = function() { }
+$hxClasses["BoardSettingsDialog"] = BoardSettingsDialog;
+$hxExpose(BoardSettingsDialog, "BoardSettingsDialog");
+BoardSettingsDialog.__name__ = ["BoardSettingsDialog"];
+BoardSettingsDialog.init = function() {
+}
+BoardSettingsDialog.doModal = function() {
+	var dialog = new $("#board-settings");
+	Misc.setupRadio(dialog,"read_permission");
+	Misc.setupRadio(dialog,"write_permission");
+	Misc.setupRadio(dialog,"edit_permission");
+	Misc.setupEditGroupButton(dialog.find("#edit-readable-group"));
+	Misc.setupEditGroupButton(dialog.find("#edit-writable-group"));
+	Misc.setupEditGroupButton(dialog.find("#edit-editable-group"));
+	dialog.justModal();
+}
 var DateTools = function() { }
 $hxClasses["DateTools"] = DateTools;
 DateTools.__name__ = ["DateTools"];
@@ -229,6 +245,250 @@ EReg.prototype = {
 	}
 	,r: null
 	,__class__: EReg
+}
+var FormUtil = function() { }
+$hxClasses["FormUtil"] = FormUtil;
+FormUtil.__name__ = ["FormUtil"];
+FormUtil.clearSelect = function(select) {
+	Misc.disable(select);
+	select.html("");
+}
+FormUtil.getSelected = function(select) {
+	return new $(select).find(":selected");
+}
+FormUtil.setupRadio = function(root,name) {
+	var radios = root.find("[name=\"" + name + "\"]");
+	var onChange = function() {
+		radios.each(function(i,elem) {
+			var radio = new $(elem);
+			var label = radio.closest("label.radio");
+			var inputs = label.find("input:not(:radio),select");
+			var checked = radio["is"](":checked");
+			FormUtil.updateStatus(inputs,["active","loaded"],"active",checked);
+		});
+		return true;
+	};
+	onChange();
+	radios.unbind("change");
+	radios.change(onChange);
+}
+FormUtil.setupEditGroupButton = function(button) {
+	FormUtil.updateStatus(button,["active","loaded"],"loaded",false);
+	var groupId = Std.parseInt(button.attr("group-id"));
+	var storeName = button.attr("store");
+	var displayId = button.attr("display");
+	var form = button.closest("form");
+	var store = form.find("[name=\"" + storeName + "\"]");
+	var display = form.find("#" + displayId);
+	$.ajax({ url : "/foo/ajax/v/group", method : "get", data : { group : groupId}, dataType : "jsonp"}).done(function(data) {
+		FormUtil.updateStatus(button,["active","loaded"],"loaded",true);
+		FormUtil.updateGroupStore(store,data);
+		FormUtil.updateGroupDisplay(display,data);
+		button.unbind("click");
+		button.click(function(e) {
+			FormUtil.editGroup(data,function(data1) {
+				FormUtil.updateGroupStore(store,data1);
+				FormUtil.updateGroupDisplay(display,data1);
+			});
+			return false;
+		});
+	});
+}
+FormUtil.setupUserSelect = function(userSelect,onLoad,onChange) {
+	Misc.disable(userSelect);
+	FormUtil.clearSelect(userSelect);
+	$.ajax({ url : "/foo/ajax/v/userlist", method : "get"}).done(function(data) {
+		userSelect.append("<option value=\"0\">所有者を選択</option>");
+		var users = $.parseJSON(data);
+		var _g = 0;
+		while(_g < users.length) {
+			var v = users[_g];
+			++_g;
+			var userId = v[0];
+			var username = v[1];
+			var userLabel = v[2];
+			var userIcon = v[3];
+			userSelect.append("<option value=\"" + userId + "\" user-id=\"" + userId + "\" username=\"" + username + "\" label=\"" + userLabel + "\" icon=\"" + userIcon + "\">" + username + " - " + userLabel + "</option>");
+		}
+		userSelect.unbind("change");
+		userSelect.change(function(e) {
+			onChange(FormUtil.getSelected(e.target).val());
+		});
+		Misc.enable(userSelect);
+		onLoad();
+	});
+}
+FormUtil.setupBoardSelect = function(boardSelect,userId,filter,onChange) {
+	$.ajax({ url : "/foo/ajax/v/boardlist?user=" + userId, method : "get"}).done(function(data) {
+		boardSelect.append("<option value=\"0\">ボードを選択</option>");
+		var boards = $.parseJSON(data);
+		var _g = 0;
+		while(_g < boards.length) {
+			var v = boards[_g];
+			++_g;
+			var boardId = v.boardId;
+			var boardlabel = v.label;
+			var disabled = filter(boardId)?"":" disabled=\"disabled\"";
+			boardSelect.append("<option value=\"" + boardId + "\"" + disabled + ">" + boardlabel + "</option>");
+		}
+		boardSelect.unbind("change");
+		boardSelect.change(function(e) {
+			onChange(FormUtil.getSelected(e.target).val());
+		});
+		Misc.enable(boardSelect);
+	});
+}
+FormUtil.setupRibbonSelect = function(ribbonSelect,boardId,disableDup,f) {
+	$.ajax({ url : "/foo/ajax/v/ribbonlist?board=" + boardId, method : "get"}).done(function(data) {
+		ribbonSelect.append("<option value=\"0\">リボンを選択</option>");
+		var ribbons = $.parseJSON(data);
+		var _g = 0;
+		while(_g < ribbons.length) {
+			var v = ribbons[_g];
+			++_g;
+			var ribbonId = v.ribbonId;
+			var ribbonLabel = v.label;
+			var disabled = "";
+			if(disableDup && 0 < new $("[ribbon-id=\"" + ribbonId + "\"]").length) disabled = " disabled=\"disabled\"";
+			ribbonSelect.append("<option value=\"" + ribbonId + "\"" + disabled + ">" + ribbonLabel + "</option>");
+		}
+		ribbonSelect.unbind("change");
+		ribbonSelect.change(function(e) {
+			f(FormUtil.getSelected(e.target).val());
+		});
+		Misc.enable(ribbonSelect);
+	});
+}
+FormUtil.setupRemovedRibbonSelect = function(ribbonSelect,boardId,disableDup,f) {
+	$.ajax({ url : "/foo/ajax/v/removedribbonlist?board=" + boardId, method : "get"}).done(function(data) {
+		ribbonSelect.append("<option value=\"0\">リボンを選択</option>");
+		var ribbons = $.parseJSON(data);
+		var _g = 0;
+		while(_g < ribbons.length) {
+			var v = ribbons[_g];
+			++_g;
+			var ribbonId = v[0];
+			var ribbonLabel = v[1];
+			ribbonSelect.append("<option value=\"" + ribbonId + "\">" + ribbonLabel + "</option>");
+		}
+		ribbonSelect.unbind("change");
+		ribbonSelect.change(function(e) {
+			f(FormUtil.getSelected(e.target).val());
+		});
+		Misc.enable(ribbonSelect);
+	});
+}
+FormUtil.updateStatus = function(all,statuses,s,f) {
+	if(f) all.addClass(s); else all.removeClass(s);
+	all.each(function(i,elem) {
+		var e = new $(elem);
+		var _g = 0;
+		while(_g < statuses.length) {
+			var s1 = statuses[_g];
+			++_g;
+			if(!e.hasClass(s1)) {
+				Misc.disable(e);
+				return;
+			}
+		}
+		Misc.enable(e);
+	});
+}
+FormUtil.updateGroupStore = function(store,data) {
+	var memberSet = [];
+	var members = data.members;
+	var _g = 0;
+	while(_g < members.length) {
+		var v = members[_g];
+		++_g;
+		memberSet.push(v.userId);
+	}
+	console.log(memberSet);
+	memberSet.sort(function(a,b) {
+		return a - b;
+	});
+	console.log(memberSet);
+	store.val(JSON.stringify(memberSet));
+}
+FormUtil.updateGroupDisplay = function(display,data) {
+	var members = data.members;
+	display.html("");
+	if(members.length == 0) display.html("<p>ユーザが含まれていません</p>"); else {
+		var _g = 0;
+		while(_g < members.length) {
+			var v = members[_g];
+			++_g;
+			display.append(Misc.gravatar(v.gravatar,16,v.userId,v.username,v.label));
+		}
+	}
+	display.find("img").tooltip();
+	display.find("img").draggable({ revert : "invalid"});
+	var trash = new $(".group-member-trash");
+	trash.droppable({ accept : "[user-id]", drop : function(e,ui) {
+		console.log("deleted");
+		console.log(ui.draggable);
+		var e1 = new $(ui.draggable);
+		e1.tooltip("hide");
+		e1.remove();
+		FormUtil.updateMemberSet(display);
+	}});
+	FormUtil.updateMemberSet(display);
+}
+FormUtil.updateMemberSet = function(display) {
+	var memberSet = [];
+	display.find("img").each(function(i,elem) {
+		var e = new $(elem);
+		memberSet.push(Std.parseInt(e.attr("user-id")));
+	});
+	memberSet.sort(function(a,b) {
+		return a - b;
+	});
+	display.attr("member-set",JSON.stringify(memberSet));
+}
+FormUtil.editGroup = function(data,cb) {
+	var dialog = new $("#edit-group");
+	var display = dialog.find(".group-members");
+	var submit = dialog.find("input:submit");
+	submit.unbind("click");
+	submit.click(function() {
+		cb(data);
+		dialog.close();
+		return false;
+	});
+	FormUtil.updateGroupDisplay(display,data);
+	var oldMemberSet = display.attr("member-set");
+	var groupName = dialog.find("[name=\"group_name\"]");
+	groupName.val(data.name);
+	Misc.setEnabled(groupName,data.nameEditable);
+	var userSelect = dialog.find("[name=\"user\"]");
+	var updateUI = function() {
+		userSelect.val(0);
+		userSelect.find("option").each(function(i,elem) {
+			var e = new $(elem);
+			var userId = e.attr("user-id");
+			var filter = "[user-id=\"" + userId + "\"]";
+			Misc.setEnabled(e,display.find(filter).length == 0);
+		});
+	};
+	var addButton = dialog.find("#add-member");
+	Misc.disable(addButton);
+	FormUtil.setupUserSelect(userSelect,function() {
+		updateUI();
+	},function(userId) {
+		Misc.setEnabled(addButton,userId != 0);
+	});
+	addButton.unbind("click");
+	addButton.click(function() {
+		display.find("p").remove("");
+		var s = userSelect.find(":selected");
+		var member = { userId : Std.parseInt(s.attr("user-id")), username : s.attr("username"), label : s.attr("label"), gravatar : s.attr("icon")};
+		data.members.push(member);
+		FormUtil.updateGroupDisplay(display,data);
+		updateUI();
+		Misc.setEnabled(submit,oldMemberSet != display.attr("member-set"));
+	});
+	updateUI();
+	dialog.justModal({ overlayZIndex : 20050, modalZIndex : 20100});
 }
 var Hash = function() {
 	this.h = { };
@@ -752,6 +1012,268 @@ List.prototype = {
 	,h: null
 	,__class__: List
 }
+var Misc = function() { }
+$hxClasses["Misc"] = Misc;
+Misc.__name__ = ["Misc"];
+Misc.enable = function(e) {
+	e.removeAttr("disabled");
+}
+Misc.disable = function(e) {
+	e.attr("disabled","disabled");
+}
+Misc.setEnabled = function(e,f) {
+	if(f) Misc.enable(e); else Misc.disable(e);
+}
+Misc.clearSelect = function(select) {
+	Misc.disable(select);
+	select.html("");
+}
+Misc.getSelected = function(select) {
+	return new $(select).find(":selected");
+}
+Misc.setupRadio = function(root,name) {
+	var radios = root.find("[name=\"" + name + "\"]");
+	var onChange = function() {
+		radios.each(function(i,elem) {
+			var radio = new $(elem);
+			var label = radio.closest("label.radio");
+			var inputs = label.find("input:not(:radio),select");
+			var checked = radio["is"](":checked");
+			Misc.updateStatus(inputs,["active","loaded"],"active",checked);
+		});
+		return true;
+	};
+	onChange();
+	radios.unbind("change");
+	radios.change(onChange);
+}
+Misc.setupEditGroupButton = function(button) {
+	Misc.updateStatus(button,["active","loaded"],"loaded",false);
+	var groupId = Std.parseInt(button.attr("group-id"));
+	var storeName = button.attr("store");
+	var displayId = button.attr("display");
+	var form = button.closest("form");
+	var store = form.find("[name=\"" + storeName + "\"]");
+	var display = form.find("#" + displayId);
+	$.ajax({ url : "/foo/ajax/v/group", method : "get", data : { group : groupId}, dataType : "jsonp"}).done(function(data) {
+		Misc.updateStatus(button,["active","loaded"],"loaded",true);
+		Misc.updateGroupStore(store,data);
+		Misc.updateGroupDisplay(display,data);
+		button.unbind("click");
+		button.click(function(e) {
+			Misc.editGroup(data,function(data1) {
+				Misc.updateGroupStore(store,data1);
+				Misc.updateGroupDisplay(display,data1);
+			});
+			return false;
+		});
+	});
+}
+Misc.setupUserSelect = function(userSelect,onLoad,onChange) {
+	Misc.disable(userSelect);
+	Misc.clearSelect(userSelect);
+	$.ajax({ url : "/foo/ajax/v/userlist", method : "get"}).done(function(data) {
+		userSelect.append("<option value=\"0\">所有者を選択</option>");
+		var users = $.parseJSON(data);
+		var _g = 0;
+		while(_g < users.length) {
+			var v = users[_g];
+			++_g;
+			var userId = v[0];
+			var username = v[1];
+			var userLabel = v[2];
+			var userIcon = v[3];
+			userSelect.append("<option value=\"" + userId + "\" user-id=\"" + userId + "\" username=\"" + username + "\" label=\"" + userLabel + "\" icon=\"" + userIcon + "\">" + username + " - " + userLabel + "</option>");
+		}
+		userSelect.unbind("change");
+		userSelect.change(function(e) {
+			onChange(Misc.getSelected(e.target).val());
+		});
+		Misc.enable(userSelect);
+		onLoad();
+	});
+}
+Misc.setupBoardSelect = function(boardSelect,userId,filter,onChange) {
+	$.ajax({ url : "/foo/ajax/v/boardlist?user=" + userId, method : "get"}).done(function(data) {
+		boardSelect.append("<option value=\"0\">ボードを選択</option>");
+		var boards = $.parseJSON(data);
+		var _g = 0;
+		while(_g < boards.length) {
+			var v = boards[_g];
+			++_g;
+			var boardId = v.boardId;
+			var boardlabel = v.label;
+			var disabled = filter(boardId)?"":" disabled=\"disabled\"";
+			boardSelect.append("<option value=\"" + boardId + "\"" + disabled + ">" + boardlabel + "</option>");
+		}
+		boardSelect.unbind("change");
+		boardSelect.change(function(e) {
+			onChange(Misc.getSelected(e.target).val());
+		});
+		Misc.enable(boardSelect);
+	});
+}
+Misc.setupRibbonSelect = function(ribbonSelect,boardId,disableDup,f) {
+	$.ajax({ url : "/foo/ajax/v/ribbonlist?board=" + boardId, method : "get"}).done(function(data) {
+		ribbonSelect.append("<option value=\"0\">リボンを選択</option>");
+		var ribbons = $.parseJSON(data);
+		var _g = 0;
+		while(_g < ribbons.length) {
+			var v = ribbons[_g];
+			++_g;
+			var ribbonId = v.ribbonId;
+			var ribbonLabel = v.label;
+			var disabled = "";
+			if(disableDup && 0 < new $("[ribbon-id=\"" + ribbonId + "\"]").length) disabled = " disabled=\"disabled\"";
+			ribbonSelect.append("<option value=\"" + ribbonId + "\"" + disabled + ">" + ribbonLabel + "</option>");
+		}
+		ribbonSelect.unbind("change");
+		ribbonSelect.change(function(e) {
+			f(Misc.getSelected(e.target).val());
+		});
+		Misc.enable(ribbonSelect);
+	});
+}
+Misc.setupRemovedRibbonSelect = function(ribbonSelect,boardId,disableDup,f) {
+	$.ajax({ url : "/foo/ajax/v/removedribbonlist?board=" + boardId, method : "get"}).done(function(data) {
+		ribbonSelect.append("<option value=\"0\">リボンを選択</option>");
+		var ribbons = $.parseJSON(data);
+		var _g = 0;
+		while(_g < ribbons.length) {
+			var v = ribbons[_g];
+			++_g;
+			var ribbonId = v[0];
+			var ribbonLabel = v[1];
+			ribbonSelect.append("<option value=\"" + ribbonId + "\">" + ribbonLabel + "</option>");
+		}
+		ribbonSelect.unbind("change");
+		ribbonSelect.change(function(e) {
+			f(Misc.getSelected(e.target).val());
+		});
+		Misc.enable(ribbonSelect);
+	});
+}
+Misc.gravatar = function(hash,size,userId,username,label) {
+	if(label == null) label = "";
+	if(username == null) username = "";
+	if(userId == null) userId = 0;
+	return "<img src=\"http://www.gravatar.com/avatar/" + hash + "?s=" + size + "&d=mm\" alt=\"gravatar\" user-id=\"" + userId + "\" username=\"" + username + "\" title=\"" + label + "\" data-toggle=\"tooltip\"/>";
+}
+Misc.tooltip = function(s,desc) {
+	return "<a href=\"#\" data-toggle=\"tooltip\" title=\"" + desc + "\" onmouseover=\"" + "$(this).tooltip('show');\" onmouseout=\"" + "$(this).tooltip('hide');\">" + s + "</a>";
+}
+Misc.updateStatus = function(all,statuses,s,f) {
+	if(f) all.addClass(s); else all.removeClass(s);
+	all.each(function(i,elem) {
+		var e = new $(elem);
+		var _g = 0;
+		while(_g < statuses.length) {
+			var s1 = statuses[_g];
+			++_g;
+			if(!e.hasClass(s1)) {
+				Misc.disable(e);
+				return;
+			}
+		}
+		Misc.enable(e);
+	});
+}
+Misc.updateGroupStore = function(store,data) {
+	var memberSet = [];
+	var members = data.members;
+	var _g = 0;
+	while(_g < members.length) {
+		var v = members[_g];
+		++_g;
+		memberSet.push(v.userId);
+	}
+	console.log(memberSet);
+	memberSet.sort(function(a,b) {
+		return a - b;
+	});
+	console.log(memberSet);
+	store.val(JSON.stringify(memberSet));
+}
+Misc.updateGroupDisplay = function(display,data) {
+	var members = data.members;
+	display.html("");
+	if(members.length == 0) display.html("<p>ユーザが含まれていません</p>"); else {
+		var _g = 0;
+		while(_g < members.length) {
+			var v = members[_g];
+			++_g;
+			display.append(Misc.gravatar(v.gravatar,16,v.userId,v.username,v.label));
+		}
+	}
+	display.find("img").tooltip();
+	display.find("img").draggable({ revert : "invalid"});
+	var trash = new $(".group-member-trash");
+	trash.droppable({ accept : "[user-id]", drop : function(e,ui) {
+		console.log("deleted");
+		console.log(ui.draggable);
+		var e1 = new $(ui.draggable);
+		e1.tooltip("hide");
+		e1.remove();
+		Misc.updateMemberSet(display);
+	}});
+	Misc.updateMemberSet(display);
+}
+Misc.updateMemberSet = function(display) {
+	var memberSet = [];
+	display.find("img").each(function(i,elem) {
+		var e = new $(elem);
+		memberSet.push(Std.parseInt(e.attr("user-id")));
+	});
+	memberSet.sort(function(a,b) {
+		return a - b;
+	});
+	display.attr("member-set",JSON.stringify(memberSet));
+}
+Misc.editGroup = function(data,cb) {
+	var dialog = new $("#edit-group");
+	var display = dialog.find(".group-members");
+	var submit = dialog.find("input:submit");
+	submit.unbind("click");
+	submit.click(function() {
+		cb(data);
+		dialog.close();
+		return false;
+	});
+	Misc.updateGroupDisplay(display,data);
+	var oldMemberSet = display.attr("member-set");
+	var groupName = dialog.find("[name=\"group_name\"]");
+	groupName.val(data.name);
+	Misc.setEnabled(groupName,data.nameEditable);
+	var userSelect = dialog.find("[name=\"user\"]");
+	var updateUI = function() {
+		userSelect.val(0);
+		userSelect.find("option").each(function(i,elem) {
+			var e = new $(elem);
+			var userId = e.attr("user-id");
+			var filter = "[user-id=\"" + userId + "\"]";
+			Misc.setEnabled(e,display.find(filter).length == 0);
+		});
+	};
+	var addButton = dialog.find("#add-member");
+	Misc.disable(addButton);
+	Misc.setupUserSelect(userSelect,function() {
+		updateUI();
+	},function(userId) {
+		Misc.setEnabled(addButton,userId != 0);
+	});
+	addButton.unbind("click");
+	addButton.click(function() {
+		display.find("p").remove("");
+		var s = userSelect.find(":selected");
+		var member = { userId : Std.parseInt(s.attr("user-id")), username : s.attr("username"), label : s.attr("label"), gravatar : s.attr("icon")};
+		data.members.push(member);
+		Misc.updateGroupDisplay(display,data);
+		updateUI();
+		Misc.setEnabled(submit,oldMemberSet != display.attr("member-set"));
+	});
+	updateUI();
+	dialog.justModal({ overlayZIndex : 20050, modalZIndex : 20100});
+}
 var MyPage = function() { }
 $hxClasses["MyPage"] = MyPage;
 $hxExpose(MyPage, "MyPage");
@@ -860,7 +1382,7 @@ MyPage.joinBoard = function() {
 	};
 	boardSelect.val(0);
 	MyPage.disable(boardSelect);
-	MyPage.setupUserSelect(userSelect,function() {
+	Misc.setupUserSelect(userSelect,function() {
 		userSelect.find("option").each(function(i,elem) {
 			var e = new $(elem);
 			MyPage.setEnabled(e,e.attr("username") != MyPage.getUserName());
@@ -869,7 +1391,7 @@ MyPage.joinBoard = function() {
 		MyPage.disable(submit);
 		MyPage.clearSelect(boardSelect);
 		if(userId == 0) return;
-		MyPage.setupBoardSelect(boardSelect,userId,function(boardId) {
+		Misc.setupBoardSelect(boardSelect,userId,function(boardId) {
 			return !boardExists(boardId);
 		},function(boardId) {
 			MyPage.setEnabled(submit,boardId != 0);
@@ -892,19 +1414,19 @@ MyPage.joinRibbon = function(ownername) {
 	MyPage.disable(boardSelect);
 	ribbonSelect.val(0);
 	MyPage.disable(ribbonSelect);
-	MyPage.setupUserSelect(userSelect,function() {
+	Misc.setupUserSelect(userSelect,function() {
 	},function(userId) {
 		MyPage.disable(submit);
 		MyPage.clearSelect(boardSelect);
 		MyPage.clearSelect(ribbonSelect);
 		if(userId == 0) return;
-		MyPage.setupBoardSelect(boardSelect,userId,function(boardId) {
+		Misc.setupBoardSelect(boardSelect,userId,function(boardId) {
 			return boardId != currentBoardId;
 		},function(boardId) {
-			MyPage.disable(submit);
-			MyPage.clearSelect(ribbonSelect);
+			Misc.disable(submit);
+			Misc.clearSelect(ribbonSelect);
 			if(boardId == 0) return;
-			MyPage.setupRibbonSelect(ribbonSelect,boardId,true,function(ribbonId) {
+			Misc.setupRibbonSelect(ribbonSelect,boardId,true,function(ribbonId) {
 				MyPage.setEnabled(submit,ribbonId != 0);
 			});
 		});
@@ -915,8 +1437,8 @@ MyPage.restoreRibbon = function(boardId) {
 	var dialog = new $("#restore-ribbon");
 	var ribbonSelect = dialog.find("[name=\"ribbon\"]");
 	var submit = dialog.find("[type=\"submit\"]");
-	MyPage.clearSelect(ribbonSelect);
-	MyPage.setupRemovedRibbonSelect(ribbonSelect,boardId,true,function(ribbonId) {
+	Misc.clearSelect(ribbonSelect);
+	Misc.setupRemovedRibbonSelect(ribbonSelect,boardId,true,function(ribbonId) {
 		MyPage.setEnabled(submit,ribbonId != 0);
 	});
 	dialog.justModal();
@@ -929,12 +1451,12 @@ MyPage.closeRibbon = function(obj,boardId) {
 	});
 }
 MyPage.editRibbonSettings = function(dialog,boardId,ribbonId) {
-	MyPage.setupRadio(dialog,"read_permission");
-	MyPage.setupRadio(dialog,"write_permission");
-	MyPage.setupRadio(dialog,"edit_permission");
-	MyPage.setupEditGroupButton(dialog.find("#edit-readable-group"));
-	MyPage.setupEditGroupButton(dialog.find("#edit-writable-group"));
-	MyPage.setupEditGroupButton(dialog.find("#edit-editable-group"));
+	Misc.setupRadio(dialog,"read_permission");
+	Misc.setupRadio(dialog,"write_permission");
+	Misc.setupRadio(dialog,"edit_permission");
+	Misc.setupEditGroupButton(dialog.find("#edit-readable-group"));
+	Misc.setupEditGroupButton(dialog.find("#edit-writable-group"));
+	Misc.setupEditGroupButton(dialog.find("#edit-editable-group"));
 	dialog.justModal();
 }
 MyPage.moveArticle = function(dragging) {
@@ -971,134 +1493,6 @@ MyPage.doRibbonTest = function(ribbonId) {
 	$.ajax({ url : "/foo/ajax/m/ribbontest", method : "post", data : { ribbon : ribbonId}}).done(function(data) {
 		console.log("ribbontest done");
 	});
-}
-MyPage.editBoardSettings = function() {
-	var dialog = new $("#board-settings");
-	MyPage.setupRadio(dialog,"read_permission");
-	MyPage.setupRadio(dialog,"write_permission");
-	MyPage.setupRadio(dialog,"edit_permission");
-	MyPage.setupEditGroupButton(dialog.find("#edit-readable-group"));
-	MyPage.setupEditGroupButton(dialog.find("#edit-writable-group"));
-	MyPage.setupEditGroupButton(dialog.find("#edit-editable-group"));
-	dialog.justModal();
-}
-MyPage.setupEditGroupButton = function(button) {
-	MyPage.updateStatus(button,["active","loaded"],"loaded",false);
-	var groupId = Std.parseInt(button.attr("group-id"));
-	var storeName = button.attr("store");
-	var displayId = button.attr("display");
-	var form = button.closest("form");
-	var store = form.find("[name=\"" + storeName + "\"]");
-	var display = form.find("#" + displayId);
-	$.ajax({ url : "/foo/ajax/v/group", method : "get", data : { group : groupId}, dataType : "jsonp"}).done(function(data) {
-		MyPage.updateStatus(button,["active","loaded"],"loaded",true);
-		MyPage.updateGroupStore(store,data);
-		MyPage.updateGroupDisplay(display,data);
-		button.unbind("click");
-		button.click(function(e) {
-			MyPage.editGroup(data,function(data1) {
-				MyPage.updateGroupStore(store,data1);
-				MyPage.updateGroupDisplay(display,data1);
-			});
-			return false;
-		});
-	});
-}
-MyPage.updateGroupStore = function(store,data) {
-	var memberSet = [];
-	var members = data.members;
-	var _g = 0;
-	while(_g < members.length) {
-		var v = members[_g];
-		++_g;
-		memberSet.push(v.userId);
-	}
-	console.log(memberSet);
-	memberSet.sort(function(a,b) {
-		return a - b;
-	});
-	console.log(memberSet);
-	store.val(JSON.stringify(memberSet));
-}
-MyPage.updateGroupDisplay = function(display,data) {
-	var members = data.members;
-	display.html("");
-	if(members.length == 0) display.html("<p>ユーザが含まれていません</p>"); else {
-		var _g = 0;
-		while(_g < members.length) {
-			var v = members[_g];
-			++_g;
-			display.append(MyPage.gravatar(v.gravatar,16,v.userId,v.username,v.label));
-		}
-	}
-	display.find("img").tooltip();
-	display.find("img").draggable({ revert : "invalid"});
-	var trash = new $(".group-member-trash");
-	trash.droppable({ accept : "[user-id]", drop : function(e,ui) {
-		console.log("deleted");
-		console.log(ui.draggable);
-		var e1 = new $(ui.draggable);
-		e1.tooltip("hide");
-		e1.remove();
-		MyPage.updateMemberSet(display);
-	}});
-	MyPage.updateMemberSet(display);
-}
-MyPage.updateMemberSet = function(display) {
-	var memberSet = [];
-	display.find("img").each(function(i,elem) {
-		var e = new $(elem);
-		memberSet.push(Std.parseInt(e.attr("user-id")));
-	});
-	memberSet.sort(function(a,b) {
-		return a - b;
-	});
-	display.attr("member-set",JSON.stringify(memberSet));
-}
-MyPage.editGroup = function(data,cb) {
-	var dialog = new $("#edit-group");
-	var display = dialog.find(".group-members");
-	var submit = dialog.find("input:submit");
-	submit.unbind("click");
-	submit.click(function() {
-		cb(data);
-		dialog.close();
-		return false;
-	});
-	MyPage.updateGroupDisplay(display,data);
-	var oldMemberSet = display.attr("member-set");
-	var groupName = dialog.find("[name=\"group_name\"]");
-	groupName.val(data.name);
-	MyPage.setEnabled(groupName,data.nameEditable);
-	var userSelect = dialog.find("[name=\"user\"]");
-	var updateUI = function() {
-		userSelect.val(0);
-		userSelect.find("option").each(function(i,elem) {
-			var e = new $(elem);
-			var userId = e.attr("user-id");
-			var filter = "[user-id=\"" + userId + "\"]";
-			MyPage.setEnabled(e,display.find(filter).length == 0);
-		});
-	};
-	var addButton = dialog.find("#add-member");
-	MyPage.disable(addButton);
-	MyPage.setupUserSelect(userSelect,function() {
-		updateUI();
-	},function(userId) {
-		MyPage.setEnabled(addButton,userId != 0);
-	});
-	addButton.unbind("click");
-	addButton.click(function() {
-		display.find("p").remove("");
-		var s = userSelect.find(":selected");
-		var member = { userId : Std.parseInt(s.attr("user-id")), username : s.attr("username"), label : s.attr("label"), gravatar : s.attr("icon")};
-		data.members.push(member);
-		MyPage.updateGroupDisplay(display,data);
-		updateUI();
-		MyPage.setEnabled(submit,oldMemberSet != display.attr("member-set"));
-	});
-	updateUI();
-	dialog.justModal({ overlayZIndex : 20050, modalZIndex : 20100});
 }
 MyPage.makeBoardUrl = function(username,boardname) {
 	var urlinfo = new $("#basic-data");
@@ -1137,90 +1531,6 @@ MyPage.disable = function(e) {
 }
 MyPage.setEnabled = function(e,f) {
 	if(f) MyPage.enable(e); else MyPage.disable(e);
-}
-MyPage.setupUserSelect = function(userSelect,onLoad,onChange) {
-	MyPage.disable(userSelect);
-	MyPage.clearSelect(userSelect);
-	$.ajax({ url : "/foo/ajax/v/userlist", method : "get"}).done(function(data) {
-		userSelect.append("<option value=\"0\">所有者を選択</option>");
-		var users = $.parseJSON(data);
-		var _g = 0;
-		while(_g < users.length) {
-			var v = users[_g];
-			++_g;
-			var userId = v[0];
-			var username = v[1];
-			var userLabel = v[2];
-			var userIcon = v[3];
-			userSelect.append("<option value=\"" + userId + "\" user-id=\"" + userId + "\" username=\"" + username + "\" label=\"" + userLabel + "\" icon=\"" + userIcon + "\">" + username + " - " + userLabel + "</option>");
-		}
-		userSelect.unbind("change");
-		userSelect.change(function(e) {
-			onChange(MyPage.getSelected(e.target).val());
-		});
-		MyPage.enable(userSelect);
-		onLoad();
-	});
-}
-MyPage.setupBoardSelect = function(boardSelect,userId,filter,onChange) {
-	$.ajax({ url : "/foo/ajax/v/boardlist?user=" + userId, method : "get"}).done(function(data) {
-		boardSelect.append("<option value=\"0\">ボードを選択</option>");
-		var boards = $.parseJSON(data);
-		var _g = 0;
-		while(_g < boards.length) {
-			var v = boards[_g];
-			++_g;
-			var boardId = v.boardId;
-			var boardlabel = v.label;
-			var disabled = filter(boardId)?"":" disabled=\"disabled\"";
-			boardSelect.append("<option value=\"" + boardId + "\"" + disabled + ">" + boardlabel + "</option>");
-		}
-		boardSelect.unbind("change");
-		boardSelect.change(function(e) {
-			onChange(MyPage.getSelected(e.target).val());
-		});
-		MyPage.enable(boardSelect);
-	});
-}
-MyPage.setupRibbonSelect = function(ribbonSelect,boardId,disableDup,f) {
-	$.ajax({ url : "/foo/ajax/v/ribbonlist?board=" + boardId, method : "get"}).done(function(data) {
-		ribbonSelect.append("<option value=\"0\">リボンを選択</option>");
-		var ribbons = $.parseJSON(data);
-		var _g = 0;
-		while(_g < ribbons.length) {
-			var v = ribbons[_g];
-			++_g;
-			var ribbonId = v.ribbonId;
-			var ribbonLabel = v.label;
-			var disabled = "";
-			if(disableDup && 0 < new $("[ribbon-id=\"" + ribbonId + "\"]").length) disabled = " disabled=\"disabled\"";
-			ribbonSelect.append("<option value=\"" + ribbonId + "\"" + disabled + ">" + ribbonLabel + "</option>");
-		}
-		ribbonSelect.unbind("change");
-		ribbonSelect.change(function(e) {
-			f(MyPage.getSelected(e.target).val());
-		});
-		MyPage.enable(ribbonSelect);
-	});
-}
-MyPage.setupRemovedRibbonSelect = function(ribbonSelect,boardId,disableDup,f) {
-	$.ajax({ url : "/foo/ajax/v/removedribbonlist?board=" + boardId, method : "get"}).done(function(data) {
-		ribbonSelect.append("<option value=\"0\">リボンを選択</option>");
-		var ribbons = $.parseJSON(data);
-		var _g = 0;
-		while(_g < ribbons.length) {
-			var v = ribbons[_g];
-			++_g;
-			var ribbonId = v[0];
-			var ribbonLabel = v[1];
-			ribbonSelect.append("<option value=\"" + ribbonId + "\">" + ribbonLabel + "</option>");
-		}
-		ribbonSelect.unbind("change");
-		ribbonSelect.change(function(e) {
-			f(MyPage.getSelected(e.target).val());
-		});
-		MyPage.enable(ribbonSelect);
-	});
 }
 MyPage.postStamp = function(ribbonId,timelineId,source,selected) {
 	var form = source.closest(".comment-form").find("> form");
@@ -1500,7 +1810,7 @@ MyPage.formatDetail = function(detail,writable) {
 		++_g;
 		var label = vv.label;
 		var icon = vv.gravatar;
-		favoredBy += MyPage.tooltip(MyPage.gravatar(icon,16),label);
+		favoredBy += Misc.tooltip(Misc.gravatar(icon,16),label);
 	}
 	detail.favoredBy = favoredBy;
 	detail.elapsed = MyPage.elapsedInWords(detail.elapsed);
@@ -1521,7 +1831,7 @@ MyPage.updateBoardWatcher = function(boardId,observers) {
 		++_g;
 		var userId = v.userId;
 		var label = v.label;
-		var icon = MyPage.tooltip(MyPage.gravatar(v.gravatar,16),label);
+		var icon = Misc.tooltip(Misc.gravatar(v.gravatar,16),label);
 		observersView.append("<span class=\"observer\" user-id=\"" + userId + "\">" + icon + "</span>");
 	}
 }
@@ -1569,28 +1879,9 @@ MyPage.kickUndefined = function(x) {
 	if(MyPage.isUndefined(x)) return null;
 	return x;
 }
-MyPage.getSelected = function(select) {
-	return new $(select).find(":selected");
-}
 MyPage.clearSelect = function(select) {
 	MyPage.disable(select);
 	select.html("");
-}
-MyPage.setupRadio = function(root,name) {
-	var radios = root.find("[name=\"" + name + "\"]");
-	var onChange = function() {
-		radios.each(function(i,elem) {
-			var radio = new $(elem);
-			var label = radio.closest("label.radio");
-			var inputs = label.find("input:not(:radio),select");
-			var checked = radio["is"](":checked");
-			MyPage.updateStatus(inputs,["active","loaded"],"active",checked);
-		});
-		return true;
-	};
-	onChange();
-	radios.unbind("change");
-	radios.change(onChange);
 }
 MyPage.updateStatus = function(all,statuses,s,f) {
 	if(f) all.addClass(s); else all.removeClass(s);
@@ -1620,15 +1911,6 @@ MyPage.elapsedInWords = function(elapsedInSeconds) {
 	if(elapsedInMonths < 12) return "" + elapsedInMonths + "ヶ月前";
 	var elapsedInYears = Math.round(elapsedInMonths / 12);
 	return "" + elapsedInYears + "年前";
-}
-MyPage.gravatar = function(hash,size,userId,username,label) {
-	if(label == null) label = "";
-	if(username == null) username = "";
-	if(userId == null) userId = 0;
-	return "<img src=\"http://www.gravatar.com/avatar/" + hash + "?s=" + size + "&d=mm\" alt=\"gravatar\" user-id=\"" + userId + "\" username=\"" + username + "\" title=\"" + label + "\" data-toggle=\"tooltip\"/>";
-}
-MyPage.tooltip = function(s,desc) {
-	return "<a href=\"#\" data-toggle=\"tooltip\" title=\"" + desc + "\" onmouseover=\"" + "$(this).tooltip('show');\" onmouseout=\"" + "$(this).tooltip('hide');\">" + s + "</a>";
 }
 var Reflect = function() { }
 $hxClasses["Reflect"] = Reflect;
