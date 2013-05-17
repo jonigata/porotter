@@ -813,7 +813,7 @@ class MyPage {
 
     static private function subscribeBoard() {
         if (connected) {
-            io.push("watch-board",
+            io.push("watch-observers",
                     {user: getUserId(), targets: [getBoardId()]});
         }
     }
@@ -916,7 +916,7 @@ class MyPage {
             subscribePosts();
             describeSelf();
         });
-        io.on("watch-board", function(data: Dynamic) {
+        io.on("watch-observers", function(data: Dynamic) {
             updateBoardWatcher(data.board, data.observers);
         });
         io.on("watch-timeline", function(data: Dynamic<Int>) {

@@ -1524,7 +1524,7 @@ MyPage.describeSelf = function() {
 	if(MyPage.connected) MyPage.io.push("describe",{ user : MyPage.getUserId(), board : MyPage.getBoardId()});
 }
 MyPage.subscribeBoard = function() {
-	if(MyPage.connected) MyPage.io.push("watch-board",{ user : MyPage.getUserId(), targets : [MyPage.getBoardId()]});
+	if(MyPage.connected) MyPage.io.push("watch-observers",{ user : MyPage.getUserId(), targets : [MyPage.getBoardId()]});
 }
 MyPage.subscribeTimelines = function() {
 	if(MyPage.connected) {
@@ -1605,7 +1605,7 @@ MyPage.startWatch = function() {
 		MyPage.subscribePosts();
 		MyPage.describeSelf();
 	});
-	MyPage.io.on("watch-board",function(data) {
+	MyPage.io.on("watch-observers",function(data) {
 		MyPage.updateBoardWatcher(data.board,data.observers);
 	});
 	MyPage.io.on("watch-timeline",function(data) {

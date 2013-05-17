@@ -38,7 +38,7 @@ class Timeline < RedisMapper::PlatformModel
   end
 
   def fetch(newest_score, oldest_score, count)
-    puts "#### fetch newest_score = #{newest_score.inspect}, oldest_score = #{oldest_score.inspect}, count = #{count.inspect}"
+    # puts "#### fetch newest_score = #{newest_score.inspect}, oldest_score = #{oldest_score.inspect}, count = #{count.inspect}"
 
     # 1.[newest_score, oldest_score)に有効要素がない場合
     #   → [[], nil, nil]を返す
@@ -81,7 +81,7 @@ class Timeline < RedisMapper::PlatformModel
       end
 
       b = RedisMapper.exclusive(res_oldest_score)
-      puts "result_array.length = #{result_array.length}, rest_count = #{rest_count}"
+      # puts "result_array.length = #{result_array.length}, rest_count = #{rest_count}"
     end
 
     return [[], nil, nil] if result_array.empty?
@@ -92,7 +92,7 @@ class Timeline < RedisMapper::PlatformModel
       res_oldest_score = oldest_score
     end
 
-    puts "#### fetch result: res_newest_score = #{res_newest_score.inspect}, res_oldest_score = #{res_oldest_score.inspect}"
+    # puts "#### fetch result: res_newest_score = #{res_newest_score.inspect}, res_oldest_score = #{res_oldest_score.inspect}"
     [
       result_array,
       res_newest_score,

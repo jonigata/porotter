@@ -95,8 +95,8 @@ def start_watch
     post_notifiee.set_targets(session, data["targets"].map { |e| e.to_i })
   end
 
-  io.on :'watch-board' do |data, session, type|
-    puts "watch-board params: #{data}, <#{session}> type: #{type}"
+  io.on :'watch-observers' do |data, session, type|
+    puts "watch-observers params: #{data}, <#{session}> type: #{type}"
     board_notifiee.set_targets(session, data["targets"].map { |e| e.to_i })
   end
 
@@ -104,7 +104,7 @@ def start_watch
     Redis.new.subscribe( # publishと同じのを使うとブロックする
       "timeline-watcher",
       "post-watcher",
-      "board-watcher") do |on|
+      "observers-watcher") do |on|
       on.message do |channel, message|
         case channel
         when "timeline-watcher"
@@ -123,12 +123,12 @@ def start_watch
               io.push :'watch-post', {:post => post_id, :version => version}, {:to => session }
             end
           end
-        when "board-watcher"
+        when "observers-watcher"
           # puts "get post-watcher singal(#{message})"
           EM.next_tick do
             board_notifiee.trigger(message) do |board_id, observers, session|
               puts "send board watch message: #{board_id}"
-              io.push :'watch-board', {:board => board_id, :observers => observers}, {:to => session }
+              io.push :'watch-observers', {:board => board_id, :observers => observers}, {:to => session }
             end
           end
         end
