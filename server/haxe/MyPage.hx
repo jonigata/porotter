@@ -478,7 +478,7 @@ class MyPage {
                 var e: Dynamic = new JQuery(ui.draggable);
                 e.tooltip('hide');
                 e.remove();
-                updateMemberSet(display, data);
+                updateMemberSet(display);
             }
         });
 
