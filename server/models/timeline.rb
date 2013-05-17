@@ -139,7 +139,7 @@ class Timeline < RedisMapper::PlatformModel
     end
 
     redis.publish(
-      "timeline-watcher", [self.store.id, self.store.version].to_json)
+      "watch-timeline", [self.store.id, self.store.version].to_json)
   end
 
   def transfer_post_from(source_timeline, source, target)
@@ -157,7 +157,7 @@ class Timeline < RedisMapper::PlatformModel
   def version_up
     self.store.version_incr(1).tap do |version|
       yield version
-      redis.publish("timeline-watcher", [self.store.id, version].to_json)
+      redis.publish("watch-timeline", [self.store.id, version].to_json)
     end
   end    
 

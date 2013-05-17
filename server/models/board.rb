@@ -114,7 +114,7 @@ class Board < RedisMapper::PlatformModel
       }
     end
     redis.publish(
-      "observers-watcher",
+      "watch-observers",
       [self.store.id, a].to_json)
   end
 

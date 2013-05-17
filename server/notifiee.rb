@@ -43,12 +43,58 @@ class Notifiee
   end
 end
 
+class ObserversNotifiee < Notifiee
+  def key
+    :'watch-observers'
+  end
+
+  def handle_message(io, message)
+    EM.next_tick do
+      self.trigger(message) do |board_id, observers, session|
+        puts "send board watch message: #{board_id}"
+        io.push key, {:board => board_id, :observers => observers}, {:to => session }
+      end
+    end
+  end
+end
+
+class TimelineNotifiee < Notifiee
+  def key
+    :'watch-timeline'
+  end
+
+  def handle_message(io, message)
+    EM.next_tick do
+      self.trigger(message) do |timeline_id, version, session|
+        # puts "send timeline watch message: #{timeline_id}"
+        io.push key, {:timeline => timeline_id, :version => version}, {:to => session }
+      end
+    end
+  end
+end
+
+class PostNotifiee < Notifiee
+  def key
+    :'watch-post'
+  end
+
+  def handle_message(io, message)
+    EM.next_tick do
+      post_notifiee.trigger(message) do |post_id, version, session|
+        # puts "send post watch message: #{post_id}"
+        io.push key, {:post => post_id, :version => version}, {:to => session }
+      end
+    end
+  end
+end
+
 def start_watch
   redis = Redis.new
 
-  board_notifiee = Notifiee.new
-  timeline_notifiee = Notifiee.new
-  post_notifiee = Notifiee.new
+  notifiees = {}
+  [ObserversNotifiee.new, TimelineNotifiee.new, PostNotifiee.new].each do |n|
+    notifiees[n.key.to_s] = n
+  end
 
   users = Hash.new # { session => { :user => user-id, :board => board-id } }
 
@@ -69,9 +115,9 @@ def start_watch
         board.remove_observer(User.attach_if_exist(user_id)) if board
       end
     end
-    board_notifiee.remove_session(session)
-    timeline_notifiee.remove_session(session)
-    post_notifiee.remove_session(session)
+    notifiees.each do |k, n|
+      n.remove_session(session)
+    end
   end
 
   io.on :describe do |data, session, type|
@@ -85,53 +131,22 @@ def start_watch
     end
   end
 
-  io.on :'watch-timeline' do |data, session, type|
-    # puts "watch-timeline params: #{data}, <#{session}> type: #{type}"
-    timeline_notifiee.set_targets(session, data["targets"].map { |e| e.to_i })
+  notifiees.each do |key, notifiee|
+    io.on key do |data, session, type|
+      # puts "#{notifiee.key} params: #{data}, <#{session}> type: #{type}"
+      notifiee.set_targets(session, data["targets"].map { |e| e.to_i })
+    end
   end
 
-  io.on :'watch-post' do |data, session, type|
-    # puts "watch-post params: #{data}, <#{session}> type: #{type}"
-    post_notifiee.set_targets(session, data["targets"].map { |e| e.to_i })
-  end
-
-  io.on :'watch-observers' do |data, session, type|
-    puts "watch-observers params: #{data}, <#{session}> type: #{type}"
-    board_notifiee.set_targets(session, data["targets"].map { |e| e.to_i })
-  end
+  keys = notifiees.map { |k, v| v.key }
+  p keys
 
   EM.defer do
-    Redis.new.subscribe( # publishと同じのを使うとブロックする
-      "timeline-watcher",
-      "post-watcher",
-      "observers-watcher") do |on|
+    # publishと同じRedisインスタンスを使うとブロックする
+    Redis.new.subscribe(*keys) do |on|
       on.message do |channel, message|
-        case channel
-        when "timeline-watcher"
-          # puts "get timeline-watcher singal(#{message})"
-          EM.next_tick do
-            timeline_notifiee.trigger(message) do |timeline_id, version, session|
-              # puts "send timeline watch message: #{timeline_id}"
-              io.push :'watch-timeline', {:timeline => timeline_id, :version => version}, {:to => session }
-            end
-          end
-        when "post-watcher"
-          # puts "get post-watcher singal(#{message})"
-          EM.next_tick do
-            post_notifiee.trigger(message) do |post_id, version, session|
-              # puts "send post watch message: #{post_id}"
-              io.push :'watch-post', {:post => post_id, :version => version}, {:to => session }
-            end
-          end
-        when "observers-watcher"
-          # puts "get post-watcher singal(#{message})"
-          EM.next_tick do
-            board_notifiee.trigger(message) do |board_id, observers, session|
-              puts "send board watch message: #{board_id}"
-              io.push :'watch-observers', {:board => board_id, :observers => observers}, {:to => session }
-            end
-          end
-        end
+        puts "get #{channel} singal(#{message})"
+        notifiees[channel].handle_message(io, message)
       end
     end
   end

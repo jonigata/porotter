@@ -44,7 +44,7 @@ class Post < RedisMapper::PlatformModel
   def version_up
     self.store.version_incr(1).tap do |version|
       yield version
-      redis.publish "post-watcher", [self.store.id, version].to_json
+      redis.publish "watch-post", [self.store.id, version].to_json
     end
   end
 
