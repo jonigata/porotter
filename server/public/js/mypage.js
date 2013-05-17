@@ -1524,6 +1524,9 @@ MyPage.describeSelf = function() {
 	if(MyPage.connected) MyPage.io.push("describe",{ user : MyPage.getUserId(), board : MyPage.getBoardId()});
 }
 MyPage.subscribeBoard = function() {
+	if(MyPage.connected) MyPage.io.push("watch-board",{ user : MyPage.getUserId(), targets : [MyPage.getBoardId()]});
+}
+MyPage.subscribeObservers = function() {
 	if(MyPage.connected) MyPage.io.push("watch-observers",{ user : MyPage.getUserId(), targets : [MyPage.getBoardId()]});
 }
 MyPage.subscribeTimelines = function() {
@@ -1541,6 +1544,9 @@ MyPage.subscribePosts = function() {
 		});
 		MyPage.io.push("watch-post",{ targets : targets.get()});
 	}
+}
+MyPage.loadBoard = function(boardId,version) {
+	js.Lib.window.location.reload();
 }
 MyPage.loadTimeline = function(timelineId,version) {
 	new $("[timeline-id=\"" + timelineId + "\"]").each(function(i,elem) {
@@ -1583,7 +1589,7 @@ MyPage.applyTemplate = function(codename,data) {
 	var template = new haxe.Template(templateCode);
 	return template.execute(data);
 }
-MyPage.updateBoardWatcher = function(boardId,observers) {
+MyPage.updateObserversWatcher = function(boardId,observers) {
 	var observersView = new $("#observers");
 	observersView.html("");
 	var _g = 0;
@@ -1601,12 +1607,16 @@ MyPage.startWatch = function() {
 	MyPage.io.on("connect",function(session) {
 		MyPage.connected = true;
 		MyPage.subscribeBoard();
+		MyPage.subscribeObservers();
 		MyPage.subscribeTimelines();
 		MyPage.subscribePosts();
 		MyPage.describeSelf();
 	});
 	MyPage.io.on("watch-observers",function(data) {
-		MyPage.updateBoardWatcher(data.board,data.observers);
+		MyPage.updateObserversWatcher(data.board,data.observers);
+	});
+	MyPage.io.on("watch-board",function(data) {
+		MyPage.loadBoard(data.board,data.version);
 	});
 	MyPage.io.on("watch-timeline",function(data) {
 		MyPage.loadTimeline(data.timeline,data.version);

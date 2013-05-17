@@ -58,6 +58,21 @@ class ObserversNotifiee < Notifiee
   end
 end
 
+class BoardNotifiee < Notifiee
+  def key
+    :'watch-board'
+  end
+
+  def handle_message(io, message)
+    EM.next_tick do
+      self.trigger(message) do |board_id, version, session|
+        # puts "send board watch message: #{board_id}"
+        io.push key, {:board => board_id, :version => version}, {:to => session }
+      end
+    end
+  end
+end
+
 class TimelineNotifiee < Notifiee
   def key
     :'watch-timeline'
@@ -92,7 +107,12 @@ def start_watch
   redis = Redis.new
 
   notifiees = {}
-  [ObserversNotifiee.new, TimelineNotifiee.new, PostNotifiee.new].each do |n|
+  [
+    ObserversNotifiee.new,
+    BoardNotifiee.new,
+    TimelineNotifiee.new,
+    PostNotifiee.new
+  ].each do |n|
     notifiees[n.key.to_s] = n
   end
 

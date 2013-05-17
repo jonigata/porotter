@@ -813,6 +813,13 @@ class MyPage {
 
     static private function subscribeBoard() {
         if (connected) {
+            io.push("watch-board",
+                    {user: getUserId(), targets: [getBoardId()]});
+        }
+    }
+
+    static private function subscribeObservers() {
+        if (connected) {
             io.push("watch-observers",
                     {user: getUserId(), targets: [getBoardId()]});
         }
@@ -840,6 +847,10 @@ class MyPage {
         }
     }
 
+    static private function loadBoard(boardId: Int, version: Int) {
+        js.Lib.window.location.reload();
+    }
+    
     static private function loadTimeline(timelineId: Int, version: Int) {
         new JQuery(Std.format('[timeline-id="$timelineId"]')).each(
             function(i: Int, elem: Dynamic) {
@@ -895,7 +906,7 @@ class MyPage {
         return template.execute(data);
     }
 
-    static private function updateBoardWatcher(
+    static private function updateObserversWatcher(
         boardId: Int, observers: Array<Dynamic>) {
         var observersView: Dynamic = new JQuery('#observers');
         observersView.html('');
@@ -912,12 +923,16 @@ class MyPage {
         io.on("connect", function(session) {
             connected = true;
             subscribeBoard();
+            subscribeObservers();
             subscribeTimelines();
             subscribePosts();
             describeSelf();
         });
         io.on("watch-observers", function(data: Dynamic) {
-            updateBoardWatcher(data.board, data.observers);
+            updateObserversWatcher(data.board, data.observers);
+        });
+        io.on("watch-board", function(data: Dynamic) {
+            loadBoard(data.board, data.version);
         });
         io.on("watch-timeline", function(data: Dynamic<Int>) {
             loadTimeline(data.timeline, data.version);
