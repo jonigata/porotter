@@ -476,23 +476,23 @@ class MyPage {
                 trace('deleted');
                 trace(ui.draggable);
                 var e: Dynamic = new JQuery(ui.draggable);
-/*
                 e.tooltip('hide');
-                var userId: Int = Std.parseInt(e.attr('user-id'));
-                data.members = data.members.filter(function(x: Dynamic) {
-                        return x.userId != userId;
-                    });
-                updateGroupDisplay(display, data);
                 e.remove();
-*/
+                updateMemberSet(display, data);
             }
         });
 
+        updateMemberSet(display);
+    }
+
+    static private function updateMemberSet(display: Dynamic) {
         // member-setを作成
         var memberSet: Array<Int> = [];
-        for(v in members) {
-            memberSet.push(v.userId);
-        }
+        display.find('img').each(
+            function(i: Int, elem: Dynamic) {
+                var e = new JQuery(elem);
+                memberSet.push(Std.parseInt(e.attr('user-id')));
+            });
         memberSet.sort(function(a: Int, b: Int) { return a - b; });
 
         display.attr('member-set', JSON.stringify(memberSet));

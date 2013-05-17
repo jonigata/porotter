@@ -1039,20 +1039,17 @@ MyPage.updateGroupDisplay = function(display,data) {
 		console.log(ui.draggable);
 		var e1 = new $(ui.draggable);
 		e1.tooltip("hide");
-		var userId = Std.parseInt(e1.attr("user-id"));
-		data.members = data.members.filter(function(x) {
-			return x.userId != userId;
-		});
-		MyPage.updateGroupDisplay(display,data);
 		e1.remove();
+		MyPage.updateMemberSet(display);
 	}});
+	MyPage.updateMemberSet(display);
+}
+MyPage.updateMemberSet = function(display) {
 	var memberSet = [];
-	var _g = 0;
-	while(_g < members.length) {
-		var v = members[_g];
-		++_g;
-		memberSet.push(v.userId);
-	}
+	display.find("img").each(function(i,elem) {
+		var e = new $(elem);
+		memberSet.push(Std.parseInt(e.attr("user-id")));
+	});
 	memberSet.sort(function(a,b) {
 		return a - b;
 	});
