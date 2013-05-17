@@ -10,6 +10,7 @@ using ArrayUtil;
 import RocketIO;
 
 import Misc;
+import FormUtil;
 import BoardSettingsDialog;
 
 @:expose
@@ -189,7 +190,7 @@ class MyPage {
 
         boardSelect.val(0);
         disable(boardSelect);
-        Misc.setupUserSelect(
+        FormUtil.setupUserSelect(
             userSelect,
             function() {
                 userSelect.find('option').each(
@@ -203,7 +204,7 @@ class MyPage {
                 clearSelect(boardSelect);
                 if (userId == 0) { return; }
                         
-                Misc.setupBoardSelect(
+                FormUtil.setupBoardSelect(
                     boardSelect,
                     userId,
                     function(boardId: Int) {
@@ -235,7 +236,7 @@ class MyPage {
         disable(boardSelect);
         ribbonSelect.val(0);
         disable(ribbonSelect);
-        Misc.setupUserSelect(
+        FormUtil.setupUserSelect(
             userSelect,
             function() {
             },
@@ -245,7 +246,7 @@ class MyPage {
                 clearSelect(ribbonSelect);
                 if (userId == 0) { return; }
                         
-                Misc.setupBoardSelect(
+                FormUtil.setupBoardSelect(
                     boardSelect,
                     userId,
                     function(boardId: Int) {
@@ -253,10 +254,10 @@ class MyPage {
                     },
                     function(boardId: Int) {
                         Misc.disable(submit);
-                        Misc.clearSelect(ribbonSelect);
+                        FormUtil.clearSelect(ribbonSelect);
                         if (boardId == 0) { return; }
 
-                        Misc.setupRibbonSelect(
+                        FormUtil.setupRibbonSelect(
                             ribbonSelect,
                             boardId,
                             true,
@@ -273,8 +274,8 @@ class MyPage {
         var ribbonSelect: Dynamic = dialog.find('[name="ribbon"]');
         var submit: Dynamic = dialog.find('[type="submit"]');
 
-        Misc.clearSelect(ribbonSelect);
-        Misc.setupRemovedRibbonSelect(
+        FormUtil.clearSelect(ribbonSelect);
+        FormUtil.setupRemovedRibbonSelect(
             ribbonSelect,
             boardId,
             true,
@@ -303,13 +304,13 @@ class MyPage {
 
     static function editRibbonSettings(
         dialog: Dynamic, boardId: Int, ribbonId: Int) {
-        Misc.setupRadio(dialog, "read_permission");
-        Misc.setupRadio(dialog, "write_permission");
-        Misc.setupRadio(dialog, "edit_permission");
+        FormUtil.setupRadio(dialog, "read_permission");
+        FormUtil.setupRadio(dialog, "write_permission");
+        FormUtil.setupRadio(dialog, "edit_permission");
 
-        Misc.setupEditGroupButton(dialog.find('#edit-readable-group'));
-        Misc.setupEditGroupButton(dialog.find('#edit-writable-group'));
-        Misc.setupEditGroupButton(dialog.find('#edit-editable-group'));
+        FormUtil.setupEditGroupButton(dialog.find('#edit-readable-group'));
+        FormUtil.setupEditGroupButton(dialog.find('#edit-writable-group'));
+        FormUtil.setupEditGroupButton(dialog.find('#edit-editable-group'));
 
         dialog.justModal();
     }

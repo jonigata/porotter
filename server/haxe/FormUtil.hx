@@ -250,20 +250,6 @@ class FormUtil {
         display.find('img').tooltip();
         display.find('img').draggable({revert: "invalid"});
 
-        // ゴミ箱
-        var trash: Dynamic = new JQuery(".group-member-trash");
-        trash.droppable({
-            accept: '[user-id]',
-            drop: function(e, ui) {
-                trace('deleted');
-                trace(ui.draggable);
-                var e: Dynamic = new JQuery(ui.draggable);
-                e.tooltip('hide');
-                e.remove();
-                updateMemberSet(display);
-            }
-        });
-
         updateMemberSet(display);
     }
 
@@ -314,7 +300,26 @@ class FormUtil {
                     var filter = Std.format('[user-id="$userId"]');
                     Misc.setEnabled(e, display.find(filter).length == 0);
                 });
+            Misc.setEnabled(
+                submit, oldMemberSet != display.attr('member-set'));
         };
+
+        // ゴミ箱
+        var trash: Dynamic = dialog.find(".group-member-trash");
+        trash.droppable({
+            accept: '[user-id]',
+            drop: function(e, ui) {
+                var e: Dynamic = new JQuery(ui.draggable);
+                e.tooltip('hide');
+                data.members = data.members.filter(
+                    function(n) {
+                        return n.userId != Std.parseInt(e.attr('user-id'));
+                    });
+                updateGroupDisplay(display, data);
+                trace(display.attr('member-set'));
+                updateUI();
+            }
+        });
 
         // 追加ユーザボタン
         var addButton: Dynamic = dialog.find('#add-member');
@@ -342,9 +347,6 @@ class FormUtil {
 
                 updateGroupDisplay(display, data);
                 updateUI();
-
-                Misc.setEnabled(
-                    submit, oldMemberSet != display.attr('member-set'));
             });
 
         updateUI();
