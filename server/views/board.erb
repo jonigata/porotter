@@ -56,9 +56,10 @@
          user-id="<%= @user.store.id %>"
          username="<%= @user.username %>"
          refered-name="<%= refered.username %>"
+         board-id="<%= current_board.store.id %>"
          owner-name="<%= current_board.owner.username %>"
          board-name="<%= current_board.label %>"
-         board-id="<%= current_board.store.id %>">
+         board-version="<%= current_board.version %>">
     </div>
   </body>
 </html>

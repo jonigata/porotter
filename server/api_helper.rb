@@ -155,14 +155,6 @@ module APIHelper
         close_ribbon(r.board, r.ribbon)
       end
 
-      post '/m/editpermission' do
-        r = ensure_params(
-          :board => INT_PARAM,
-          :ribbon => INT_PARAM,
-          :permission => [/(private|public)/, Symbol])
-        edit_permission(r.board, r.ribbon, r.permission)
-      end
-
       post '/m/modifyboardsettings' do
         r = ensure_params(
           :board => INT_PARAM,
@@ -383,7 +375,7 @@ module APIHelper
     board.editable_by?(@user) or halt 403
 
     @user.add_ribbon(board, label)
-    return_board(board)
+    return JSONP(:version => board.version)
   end
 
   def join_ribbon(board_id, ribbon_id)
@@ -393,7 +385,7 @@ module APIHelper
     ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
     ribbon.readable_by?(@user) or halt 403
     @user.join_ribbon(board, ribbon)
-    return_board(board)
+    return JSONP(:version => board.version)
   end
 
   def restore_ribbon(board_id, ribbon_id)
@@ -403,7 +395,7 @@ module APIHelper
     ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
     ribbon.readable_by?(@user) or halt 403
     @user.restore_ribbon(board, ribbon)
-    return_board(board)
+    return JSONP(:version => board.version)
   end
 
   def close_ribbon(board_id, ribbon_id)
@@ -412,16 +404,7 @@ module APIHelper
 
     ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
     @user.remove_ribbon(board, ribbon)
-    return_board(board)
-  end
-
-  def edit_permission(board_id, ribbon_id, permission)
-    board = Board.attach_if_exist(board_id) or raise
-
-    ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
-    ribbon.editable_by?(@user) or halt 403
-    @user.edit_permission(ribbon, permission)
-    return_board(board)
+    return JSONP(:version => board.version)
   end
 
   def do_ribbon_test(ribbon_id)
@@ -452,7 +435,7 @@ module APIHelper
     board.set_writability(write_permission, writable_group)
     board.set_editability(edit_permission, editable_group)
 
-    return_board(board)
+    return JSONP(:version => board.version)
   end
 
   def modify_ribbon_settings(

@@ -220,6 +220,17 @@ class MyPage {
 
     static function makeRibbon() {
         var dialog: Dynamic = new JQuery('#make-ribbon');
+        FormUtil.setSubmitAction(
+            dialog,
+            function(submit) {
+                dialog.close();
+                FormUtil.doBoardEditingAction(
+                    submit,
+                    function(version: Int) {
+                        loadBoard(getBoardId(), version);
+                    });
+            });
+            
         dialog.justModal();
     }
 
@@ -266,6 +277,17 @@ class MyPage {
                             });
                     });
             });
+        FormUtil.setSubmitAction(
+            dialog,
+            function(submit) {
+                dialog.close();
+                FormUtil.doBoardEditingAction(
+                    submit,
+                    function(version: Int) {
+                        loadBoard(getBoardId(), version);
+                    });
+            });
+        
         dialog.justModal();
     }
 
@@ -282,6 +304,16 @@ class MyPage {
             function(ribbonId: Int) {
                 setEnabled(submit, ribbonId != 0);
             });
+        FormUtil.setSubmitAction(
+            dialog,
+            function(submit) {
+                dialog.close();
+                FormUtil.doBoardEditingAction(
+                    submit,
+                    function(version: Int) {
+                        loadBoard(getBoardId(), version);
+                    });
+            });
         
         dialog.justModal();
     }        
@@ -296,11 +328,20 @@ class MyPage {
             data: {
                 board: boardId,
                 ribbon: ribbonId
-            }
-        }).done(function() {
+            },
+            dataType: 'jsonp'
+        }).done(function(data: Dynamic) {
+            setBoardVersion(data.version);
             ribbon.closest('.ribbon-outer').remove();
         });
     }        
+
+    static function editBoardSettings() {
+        BoardSettingsDialog.doModal(
+            function(version: Int) {
+                loadBoard(getBoardId(), version);
+            });
+    }
 
     static function editRibbonSettings(
         dialog: Dynamic, boardId: Int, ribbonId: Int) {
@@ -366,13 +407,6 @@ class MyPage {
         });
     }
 
-    static function doPost(obj: Dynamic) {
-        postForm(getForm(obj), function(s: Dynamic) {
-                redirect(makeBoardUrl(s[0], s[1]));
-            });
-        return false;
-    }
-
     static function doRibbonTest(ribbonId: Int) {
         JQuery._static.ajax({
             url: "/foo/ajax/m/ribbontest",
@@ -387,12 +421,6 @@ class MyPage {
 
     ////////////////////////////////////////////////////////////////
     // private functions
-    static private function makeBoardUrl(username, boardname): String {
-        var urlinfo: Dynamic = new JQuery('#basic-data');
-        var base_url = urlinfo.attr('base-url');
-        return Std.format("$base_url/$username/$boardname");
-    }
-
     static private function getUserName(): String {
         return getBasicDataAttr('username');
     }
@@ -413,20 +441,17 @@ class MyPage {
         return Std.parseInt(getBasicDataAttr('board-id'));
     }
 
+    static private function getBoardVersion(): Int {
+        return Std.parseInt(getBasicDataAttr('board-version'));
+    }
+
+    static private function setBoardVersion(n: Int) {
+        new JQuery('#basic-data').attr('board-version', n);
+    }
+
     static private function getBasicDataAttr(a): String {
         var data: Dynamic = new JQuery('#basic-data');
         return data.attr(a);
-    }
-
-    static private function postForm(form: Dynamic, f: String->Void) {
-        JQuery._static.ajax({
-            url: form.attr('action'),
-            method: form.attr('method'),
-            data: form.serialize(),
-            dataType: 'jsonp'
-        }).done(function(data) {
-            f(data);
-        });
     }
 
     static private function enable(e: Dynamic) {
@@ -785,15 +810,6 @@ class MyPage {
         }
     }
 
-    static private function getForm(obj: Dynamic): JQuery {
-        var e = new JQuery(obj);
-        if (e.is('form')) {
-            return e;
-        } else {
-            return e.closest("form");
-        }
-    }
-
     static private function updateCommentDisplayText(entry: Dynamic) {
         var comments = entry.find('> .comments');
         var showComment = entry.find('> .operation .show-comment-label');
@@ -848,7 +864,11 @@ class MyPage {
     }
 
     static private function loadBoard(boardId: Int, version: Int) {
-        js.Lib.window.location.reload();
+        trace(getBoardVersion());
+        trace(version);
+        if (getBoardVersion() < version) {
+            js.Lib.window.location.reload();
+        }
     }
     
     static private function loadTimeline(timelineId: Int, version: Int) {
@@ -954,10 +974,6 @@ class MyPage {
 
     static private function closeComments(comments: Dynamic) {
         comments.hide();
-    }
-
-    static private function redirect(url: String) {
-        js.Lib.window.location.href = url;
     }
 
     static private function getThis(): Dynamic {

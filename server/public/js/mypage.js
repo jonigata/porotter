@@ -39,7 +39,7 @@ $hxExpose(BoardSettingsDialog, "BoardSettingsDialog");
 BoardSettingsDialog.__name__ = ["BoardSettingsDialog"];
 BoardSettingsDialog.init = function() {
 }
-BoardSettingsDialog.doModal = function() {
+BoardSettingsDialog.doModal = function(f) {
 	var dialog = new $("#board-settings");
 	FormUtil.setupRadio(dialog,"read_permission");
 	FormUtil.setupRadio(dialog,"write_permission");
@@ -47,6 +47,10 @@ BoardSettingsDialog.doModal = function() {
 	FormUtil.setupEditGroupButton(dialog.find("#edit-readable-group"));
 	FormUtil.setupEditGroupButton(dialog.find("#edit-writable-group"));
 	FormUtil.setupEditGroupButton(dialog.find("#edit-editable-group"));
+	FormUtil.setSubmitAction(dialog,function(submit) {
+		dialog.close();
+		FormUtil.doBoardEditingAction(submit,f);
+	});
 	dialog.justModal();
 }
 var DateTools = function() { }
@@ -256,6 +260,14 @@ FormUtil.clearSelect = function(select) {
 FormUtil.getSelected = function(select) {
 	return new $(select).find(":selected");
 }
+FormUtil.setSubmitAction = function(dialog,f) {
+	var submit = dialog.find(":submit");
+	submit.unbind("click");
+	submit.click(function(e) {
+		f(e.target);
+		return false;
+	});
+}
 FormUtil.setupRadio = function(root,name) {
 	var radios = root.find("[name=\"" + name + "\"]");
 	var onChange = function() {
@@ -376,6 +388,27 @@ FormUtil.setupRemovedRibbonSelect = function(ribbonSelect,boardId,disableDup,f) 
 			f(FormUtil.getSelected(e.target).val());
 		});
 		Misc.enable(ribbonSelect);
+	});
+}
+FormUtil.doBoardEditingAction = function(obj,f) {
+	FormUtil.postForm(FormUtil.getForm(obj),function(s) {
+		f(s.version);
+	});
+	return false;
+}
+FormUtil.doPost = function(obj) {
+	FormUtil.postForm(FormUtil.getForm(obj),function(s) {
+		Misc.redirect(Misc.makeBoardUrl(s[0],s[1]));
+	});
+	return false;
+}
+FormUtil.getForm = function(obj) {
+	var e = new $(obj);
+	if(e["is"]("form")) return e; else return e.closest("form");
+}
+FormUtil.postForm = function(form,f) {
+	$.ajax({ url : form.attr("action"), method : form.attr("method"), data : form.serialize(), dataType : "jsonp"}).done(function(data) {
+		f(data);
 	});
 }
 FormUtil.updateStatus = function(all,statuses,s,f) {
@@ -1017,6 +1050,9 @@ List.prototype = {
 var Misc = function() { }
 $hxClasses["Misc"] = Misc;
 Misc.__name__ = ["Misc"];
+Misc.redirect = function(url) {
+	js.Lib.window.location.href = url;
+}
 Misc.enable = function(e) {
 	e.removeAttr("disabled");
 }
@@ -1034,6 +1070,11 @@ Misc.gravatar = function(hash,size,userId,username,label) {
 }
 Misc.tooltip = function(s,desc) {
 	return "<a href=\"#\" data-toggle=\"tooltip\" title=\"" + desc + "\" onmouseover=\"" + "$(this).tooltip('show');\" onmouseout=\"" + "$(this).tooltip('hide');\">" + s + "</a>";
+}
+Misc.makeBoardUrl = function(username,boardname) {
+	var urlinfo = new $("#basic-data");
+	var base_url = urlinfo.attr("base-url");
+	return "" + base_url + "/" + username + "/" + boardname;
 }
 var MyPage = function() { }
 $hxClasses["MyPage"] = MyPage;
@@ -1162,6 +1203,12 @@ MyPage.joinBoard = function() {
 }
 MyPage.makeRibbon = function() {
 	var dialog = new $("#make-ribbon");
+	FormUtil.setSubmitAction(dialog,function(submit) {
+		dialog.close();
+		FormUtil.doBoardEditingAction(submit,function(version) {
+			MyPage.loadBoard(MyPage.getBoardId(),version);
+		});
+	});
 	dialog.justModal();
 }
 MyPage.joinRibbon = function(ownername) {
@@ -1192,6 +1239,12 @@ MyPage.joinRibbon = function(ownername) {
 			});
 		});
 	});
+	FormUtil.setSubmitAction(dialog,function(submit1) {
+		dialog.close();
+		FormUtil.doBoardEditingAction(submit1,function(version) {
+			MyPage.loadBoard(MyPage.getBoardId(),version);
+		});
+	});
 	dialog.justModal();
 }
 MyPage.restoreRibbon = function(boardId) {
@@ -1202,13 +1255,25 @@ MyPage.restoreRibbon = function(boardId) {
 	FormUtil.setupRemovedRibbonSelect(ribbonSelect,boardId,true,function(ribbonId) {
 		MyPage.setEnabled(submit,ribbonId != 0);
 	});
+	FormUtil.setSubmitAction(dialog,function(submit1) {
+		dialog.close();
+		FormUtil.doBoardEditingAction(submit1,function(version) {
+			MyPage.loadBoard(MyPage.getBoardId(),version);
+		});
+	});
 	dialog.justModal();
 }
 MyPage.closeRibbon = function(obj,boardId) {
 	var ribbon = new $(obj).closest(".ribbon");
 	var ribbonId = ribbon.attr("ribbon-id");
-	$.ajax({ url : "/foo/ajax/m/closeribbon", method : "post", data : { board : boardId, ribbon : ribbonId}}).done(function() {
+	$.ajax({ url : "/foo/ajax/m/closeribbon", method : "post", data : { board : boardId, ribbon : ribbonId}, dataType : "jsonp"}).done(function(data) {
+		MyPage.setBoardVersion(data.version);
 		ribbon.closest(".ribbon-outer").remove();
+	});
+}
+MyPage.editBoardSettings = function() {
+	BoardSettingsDialog.doModal(function(version) {
+		MyPage.loadBoard(MyPage.getBoardId(),version);
 	});
 }
 MyPage.editRibbonSettings = function(dialog,boardId,ribbonId) {
@@ -1244,21 +1309,10 @@ MyPage.transferArticle = function(dragging,sourceRibbon) {
 		console.log("movearticle done");
 	});
 }
-MyPage.doPost = function(obj) {
-	MyPage.postForm(MyPage.getForm(obj),function(s) {
-		MyPage.redirect(MyPage.makeBoardUrl(s[0],s[1]));
-	});
-	return false;
-}
 MyPage.doRibbonTest = function(ribbonId) {
 	$.ajax({ url : "/foo/ajax/m/ribbontest", method : "post", data : { ribbon : ribbonId}}).done(function(data) {
 		console.log("ribbontest done");
 	});
-}
-MyPage.makeBoardUrl = function(username,boardname) {
-	var urlinfo = new $("#basic-data");
-	var base_url = urlinfo.attr("base-url");
-	return "" + base_url + "/" + username + "/" + boardname;
 }
 MyPage.getUserName = function() {
 	return MyPage.getBasicDataAttr("username");
@@ -1275,14 +1329,15 @@ MyPage.getReferedName = function() {
 MyPage.getBoardId = function() {
 	return Std.parseInt(MyPage.getBasicDataAttr("board-id"));
 }
+MyPage.getBoardVersion = function() {
+	return Std.parseInt(MyPage.getBasicDataAttr("board-version"));
+}
+MyPage.setBoardVersion = function(n) {
+	new $("#basic-data").attr("board-version",n);
+}
 MyPage.getBasicDataAttr = function(a) {
 	var data = new $("#basic-data");
 	return data.attr(a);
-}
-MyPage.postForm = function(form,f) {
-	$.ajax({ url : form.attr("action"), method : form.attr("method"), data : form.serialize(), dataType : "jsonp"}).done(function(data) {
-		f(data);
-	});
 }
 MyPage.enable = function(e) {
 	e.removeAttr("disabled");
@@ -1508,10 +1563,6 @@ MyPage.getEntry = function(obj) {
 	var e = new $(obj);
 	if(e["is"](".entry")) return e; else return e.closest(".entry");
 }
-MyPage.getForm = function(obj) {
-	var e = new $(obj);
-	if(e["is"]("form")) return e; else return e.closest("form");
-}
 MyPage.updateCommentDisplayText = function(entry) {
 	var comments = entry.find("> .comments");
 	var showComment = entry.find("> .operation .show-comment-label");
@@ -1546,7 +1597,9 @@ MyPage.subscribePosts = function() {
 	}
 }
 MyPage.loadBoard = function(boardId,version) {
-	js.Lib.window.location.reload();
+	console.log(MyPage.getBoardVersion());
+	console.log(version);
+	if(MyPage.getBoardVersion() < version) js.Lib.window.location.reload();
 }
 MyPage.loadTimeline = function(timelineId,version) {
 	new $("[timeline-id=\"" + timelineId + "\"]").each(function(i,elem) {
@@ -1636,9 +1689,6 @@ MyPage.openComments = function(comments) {
 }
 MyPage.closeComments = function(comments) {
 	comments.hide();
-}
-MyPage.redirect = function(url) {
-	js.Lib.window.location.href = url;
 }
 MyPage.getThis = function() {
 	return this;

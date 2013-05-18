@@ -10,6 +10,16 @@ class FormUtil {
         return new JQuery(select).find(':selected');
     }
 
+    static public function setSubmitAction(dialog: Dynamic, f: Dynamic->Void) {
+        var submit: Dynamic = dialog.find(':submit');
+        submit.unbind('click');
+        submit.click(
+            function(e) {
+                f(e.target);
+                return false;
+            });
+    }
+
     static public function setupRadio(root: Dynamic, name: String) {
         var radios: Dynamic = root.find(Std.format('[name="$name"]'));
 
@@ -193,8 +203,42 @@ class FormUtil {
         });
     }
 
+    static public function doBoardEditingAction(obj: Dynamic, f: Int->Void) {
+        postForm(getForm(obj), function(s: Dynamic) {
+                f(s.version);
+            });
+        return false;
+    }
+
+    static public function doPost(obj: Dynamic) {
+        postForm(getForm(obj), function(s: Dynamic) {
+                Misc.redirect(Misc.makeBoardUrl(s[0], s[1]));
+            });
+        return false;
+    }
+
     ////////////////////////////////////////////////////////////////
     // private
+    static private function getForm(obj: Dynamic): JQuery {
+        var e = new JQuery(obj);
+        if (e.is('form')) {
+            return e;
+        } else {
+            return e.closest("form");
+        }
+    }
+
+    static private function postForm(form: Dynamic, f: String->Void) {
+        JQuery._static.ajax({
+            url: form.attr('action'),
+            method: form.attr('method'),
+            data: form.serialize(),
+            dataType: 'jsonp'
+        }).done(function(data) {
+            f(data);
+        });
+    }
+
     static private function updateStatus(
         all: Dynamic, statuses: Array<String>, s: String, f: Bool) {
         if(f) {

@@ -3,6 +3,10 @@ extern class JSON {
 }
 
 class Misc {
+    static public function redirect(url: String) {
+        js.Lib.window.location.href = url;
+    }
+
     static public function enable(e: Dynamic) {
         e.removeAttr('disabled');
     }
@@ -33,4 +37,10 @@ class Misc {
         
     }
     
+    static public function makeBoardUrl(username, boardname): String {
+        var urlinfo: Dynamic = new JQuery('#basic-data');
+        var base_url = urlinfo.attr('base-url');
+        return Std.format("$base_url/$username/$boardname");
+    }
+
 }

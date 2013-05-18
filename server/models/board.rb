@@ -132,6 +132,7 @@ class Board < RedisMapper::PlatformModel
 
   delegate :owner                       do self.store end
   delegate :label                       do self.store end
+  delegate :version                     do self.store end
   delegate :add_ribbon, :push           do self.store.ribbons end
   delegate :list_ribbons, :to_a         do self.store.ribbons end
   delegate :list_removed_ribbons, :to_a do self.store.removed_ribbons end

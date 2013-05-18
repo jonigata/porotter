@@ -153,7 +153,7 @@ class User < RedisMapper::PlatformModel
   end
 
   def join_ribbon(board, ribbon)
-    board.add_ribbon(ribbon)
+    board.import_ribbon(self, ribbon)
   end
 
   def add_ribbon(board, label)
