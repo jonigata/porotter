@@ -95,7 +95,7 @@ class PostNotifiee < Notifiee
 
   def handle_message(io, message)
     EM.next_tick do
-      post_notifiee.trigger(message) do |post_id, version, session|
+      self.trigger(message) do |post_id, version, session|
         # puts "send post watch message: #{post_id}"
         io.push key, {:post => post_id, :version => version}, {:to => session }
       end

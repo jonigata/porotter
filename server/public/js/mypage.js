@@ -1093,14 +1093,9 @@ MyPage.init = function() {
 		if(!timeline["is"]("[editable=\"true\"]")) return;
 		timeline.sortable({ handle : ".drag-handle", connectWith : "[timeline-id][editable=\"true\"]", update : function(event,ui) {
 			if(ui.sender == null) {
-				if(ui.item.parent()[0] == timeline[0]) {
-					console.log("same timeline move");
-					MyPage.moveArticle(ui.item);
-				} else console.log("discard");
-			} else {
-				console.log("different timeline move");
-				MyPage.transferArticle(ui.item,ui.sender);
-			}
+				if(ui.item.parent()[0] == timeline[0]) MyPage.moveArticle(ui.item); else {
+				}
+			} else MyPage.transferArticle(ui.item,ui.sender);
 		}});
 	});
 	BoardSettingsDialog.init();
@@ -1293,11 +1288,9 @@ MyPage.moveArticle = function(dragging) {
 	var ribbonId = Std.parseInt(dragging.parent().attr("ribbon-id"));
 	var postId = Std.parseInt(dragging.attr("post-id"));
 	var target = dragging.next();
-	console.log(target);
 	var targetId = 0;
 	if(0 < target.length && target["is"]("article")) targetId = target.attr("post-id");
 	$.ajax({ url : "/foo/ajax/m/movearticle", method : "post", data : { ribbon : ribbonId, source : postId, target : targetId}}).done(function(data) {
-		console.log("movearticle done");
 	});
 }
 MyPage.transferArticle = function(dragging,sourceRibbon) {
@@ -1306,16 +1299,13 @@ MyPage.transferArticle = function(dragging,sourceRibbon) {
 	var targetRibbonId = Std.parseInt(targetRibbon.attr("ribbon-id"));
 	var postId = Std.parseInt(dragging.attr("post-id"));
 	var target = dragging.next();
-	console.log(target);
 	var targetId = 0;
 	if(0 < target.length && target["is"]("article")) targetId = target.attr("post-id");
 	$.ajax({ url : "/foo/ajax/m/transferarticle", method : "post", data : { source_ribbon : sourceRibbonId, target_ribbon : targetRibbonId, source : postId, target : targetId}}).done(function(data) {
-		console.log("movearticle done");
 	});
 }
 MyPage.doRibbonTest = function(ribbonId) {
 	$.ajax({ url : "/foo/ajax/m/ribbontest", method : "post", data : { ribbon : ribbonId}}).done(function(data) {
-		console.log("ribbontest done");
 	});
 }
 MyPage.getUserName = function() {
@@ -1378,6 +1368,7 @@ MyPage.fillNewerTimeline = function(timeline,version) {
 MyPage.fetchTimeline = function(oldTimeline,newestScore,oldestScore,version) {
 	var ribbonId = Std.parseInt(oldTimeline.attr("ribbon-id"));
 	var timelineId = Std.parseInt(oldTimeline.attr("timeline-id"));
+	if(timelineId == 0) return;
 	var level = Std.parseInt(oldTimeline.attr("level"));
 	var writable = oldTimeline.attr("writable") == "true";
 	if(!MyPage.startLoad(oldTimeline,version)) return;
@@ -1413,13 +1404,9 @@ MyPage.mergeTimeline = function(oldTimeline,newTimeline) {
 	oldTimeline.find("> .continue-reading").remove();
 	var remover = newTimeline.find("> article[removed=\"true\"]");
 	remover.each(function(i,elem) {
-		console.log(elem);
-	});
-	remover.each(function(i,elem) {
 		var e = new $(elem);
 		var postId = e.attr("post-id");
 		var filter = "[post-id=\"" + postId + "\"]";
-		console.log(filter);
 		newTimeline.find(filter).addClass("removing");
 		oldTimeline.find(filter).addClass("removing");
 	});
@@ -1439,7 +1426,6 @@ MyPage.mergeTimeline = function(oldTimeline,newTimeline) {
 		while(0 < ne.length && oldScore <= (newScore = Std.parseInt(ne.attr("score")))) {
 			var newPostId = Std.parseInt(ne.attr("post-id"));
 			var oldPostId = Std.parseInt(oe.attr("post-id"));
-			console.log("judge newPost: " + newPostId);
 			var next_ne = ne.next();
 			ne.insertBefore(oe);
 			ne = next_ne;
@@ -1604,9 +1590,11 @@ MyPage.subscribePosts = function() {
 	}
 }
 MyPage.loadBoard = function(boardId,version) {
-	console.log(MyPage.getBoardVersion());
-	console.log(version);
-	if(MyPage.getBoardVersion() < version) js.Lib.window.location.reload();
+	if(MyPage.getBoardVersion() < version) $.ajax({ url : "/foo/ajax/v/workspace", data : { user : MyPage.getUserId(), board : boardId}}).done(function(data) {
+		new $(".workspace").replaceWith(data);
+		MyPage.init();
+		MyPage.startSubscribe();
+	});
 }
 MyPage.loadTimeline = function(timelineId,version) {
 	new $("[timeline-id=\"" + timelineId + "\"]").each(function(i,elem) {
@@ -1662,15 +1650,18 @@ MyPage.updateObserversWatcher = function(boardId,observers) {
 		observersView.append("<span class=\"observer\" user-id=\"" + userId + "\">" + icon + "</span>");
 	}
 }
+MyPage.startSubscribe = function() {
+	MyPage.subscribeBoard();
+	MyPage.subscribeObservers();
+	MyPage.subscribeTimelines();
+	MyPage.subscribePosts();
+	MyPage.describeSelf();
+}
 MyPage.startWatch = function() {
 	MyPage.io = new RocketIO().connect();
 	MyPage.io.on("connect",function(session) {
 		MyPage.connected = true;
-		MyPage.subscribeBoard();
-		MyPage.subscribeObservers();
-		MyPage.subscribeTimelines();
-		MyPage.subscribePosts();
-		MyPage.describeSelf();
+		MyPage.startSubscribe();
 	});
 	MyPage.io.on("watch-observers",function(data) {
 		MyPage.updateObserversWatcher(data.board,data.observers);
@@ -1684,6 +1675,9 @@ MyPage.startWatch = function() {
 	MyPage.io.on("watch-post",function(data) {
 		MyPage.loadDetail(data.post,data.version);
 	});
+}
+MyPage.endWatch = function() {
+	MyPage.io.close();
 }
 MyPage.openComments = function(comments) {
 	comments.show();

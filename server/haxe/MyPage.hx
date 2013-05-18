@@ -41,14 +41,11 @@ class MyPage {
                             update: function(event: Dynamic, ui: Dynamic) {
                             if (ui.sender == null) {
                                 if (ui.item.parent()[0] == timeline[0]) {
-                                    trace("same timeline move");
                                     moveArticle(ui.item);
                                 } else {
                                     // discard
-                                    trace("discard");
                                 }
                             } else {
-                                trace("different timeline move");
                                 transferArticle(ui.item, ui.sender);
                             }
                         }
@@ -366,7 +363,6 @@ class MyPage {
 
         var postId: Int = Std.parseInt(dragging.attr('post-id'));
         var target: Dynamic = dragging.next();
-        trace(target);
         var targetId = 0;
         if (0 < target.length && target.is('article')) {
             targetId = target.attr('post-id');
@@ -381,7 +377,6 @@ class MyPage {
                 target: targetId
             }
         }).done(function(data) {
-            trace("movearticle done");
         });
     }
 
@@ -392,7 +387,6 @@ class MyPage {
 
         var postId: Int = Std.parseInt(dragging.attr('post-id'));
         var target: Dynamic = dragging.next();
-        trace(target);
         var targetId = 0;
         if (0 < target.length && target.is('article')) {
             targetId = target.attr('post-id');
@@ -408,7 +402,6 @@ class MyPage {
                 target: targetId
             }
         }).done(function(data) {
-            trace("movearticle done");
         });
     }
 
@@ -420,7 +413,6 @@ class MyPage {
                 ribbon: ribbonId,
             }
         }).done(function(data) {
-            trace("ribbontest done");
         });
     }
 
@@ -523,6 +515,9 @@ class MyPage {
 
         var ribbonId = Std.parseInt(oldTimeline.attr('ribbon-id'));
         var timelineId = Std.parseInt(oldTimeline.attr('timeline-id'));
+
+        if (timelineId == 0) { return; }
+
         var level = Std.parseInt(oldTimeline.attr('level'));
         var writable = oldTimeline.attr('writable') == 'true';
 
@@ -584,10 +579,12 @@ class MyPage {
 
         var remover = newTimeline.find('> article[removed="true"]');
         // trace('remover');
+/*
         remover.each(
             function(i: Int, elem: Dynamic) {
                 trace(elem);
             });
+*/
 
         // trace('old(before applying remover)');
         // traceTimeline(oldTimeline);
@@ -597,7 +594,6 @@ class MyPage {
                 var e: Dynamic = new JQuery(elem);
                 var postId = e.attr('post-id');
                 var filter = Std.format('[post-id="$postId"]');
-                trace(filter);
                 newTimeline.find(filter).addClass('removing');
                 oldTimeline.find(filter).addClass('removing');
             });
@@ -626,7 +622,6 @@ class MyPage {
                 oldScore <= (newScore = Std.parseInt(ne.attr('score')))) {
                 var newPostId = Std.parseInt(ne.attr('post-id'));
                 var oldPostId = Std.parseInt(oe.attr('post-id'));
-                trace(Std.format("judge newPost: $newPostId"));
                 var next_ne = ne.next();
 
                 ne.insertBefore(oe);
@@ -873,19 +868,19 @@ class MyPage {
     }
 
     static private function loadBoard(boardId: Int, version: Int) {
-        trace(getBoardVersion());
-        trace(version);
         if (getBoardVersion() < version) {
-/*            
             JQuery._static.ajax({
-                url: Misc.makeBoardUrl(getUserName(), getBoardName())
+                url: "/foo/ajax/v/workspace",
+                data: {
+                    user: getUserId(),
+                    board: boardId
+                }
             }).done(function(data: Dynamic) {
-                var body = new JQuery(data).find('body');
-                new JQuery('body').replaceWith(body);
+                new JQuery('.workspace').replaceWith(data);
                 init();
+                startSubscribe();
             });
-*/
-            js.Lib.window.location.reload();
+            // js.Lib.window.location.reload();
         }
     }
     
@@ -956,15 +951,19 @@ class MyPage {
         }
     }
 
+    static private function startSubscribe() {
+        subscribeBoard();
+        subscribeObservers();
+        subscribeTimelines();
+        subscribePosts();
+        describeSelf();
+    }
+
     static private function startWatch() {
         io = new RocketIO().connect();
         io.on("connect", function(session) {
             connected = true;
-            subscribeBoard();
-            subscribeObservers();
-            subscribeTimelines();
-            subscribePosts();
-            describeSelf();
+            startSubscribe();
         });
         io.on("watch-observers", function(data: Dynamic) {
             updateObserversWatcher(data.board, data.observers);
@@ -978,6 +977,10 @@ class MyPage {
         io.on("watch-post", function(data: Dynamic<Int>) {
             loadDetail(data.post, data.version);
         });
+    }
+
+    static private function endWatch() {
+        io.close();
     }
 
     static private function openComments(comments: Dynamic) {

@@ -7,6 +7,13 @@ module APIHelper
 
   def self.included(klass)
     klass.class_eval do
+      get '/v/workspace' do
+        r = ensure_params(
+          :user => INT_PARAM,
+          :board => INT_PARAM);
+        get_workspace(r.user, r.board)
+      end
+
       get '/v/timeline' do
         r = ensure_params(
           :ribbon => INT_PARAM,
@@ -212,6 +219,13 @@ module APIHelper
   end
   
   private
+  def get_workspace(user_id, board_id)
+    user = User.attach_if_exist(user_id) or raise
+    board = Board.attach_if_exist(board_id) or raise
+
+    erb :_workspace, :locals => { :base_url => local_url("/users"), :refered => user, :current_board => board }
+  end
+
   def get_timeline(ribbon_id, timeline_id, newest_score, oldest_score, count)
     timeline = Timeline.attach_if_exist(timeline_id) or raise
     if ribbon_id == 0
