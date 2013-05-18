@@ -88,6 +88,19 @@ class Board < RedisMapper::PlatformModel
     publish_observers
   end
 
+  def modify_settings(
+      user,
+      read_permission, readable_group,
+      write_permission, writable_group,
+      edit_permission, editable_group)
+    version_up do |version|
+      self.set_readability(read_permission, readable_group)
+      self.set_writability(write_permission, writable_group)
+      self.set_editability(edit_permission, editable_group)
+      add_activity(user, "ボード設定変更")
+    end
+  end
+
   private
   def make_ribbon_aux(label, timeline)
     Ribbon.create(
@@ -108,7 +121,6 @@ class Board < RedisMapper::PlatformModel
     end
   end
 
-  private
   def publish_observers
     a = self.store.observers.revrange(Time.now.to_i, Time.now.to_i - 60 * 60 * 24).map do |x|
       user = x[:value]

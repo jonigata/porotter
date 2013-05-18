@@ -444,10 +444,12 @@ module APIHelper
     readable_group = convert_permission_group(read_permission, readable_group)
     writable_group = convert_permission_group(write_permission, writable_group)
     editable_group = convert_permission_group(edit_permission, editable_group)
-    
-    board.set_readability(read_permission, readable_group)
-    board.set_writability(write_permission, writable_group)
-    board.set_editability(edit_permission, editable_group)
+
+    board.modify_settings(
+      @user,
+      read_permission, readable_group,
+      write_permission, writable_group,
+      edit_permission, editable_group)
 
     return JSONP(:version => board.version)
   end
