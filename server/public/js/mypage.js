@@ -1103,7 +1103,6 @@ MyPage.init = function() {
 			}
 		}});
 	});
-	MyPage.startWatch();
 	BoardSettingsDialog.init();
 	var workspace = new $(".workspace");
 	workspace.lemmonSlider({ controls : ".controls"});
@@ -1333,6 +1332,9 @@ MyPage.getReferedName = function() {
 }
 MyPage.getBoardId = function() {
 	return Std.parseInt(MyPage.getBasicDataAttr("board-id"));
+}
+MyPage.getBoardName = function() {
+	return MyPage.getBasicDataAttr("board-name");
 }
 MyPage.getBoardVersion = function() {
 	return Std.parseInt(MyPage.getBasicDataAttr("board-version"));

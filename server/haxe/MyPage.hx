@@ -55,8 +55,6 @@ class MyPage {
                     });
             });
 
-        startWatch();
-
         BoardSettingsDialog.init();
 
         var workspace: Dynamic = new JQuery('.workspace');
@@ -446,6 +444,10 @@ class MyPage {
 
     static private function getBoardId(): Int {
         return Std.parseInt(getBasicDataAttr('board-id'));
+    }
+
+    static private function getBoardName(): String {
+        return getBasicDataAttr('board-name');
     }
 
     static private function getBoardVersion(): Int {
@@ -874,6 +876,15 @@ class MyPage {
         trace(getBoardVersion());
         trace(version);
         if (getBoardVersion() < version) {
+/*            
+            JQuery._static.ajax({
+                url: Misc.makeBoardUrl(getUserName(), getBoardName())
+            }).done(function(data: Dynamic) {
+                var body = new JQuery(data).find('body');
+                new JQuery('body').replaceWith(body);
+                init();
+            });
+*/
             js.Lib.window.location.reload();
         }
     }
