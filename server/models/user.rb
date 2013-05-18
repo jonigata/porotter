@@ -133,7 +133,7 @@ class User < RedisMapper::PlatformModel
   end
 
   def rename_ribbon(ribbon, label)
-    ribbon.owner.rename_ribbon(ribbon, label)
+    ribbon.rename(label)
   end
 
   def edit_permission(ribbon, permission)

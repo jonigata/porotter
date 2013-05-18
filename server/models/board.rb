@@ -7,6 +7,7 @@ class Board < RedisMapper::PlatformModel
     self.new_instance.tap do |board|
       board.store.owner = owner
       board.store.label = label
+      board.store.version = 1
       board.store.read_spotter = Spotter.create(:read, [owner])
       board.store.write_spotter = Spotter.create(:write, [owner])
       board.store.edit_spotter = Spotter.create(:edit, [owner])
@@ -36,23 +37,25 @@ class Board < RedisMapper::PlatformModel
   end
 
   def set_label(label)
-    self.store.label = label
+    version_up do |version|
+      self.store.label = label
+    end
   end
 
   def remove_ribbon(user, ribbon)
-    self.store.removed_ribbons.push(ribbon)
-    self.store.ribbons.remove(ribbon)
-    add_activity(user, "リボンの削除: #{ribbon.label}")
+    version_up do |version|
+      self.store.removed_ribbons.push(ribbon)
+      self.store.ribbons.remove(ribbon)
+      add_activity(user, "リボンの削除: #{ribbon.label}")
+    end
   end
 
   def restore_ribbon(user, ribbon)
-    self.store.ribbons.push(ribbon)
-    self.store.removed_ribbons.remove(ribbon)
-    add_activity(user, "リボンの復活: #{ribbon.label}")
-  end
-
-  def rename_ribbon(ribbon, label)
-    ribbon.rename(label)
+    version_up do |version|
+      self.store.ribbons.push(ribbon)
+      self.store.removed_ribbons.remove(ribbon)
+      add_activity(user, "リボンの復活: #{ribbon.label}")
+    end
   end
 
   def parent_spotter
@@ -99,8 +102,10 @@ class Board < RedisMapper::PlatformModel
   end
 
   def import_ribbon_aux(ribbon)
-    self.store.ribbons.push(ribbon)
-    ribbon.add_referer(self)
+    version_up do |version|
+      self.store.ribbons.push(ribbon)
+      ribbon.add_referer(self)
+    end
   end
 
   private
@@ -118,6 +123,13 @@ class Board < RedisMapper::PlatformModel
       [self.store.id, a].to_json)
   end
 
+  def version_up
+    self.store.version_incr(1).tap do |version|
+      yield version
+      redis.publish "watch-board", [self.store.id, version].to_json
+    end
+  end
+
   delegate :owner                       do self.store end
   delegate :label                       do self.store end
   delegate :add_ribbon, :push           do self.store.ribbons end
@@ -126,6 +138,7 @@ class Board < RedisMapper::PlatformModel
 
   property      :owner,             User
   property      :label,             String
+  property      :version,           Integer
   property      :read_spotter,      Spotter
   property      :write_spotter,     Spotter
   property      :edit_spotter,      Spotter
