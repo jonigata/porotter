@@ -9,57 +9,10 @@
     <tr>
       <td class="item-name">許可</td>
       <td>
-        <%
-           def make_checked_table(h, m)
-             Hash[h.select { |k, v| m.member?(k) }.map { |k, v| [k, v ? " checked" : ""] }]
-           end
-           %>
-        <% r = make_checked_table(current_board.format_readability, [:everyone, :public_group, :private_group]) %>
-        <% rg = current_board.read_spotter.unique_group %>
-        <% w = make_checked_table(current_board.format_writability, [:everyone, :public_group, :private_group, :same_as_read]) %>
-        <% wg = current_board.write_spotter.unique_group %>
-        <% e = make_checked_table(current_board.format_editability, [:everyone, :public_group, :private_group, :same_as_read, :same_as_write]) %>
-        <% eg = current_board.edit_spotter.unique_group %>
-        <table>
-          <tr>
-            <td class="item-name">read</td>
-            <%= erb :_permission, :locals => {
-              :item_name => "read",
-              :checked => r,
-              :group => rg,
-              :group_edit_button_id => "edit-readable-group",
-              :store_name => "readable_group"
-            } %>
-            <td class="item-name">edit</td>
-            <%= erb :_permission, :locals => {
-              :item_name => "edit",
-              :checked => e,
-              :group => eg,
-              :group_edit_button_id => "edit-editable-group",
-              :store_name => "editable_group"
-            } %>
-          </tr>
-          <tr><td colspan="2"><hr></td></tr>
-          <tr>
-            <td class="item-name">write</td>
-            <%= erb :_permission, :locals => {
-              :item_name => "write",
-              :checked => w,
-              :group => wg,
-              :group_edit_button_id => "edit-writable-group",
-              :store_name => "writable_group"
-            } %>
-          </tr>
-        </table>          
+        <%= erb :_permissiontable, :locals => { :entity => current_board } %>
       </td>
     </tr>
   </table>
-  <% rgi = JSONP(rg.list_members.map { |x| x.store.id }) %>
-  <% wgi = JSONP(wg.list_members.map { |x| x.store.id }) %>
-  <% egi = JSONP(eg.list_members.map { |x| x.store.id }) %>
   <input type="hidden" name="board" value="<%= current_board.store.id %>">
-  <input type="hidden" name="readable_group" value="<%= rgi %>">
-  <input type="hidden" name="writable_group" value="<%= wgi %>">
-  <input type="hidden" name="editable_group" value="<%= egi %>">
   <input class="btn btn-primary" type="submit" value="保存">
 </form>

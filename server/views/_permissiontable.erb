@@ -1,0 +1,48 @@
+<%
+   def make_checked_table(h, m)
+   Hash[h.select { |k,v| m.member?(k) }.map { |k,v| [k, v ? " checked" : ""] }]
+   end
+   %>
+<% r = make_checked_table(entity.format_readability, [:everyone, :public_group, :private_group]) %>
+<% rg = entity.read_spotter.unique_group %>
+<% rgi = JSONP(rg.list_members.map { |x| x.store.id }) %>
+<% w = make_checked_table(entity.format_writability, [:everyone, :public_group, :private_group, :same_as_read]) %>
+<% wg = entity.write_spotter.unique_group %>
+<% wgi = JSONP(wg.list_members.map { |x| x.store.id }) %>
+<% e = make_checked_table(entity.format_editability, [:everyone, :public_group, :private_group, :same_as_read, :same_as_write]) %>
+<% eg = entity.edit_spotter.unique_group %>
+<% egi = JSONP(eg.list_members.map { |x| x.store.id }) %>
+<input type="hidden" name="readable_group" value="<%= rgi %>">
+<input type="hidden" name="writable_group" value="<%= wgi %>">
+<input type="hidden" name="editable_group" value="<%= egi %>">
+<table>
+  <tr>
+    <td class="item-name">read</td>
+    <%= erb :_permission, :locals => {
+    :item_name => "read",
+    :checked => r,
+    :group => rg,
+    :group_edit_button_id => "edit-readable-group",
+    :store_name => "readable_group"
+    } %>
+    <td class="item-name">edit</td>
+    <%= erb :_permission, :locals => {
+    :item_name => "edit",
+    :checked => e,
+    :group => eg,
+    :group_edit_button_id => "edit-editable-group",
+    :store_name => "editable_group"
+    } %>
+  </tr>
+  <tr><td colspan="2"><hr></td></tr>
+  <tr>
+    <td class="item-name">write</td>
+    <%= erb :_permission, :locals => {
+    :item_name => "write",
+    :checked => w,
+    :group => wg,
+    :group_edit_button_id => "edit-writable-group",
+    :store_name => "writable_group"
+    } %>
+  </tr>
+</table>          
