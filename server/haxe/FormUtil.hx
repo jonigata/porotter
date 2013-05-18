@@ -269,9 +269,7 @@ class FormUtil {
         for(v in members) {
             memberSet.push(v.userId);
         }
-        trace(memberSet);
         memberSet.sort(function(a: Int, b: Int) { return a - b; });
-        trace(memberSet);
 
         store.val(JSON.stringify(memberSet));
     }

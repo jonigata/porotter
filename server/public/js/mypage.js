@@ -33,26 +33,6 @@ ArrayUtil.find_index = function(a,f) {
 	}
 	return null;
 }
-var BoardSettingsDialog = function() { }
-$hxClasses["BoardSettingsDialog"] = BoardSettingsDialog;
-$hxExpose(BoardSettingsDialog, "BoardSettingsDialog");
-BoardSettingsDialog.__name__ = ["BoardSettingsDialog"];
-BoardSettingsDialog.init = function() {
-}
-BoardSettingsDialog.doModal = function(f) {
-	var dialog = new $("#board-settings");
-	FormUtil.setupRadio(dialog,"read_permission");
-	FormUtil.setupRadio(dialog,"write_permission");
-	FormUtil.setupRadio(dialog,"edit_permission");
-	FormUtil.setupEditGroupButton(dialog.find("#edit-readable-group"));
-	FormUtil.setupEditGroupButton(dialog.find("#edit-writable-group"));
-	FormUtil.setupEditGroupButton(dialog.find("#edit-editable-group"));
-	FormUtil.setSubmitAction(dialog,function(submit) {
-		dialog.close();
-		FormUtil.doBoardEditingAction(submit,f);
-	});
-	dialog.justModal();
-}
 var DateTools = function() { }
 $hxClasses["DateTools"] = DateTools;
 DateTools.__name__ = ["DateTools"];
@@ -436,11 +416,9 @@ FormUtil.updateGroupStore = function(store,data) {
 		++_g;
 		memberSet.push(v.userId);
 	}
-	console.log(memberSet);
 	memberSet.sort(function(a,b) {
 		return a - b;
 	});
-	console.log(memberSet);
 	store.val(JSON.stringify(memberSet));
 }
 FormUtil.updateGroupDisplay = function(display,data) {
@@ -1098,7 +1076,6 @@ MyPage.init = function() {
 			} else MyPage.transferArticle(ui.item,ui.sender);
 		}});
 	});
-	BoardSettingsDialog.init();
 	var workspace = new $(".workspace");
 	workspace.lemmonSlider({ controls : ".controls"});
 	var dropdown = new $(".dropdown-toggle");
@@ -1271,9 +1248,20 @@ MyPage.closeRibbon = function(obj,boardId) {
 	});
 }
 MyPage.editBoardSettings = function() {
-	BoardSettingsDialog.doModal(function(version) {
-		MyPage.loadBoard(MyPage.getBoardId(),version);
+	var dialog = new $("#board-settings");
+	FormUtil.setupRadio(dialog,"read_permission");
+	FormUtil.setupRadio(dialog,"write_permission");
+	FormUtil.setupRadio(dialog,"edit_permission");
+	FormUtil.setupEditGroupButton(dialog.find("#edit-readable-group"));
+	FormUtil.setupEditGroupButton(dialog.find("#edit-writable-group"));
+	FormUtil.setupEditGroupButton(dialog.find("#edit-editable-group"));
+	FormUtil.setSubmitAction(dialog,function(submit) {
+		dialog.close();
+		FormUtil.doBoardEditingAction(submit,function(version) {
+			MyPage.loadBoard(MyPage.getBoardId(),version);
+		});
 	});
+	dialog.justModal();
 }
 MyPage.editRibbonSettings = function(dialog,boardId,ribbonId) {
 	FormUtil.setupRadio(dialog,"read_permission");
@@ -1282,6 +1270,14 @@ MyPage.editRibbonSettings = function(dialog,boardId,ribbonId) {
 	FormUtil.setupEditGroupButton(dialog.find("#edit-readable-group"));
 	FormUtil.setupEditGroupButton(dialog.find("#edit-writable-group"));
 	FormUtil.setupEditGroupButton(dialog.find("#edit-editable-group"));
+	FormUtil.setSubmitAction(dialog,function(submit) {
+		dialog.close();
+		FormUtil.doBoardEditingAction(submit,function(version) {
+			console.log(MyPage.getBoardVersion());
+			console.log(version);
+			MyPage.loadBoard(MyPage.getBoardId(),version);
+		});
+	});
 	dialog.justModal();
 }
 MyPage.moveArticle = function(dragging) {

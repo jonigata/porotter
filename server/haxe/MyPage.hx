@@ -11,7 +11,6 @@ import RocketIO;
 
 import Misc;
 import FormUtil;
-import BoardSettingsDialog;
 
 @:expose
 class MyPage {
@@ -51,8 +50,6 @@ class MyPage {
                         }
                     });
             });
-
-        BoardSettingsDialog.init();
 
         var workspace: Dynamic = new JQuery('.workspace');
         workspace.lemmonSlider({ controls: '.controls' });
@@ -339,10 +336,28 @@ class MyPage {
     }        
 
     static function editBoardSettings() {
-        BoardSettingsDialog.doModal(
-            function(version: Int) {
-                loadBoard(getBoardId(), version);
+        var dialog: Dynamic = new JQuery('#board-settings');
+
+        FormUtil.setupRadio(dialog, "read_permission");
+        FormUtil.setupRadio(dialog, "write_permission");
+        FormUtil.setupRadio(dialog, "edit_permission");
+
+        FormUtil.setupEditGroupButton(dialog.find('#edit-readable-group'));
+        FormUtil.setupEditGroupButton(dialog.find('#edit-writable-group'));
+        FormUtil.setupEditGroupButton(dialog.find('#edit-editable-group'));
+
+        FormUtil.setSubmitAction(
+            dialog,
+            function(submit) {
+                dialog.close();
+                FormUtil.doBoardEditingAction(
+                    submit,
+                    function(version: Int) {
+                        loadBoard(getBoardId(), version);
+                    });
             });
+
+        dialog.justModal();
     }
 
     static function editRibbonSettings(
@@ -354,6 +369,19 @@ class MyPage {
         FormUtil.setupEditGroupButton(dialog.find('#edit-readable-group'));
         FormUtil.setupEditGroupButton(dialog.find('#edit-writable-group'));
         FormUtil.setupEditGroupButton(dialog.find('#edit-editable-group'));
+
+        FormUtil.setSubmitAction(
+            dialog,
+            function(submit) {
+                dialog.close();
+                FormUtil.doBoardEditingAction(
+                    submit,
+                    function(version: Int) {
+                        trace(getBoardVersion());
+                        trace(version);
+                        loadBoard(getBoardId(), version);
+                    });
+            });
 
         dialog.justModal();
     }

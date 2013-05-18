@@ -188,6 +188,7 @@ module APIHelper
       
       post '/m/modifyribbonsettings' do
         r = ensure_params(
+          :board => INT_PARAM,
           :ribbon => INT_PARAM,
           :read_permission => [[:everyone, :public_group, :private_group, :same_as_board], Symbol],
           :write_permission => [[:everyone, :public_group, :private_group, :same_as_read, :same_as_board], Symbol],
@@ -200,6 +201,7 @@ module APIHelper
           )
         
         modify_ribbon_settings(
+          r.board,
           r.ribbon,
           params[:ribbon_label],
           r.read_permission,
@@ -455,6 +457,7 @@ module APIHelper
   end
 
   def modify_ribbon_settings(
+      board_id,
       ribbon_id,
       ribbon_label,
       read_permission,
@@ -463,6 +466,7 @@ module APIHelper
       readable_group,
       writable_group,
       editable_group)
+    board = Board.attach_if_exist(board_id) or raise
     ribbon = Ribbon.attach_if_exist(ribbon_id) or raise
     ribbon.editable_by?(@user) or halt 403
 
@@ -471,12 +475,15 @@ module APIHelper
     readable_group = convert_permission_group(read_permission, readable_group)
     writable_group = convert_permission_group(write_permission, writable_group)
     editable_group = convert_permission_group(edit_permission, editable_group)
-    
-    ribbon.set_readability(read_permission, readable_group)
-    ribbon.set_writability(write_permission, writable_group)
-    ribbon.set_editability(edit_permission, editable_group)
 
-    return_board(ribbon.owner)
+    board.modify_ribbon_settings(
+      @user,
+      ribbon,
+      read_permission, readable_group,
+      write_permission, writable_group,
+      edit_permission, editable_group)
+
+    return JSONP(:version => ribbon.owner.version)
   end
 
   def return_board(board)

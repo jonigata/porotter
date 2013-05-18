@@ -101,6 +101,20 @@ class Board < RedisMapper::PlatformModel
     end
   end
 
+  def modify_ribbon_settings(
+      user,
+      ribbon,
+      read_permission, readable_group,
+      write_permission, writable_group,
+      edit_permission, editable_group)
+    version_up do |version|
+      ribbon.set_readability(read_permission, readable_group)
+      ribbon.set_writability(write_permission, writable_group)
+      ribbon.set_editability(edit_permission, editable_group)
+      add_activity(user, "リボン設定変更: #{ribbon.label}")
+    end
+  end
+
   private
   def make_ribbon_aux(label, timeline)
     Ribbon.create(
