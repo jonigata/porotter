@@ -1104,6 +1104,11 @@ MyPage.init = function() {
 		}});
 	});
 	MyPage.startWatch();
+	BoardSettingsDialog.init();
+	var workspace = new $(".workspace");
+	workspace.lemmonSlider({ controls : ".controls"});
+	var dropdown = new $(".dropdown-toggle");
+	dropdown.dropdown();
 }
 MyPage.toggleComments = function(obj) {
 	var entry = MyPage.getEntry(obj);

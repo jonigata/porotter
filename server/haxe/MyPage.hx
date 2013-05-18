@@ -56,6 +56,13 @@ class MyPage {
             });
 
         startWatch();
+
+        BoardSettingsDialog.init();
+
+        var workspace: Dynamic = new JQuery('.workspace');
+        workspace.lemmonSlider({ controls: '.controls' });
+        var dropdown: Dynamic = new JQuery('.dropdown-toggle');
+        dropdown.dropdown();
     }
 
     static function toggleComments(obj: Dynamic) {
