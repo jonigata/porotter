@@ -51,6 +51,11 @@ class MyPage {
                     });
             });
 
+        var ribbons: Dynamic = new JQuery('.workspace > ul');
+        ribbons.sortable({
+              handle: '.ribbon-header > h1'
+                    });
+
         var workspace: Dynamic = new JQuery('.workspace');
         workspace.lemmonSlider({ controls: '.controls' });
         var dropdown: Dynamic = new JQuery('.dropdown-toggle');

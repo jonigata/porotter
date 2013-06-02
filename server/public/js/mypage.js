@@ -1076,6 +1076,8 @@ MyPage.init = function() {
 			} else MyPage.transferArticle(ui.item,ui.sender);
 		}});
 	});
+	var ribbons = new $(".workspace > ul");
+	ribbons.sortable({ handle : ".ribbon-header > h1"});
 	var workspace = new $(".workspace");
 	workspace.lemmonSlider({ controls : ".controls"});
 	var dropdown = new $(".dropdown-toggle");
