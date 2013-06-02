@@ -691,6 +691,11 @@ class MyPage {
 
         setupDragHandles(oldTimeline);
         setupNoArticle(oldTimeline);
+
+        var scrollbox: Dynamic =
+            oldTimeline.closest('.timeline-container').parent();
+        scrollbox.perfectScrollbar();
+        scrollbox.perfectScrollbar('update');
     }
 
     static private function setupDragHandles(timeline: Dynamic) {

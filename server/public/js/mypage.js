@@ -1452,6 +1452,9 @@ MyPage.mergeTimeline = function(oldTimeline,newTimeline) {
 	oldTimeline.attr("intervals",JSON.stringify(intervals.to_array()));
 	MyPage.setupDragHandles(oldTimeline);
 	MyPage.setupNoArticle(oldTimeline);
+	var scrollbox = oldTimeline.closest(".timeline-container").parent();
+	scrollbox.perfectScrollbar();
+	scrollbox.perfectScrollbar("update");
 }
 MyPage.setupDragHandles = function(timeline) {
 	if(!timeline["is"]("[editable=\"true\"]")) return;

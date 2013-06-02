@@ -5,12 +5,14 @@
       <div class="ribbon-outer">
         <section class="ribbon" ribbon-id="<%= ribbon.store.id %>">
           <div class="ribbon-inner">
-            <%= erb :_ribbonheader, :locals => { :current_board => current_board, :ribbon => ribbon } %>
-            <% if ribbon.writable_by?(@user) %>
-            <%=  erb :_newarticle, :locals => { :ribbon => ribbon }  %>
-            <% end %>
-            <section class="timeline" level="0" ribbon-id="<%= ribbon.store.id %>" timeline-id="<%= ribbon.timeline.store.id %>" version="0" editable="<%= ribbon.editable_by?(@user) %>" writable="<%= ribbon.writable_by?(@user) %>">
-            </section>
+            <div class="timeline-container">
+              <%= erb :_ribbonheader, :locals => { :current_board => current_board, :ribbon => ribbon } %>
+              <% if ribbon.writable_by?(@user) %>
+              <%=  erb :_newarticle, :locals => { :ribbon => ribbon }  %>
+              <% end %>
+              <section class="timeline" level="0" ribbon-id="<%= ribbon.store.id %>" timeline-id="<%= ribbon.timeline.store.id %>" version="0" editable="<%= ribbon.editable_by?(@user) %>" writable="<%= ribbon.writable_by?(@user) %>">
+              </section>
+            </div>
           </div>
         </section>
       </div>

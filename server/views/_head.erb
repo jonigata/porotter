@@ -7,17 +7,23 @@
   <script src="<%= static_url("js/bootstrap-tooltip.js") %>"></script>
   <script src="<%= static_url("js/jquery.cookie.js") %>"></script>
   <script src="<%= static_url("js/jquery.justModal.js") %>"></script>
+  <script src="<%= static_url("js/jquery.mousewheel.js") %>"></script>
   <script src="<%= static_url("js/lemmon-slider.js") %>"></script>
+  <script src="<%= static_url("js/perfect-scrollbar.js") %>"></script>
   <script src="<%= static_url("js/mypage.js") %>"></script>
   <script src="<%= rocketio_js %>"></script>
 
   <link rel="stylesheet" href="<%= static_url("css/bootstrap.css") %>">
+  <link rel="stylesheet" href="<%= static_url("css/perfect-scrollbar.css") %>">
   <link rel="stylesheet" href="<%= static_url("css/board.css") %>">
 
   <script>
     $(function() {
       MyPage.init();
       MyPage.startWatch();
+    });
+    $(window).resize(function() {
+      $('.ps-container').perfectScrollbar('update');
     });
   </script>
 </head>
