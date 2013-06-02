@@ -55,6 +55,12 @@ class MyPage {
         workspace.lemmonSlider({ controls: '.controls' });
         var dropdown: Dynamic = new JQuery('.dropdown-toggle');
         dropdown.dropdown();
+        var window = new JQuery(js.Lib.window);
+        window.resize(
+            function() {
+                var ps_container: Dynamic = new JQuery('.ps-container');
+                ps_container.perfectScrollbar('update');
+            });
     }
 
     static function toggleComments(obj: Dynamic) {

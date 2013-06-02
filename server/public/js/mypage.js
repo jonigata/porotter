@@ -1080,6 +1080,11 @@ MyPage.init = function() {
 	workspace.lemmonSlider({ controls : ".controls"});
 	var dropdown = new $(".dropdown-toggle");
 	dropdown.dropdown();
+	var window = new $(js.Lib.window);
+	window.resize(function() {
+		var ps_container = new $(".ps-container");
+		ps_container.perfectScrollbar("update");
+	});
 }
 MyPage.toggleComments = function(obj) {
 	var entry = MyPage.getEntry(obj);
