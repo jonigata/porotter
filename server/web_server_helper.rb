@@ -65,12 +65,12 @@ module WebServerHelper
       enable :sessions
       set :session_secret, 'porotter secret'
       set :public_folder, "#{File.dirname(__FILE__)}/public"
-    end
-  end
 
-  error do
-    ('エラーが発生しました。 - ' + env['sinatra.error'].name).tap do |s|
-      puts s
+      error do
+        ('エラーが発生しました。 - ' + env['sinatra.error'].name).tap do |s|
+          puts s
+        end
+      end
     end
   end
 end

@@ -7,19 +7,19 @@
 <% rs.push :same_as_board if is_ribbon %>
 <% r = make_checked_table(entity.format_readability, rs) %>
 <% rg = entity.read_spotter.unique_group %>
-<% rgi = JSONP(rg.list_members.map { |x| x.store.id }) %>
+<% rgi = JSON.generate(rg.list_members.map { |x| x.store.id }) %>
 
 <% ws = [:everyone, :public_group, :private_group, :same_as_read] %>
 <% ws.push :same_as_board if is_ribbon %>
 <% w = make_checked_table(entity.format_writability, ws) %>
 <% wg = entity.write_spotter.unique_group %>
-<% wgi = JSONP(wg.list_members.map { |x| x.store.id }) %>
+<% wgi = JSON.generate(wg.list_members.map { |x| x.store.id }) %>
 
 <% es = [:everyone, :public_group, :private_group, :same_as_read, :same_as_write] %>
 <% es.push :same_as_board if is_ribbon %>
 <% e = make_checked_table(entity.format_editability, es) %>
 <% eg = entity.edit_spotter.unique_group %>
-<% egi = JSONP(eg.list_members.map { |x| x.store.id }) %>
+<% egi = JSON.generate(eg.list_members.map { |x| x.store.id }) %>
 <input type="hidden" name="readable_group" value="<%= rgi %>">
 <input type="hidden" name="writable_group" value="<%= wgi %>">
 <input type="hidden" name="editable_group" value="<%= egi %>">
