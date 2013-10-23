@@ -1,6 +1,3 @@
-<ul class="dropdown-menu" id="board-menu">
-  <li><a href="<%= local_url('/preferences') %>">個人設定</a></li>
-  <li><a href="<%= local_url('/logout') %>">ログアウト</a></li>
   <li class="divider"></li>
   <% boards.values.each do |board| %>
   <li><a href="<%= local_url("/users/#{board.owner.username}/#{board.store.label}") %>" board-id="<%== board.store.id %>"><%= board.owner.username %>/<%== board.store.label %></a></li>
@@ -8,4 +5,3 @@
   <li class="divider"></li>
   <li><a href="#" onclick="MyPage.makeBoard();return false;">ボード作成</a></li>
   <li><a href="#" onclick="MyPage.joinBoard();return false;">ボード参照</a></li>
-</ul>

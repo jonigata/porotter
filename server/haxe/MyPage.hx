@@ -35,9 +35,9 @@ class MyPage {
                     return;
                 }
                 timeline.sortable({
-                      handle: '.drag-handle',  
-                      connectWith: '[timeline-id][editable="true"]',
-                            update: function(event: Dynamic, ui: Dynamic) {
+                    handle: '.drag-handle',  
+                    connectWith: '[timeline-id][editable="true"]',
+                    update: function(event: Dynamic, ui: Dynamic) {
                             if (ui.sender == null) {
                                 if (ui.item.parent()[0] == timeline[0]) {
                                     moveArticle(ui.item);
