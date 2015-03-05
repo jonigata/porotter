@@ -1,4 +1,5 @@
 import Misc;
+import jQuery.JQuery;
 
 class FormUtil {
     static public function clearSelect(select: Dynamic) {
@@ -21,7 +22,7 @@ class FormUtil {
     }
 
     static public function setupRadio(root: Dynamic, name: String) {
-        var radios: Dynamic = root.find(Std.format('[name="$name"]'));
+        var radios: Dynamic = root.find('[name="${name}"]');
 
         var onChange = function() {
             radios.each(
@@ -49,8 +50,8 @@ class FormUtil {
         var storeName = button.attr('store');
         var displayId = button.attr('display');
         var form: Dynamic = button.closest('form');
-        var store: Dynamic = form.find(Std.format('[name="$storeName"]'));
-        var display: Dynamic = form.find(Std.format('#$displayId'));
+        var store: Dynamic = form.find('[name="${storeName}"]');
+        var display: Dynamic = form.find('#${displayId}');
         
         JQuery._static.ajax({
             url: "/foo/ajax/v/group",
@@ -100,12 +101,12 @@ class FormUtil {
                 var userIcon: String = v[3];
 
                 userSelect.append(
-                    Std.format('<option value="$userId" user-id="$userId" username="$username" label="$userLabel" icon="$userIcon">$username - $userLabel</option>'));
+                    '<option value="${userId}" user-id="${userId}" username="${username}" label="${userLabel}" icon="${userIcon}">${username} - ${userLabel}</option>');
             }
             userSelect.unbind('change');
             userSelect.change(
                 function(e: Dynamic) {
-                    onChange(getSelected(e.target).val());
+                    onChange(cast getSelected(e.target).val());
                 });
             Misc.enable(userSelect);
 
@@ -120,7 +121,7 @@ class FormUtil {
         onChange: Int->Void) {
         
         JQuery._static.ajax({
-            url: Std.format("/foo/ajax/v/boardlist?user=${userId}"),
+            url: "/foo/ajax/v/boardlist?user=${userId}",
             method: "get"
         }).done(function(data) {
             boardSelect.append('<option value="0">ボードを選択</option>');
@@ -134,12 +135,12 @@ class FormUtil {
                     filter(boardId) ? '' : ' disabled="disabled"';
 
                 boardSelect.append(
-                    Std.format('<option value="$boardId"$disabled>$boardlabel</option>'));
+                    '<option value="${boardId}"${disabled}>${boardlabel}</option>');
             }
             boardSelect.unbind('change');
             boardSelect.change(
                 function(e: Dynamic) {
-                    onChange(getSelected(e.target).val());
+                    onChange(cast getSelected(e.target).val());
                 });
             Misc.enable(boardSelect);
         });
@@ -149,7 +150,7 @@ class FormUtil {
         ribbonSelect: Dynamic, boardId: Int, disableDup: Bool, f: Int->Void) {
         
         JQuery._static.ajax({
-            url: Std.format("/foo/ajax/v/ribbonlist?board=$boardId"),
+            url: '/foo/ajax/v/ribbonlist?board=${boardId}',
             method: "get"
         }).done(function(data) {
             ribbonSelect.append('<option value="0">リボンを選択</option>');
@@ -161,17 +162,17 @@ class FormUtil {
 
                 var disabled: String = '';
                 if (disableDup && 
-                    0 < new JQuery(Std.format('[ribbon-id="$ribbonId"]')).length) {
+                    0 < new JQuery('[ribbon-id="${ribbonId}"]').length) {
                     disabled = ' disabled="disabled"';
                 }
 
                 ribbonSelect.append(
-                    Std.format('<option value="$ribbonId"$disabled>$ribbonLabel</option>'));
+                    '<option value="${ribbonId}"${disabled}>${ribbonLabel}</option>');
             }
             ribbonSelect.unbind('change');
             ribbonSelect.change(
                 function(e: Dynamic) {
-                    f(getSelected(e.target).val());
+                    f(cast getSelected(e.target).val());
                 });
             Misc.enable(ribbonSelect);
         });
@@ -181,7 +182,7 @@ class FormUtil {
         ribbonSelect: Dynamic, boardId: Int, disableDup: Bool, f: Int->Void) {
         
         JQuery._static.ajax({
-            url: Std.format("/foo/ajax/v/removedribbonlist?board=$boardId"),
+            url: '/foo/ajax/v/removedribbonlist?board=${boardId}',
             method: "get"
         }).done(function(data) {
             ribbonSelect.append('<option value="0">リボンを選択</option>');
@@ -192,12 +193,12 @@ class FormUtil {
                 var ribbonLabel: String = v[1];
 
                 ribbonSelect.append(
-                    Std.format('<option value="$ribbonId">$ribbonLabel</option>'));
+                    '<option value="${ribbonId}">${ribbonLabel}</option>');
             }
             ribbonSelect.unbind('change');
             ribbonSelect.change(
                 function(e: Dynamic) {
-                    f(getSelected(e.target).val());
+                    f(cast getSelected(e.target).val());
                 });
             Misc.enable(ribbonSelect);
         });
@@ -339,7 +340,7 @@ class FormUtil {
                 function(i: Int,elem: Dynamic) {
                     var e = new JQuery(elem);
                     var userId = e.attr('user-id');
-                    var filter = Std.format('[user-id="$userId"]');
+                    var filter = '[user-id="${userId}"]';
                     Misc.setEnabled(e, display.find(filter).length == 0);
                 });
             Misc.setEnabled(

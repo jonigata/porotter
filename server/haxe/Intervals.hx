@@ -82,7 +82,7 @@ class Intervals {
     public function print() {
         var s = "";
         for(v in this.elems) {
-            s += Std.format("${v.b}-${v.e} ");
+            s += '${v.b}-${v.e} ';
         }
         trace(s);
     }

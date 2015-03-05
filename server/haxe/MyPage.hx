@@ -60,9 +60,9 @@ class MyPage {
         workspace.lemmonSlider({ controls: '.controls' });
         var dropdown: Dynamic = new JQuery('.dropdown-toggle');
         dropdown.dropdown();
-        var window = new JQuery(js.Lib.window);
+        var window = new JQuery(js.Browser.window);
         window.resize(
-            function() {
+            function(e) {
                 var ps_container: Dynamic = new JQuery('.ps-container');
                 ps_container.perfectScrollbar('update');
             });
@@ -167,7 +167,7 @@ class MyPage {
                 var e = new JQuery(elem);
                 e.unbind('click');
                 e.click(
-                    function() {
+                    function(e) {
                         postStamp(
                             ribbonId,
                             timelineId,
@@ -194,7 +194,7 @@ class MyPage {
 
         var boardMenu = new JQuery('#board-menu');
         var boardExists = function(boardId: Int): Bool {
-            var options = boardMenu.find(Std.format('[board-id="$boardId"]'));
+            var options = boardMenu.find('[board-id="${boardId}"]');
             return 0 < options.length;
         };
 
@@ -581,7 +581,7 @@ class MyPage {
                 post.detail = formatDetail(post.detail, writable);
             }
             data.intervals =
-                Std.format("[[${data.newestScore}, ${data.oldestScore}]]");
+                '[[${data.newestScore}, ${data.oldestScore}]]';
             finishLoad(oldTimeline, function() {
                 var output = applyTemplate("Timeline", data);
                 var entry = getEntry(oldTimeline);
@@ -632,7 +632,7 @@ class MyPage {
             function(i: Int, elem: Dynamic) {
                 var e: Dynamic = new JQuery(elem);
                 var postId = e.attr('post-id');
-                var filter = Std.format('[post-id="$postId"]');
+                var filter = '[post-id="${postId}"]';
                 newTimeline.find(filter).addClass('removing');
                 oldTimeline.find(filter).addClass('removing');
             });
@@ -647,7 +647,7 @@ class MyPage {
             function(i: Int, elem: Dynamic) {
                 var e: Dynamic = new JQuery(elem);
                 var postId = e.attr('post-id');
-                oldTimeline.find(Std.format('[post-id=$postId]')).addClass("removing");
+                oldTimeline.find('[post-id=${postId}]').addClass("removing");
             });
         oldTimeline.find('.removing').remove();
 
@@ -751,7 +751,7 @@ class MyPage {
     }
 
     static private function saveOpenStatesAux(label: String) {
-        var a = new JQuery(Std.format('.$label:visible')).map(
+        var a = new JQuery('.${label}:visible').map(
             function(i: Int, elem: Dynamic) {
                 return Std.parseInt(getTimelineIdFromEntryContent(elem));
             }
@@ -784,12 +784,12 @@ class MyPage {
         }
         
         var rawOpened: Array<Int> = JQuery._static.parseJSON(cookie);
-        var opened = new Hash<Int>();
+        var opened = new Map<String, Int>();
         for(v in rawOpened) {
             opened.set(Std.string(v), v);
         }
 
-        new JQuery(Std.format(".$label")).each(
+        new JQuery(".${label}").each(
             function(i: Int, elem: Dynamic) {
                 var e = new JQuery(elem);
                 var timelineId: String = getTimelineIdFromEntryContent(e);
@@ -838,8 +838,8 @@ class MyPage {
     }
 
     static private function scrollToElement(e: Dynamic) {
-        var window = new JQuery(js.Lib.window);
-        var document = new JQuery(js.Lib.document);
+        var window = new JQuery(js.Browser.window);
+        var document = new JQuery(js.Browser.document);
 
         var bottomMargin = 32;
         var target =
@@ -865,7 +865,7 @@ class MyPage {
             showComment.html('隠す');
         } else {
             var count = entry.find('> .detail').attr('comment-count');
-            showComment.html(Std.format('×$count'));
+            showComment.html('×${count}');
         }
     }
 
@@ -929,14 +929,14 @@ class MyPage {
     }
     
     static private function loadTimeline(timelineId: Int, version: Int) {
-        new JQuery(Std.format('[timeline-id="$timelineId"]')).each(
+        new JQuery('[timeline-id="${timelineId}"]').each(
             function(i: Int, elem: Dynamic) {
                 fillNewerTimeline(new JQuery(elem), version);
             });
     }
 
     static function loadDetail(postId: Int, version: Int) {
-        var posts = new JQuery(Std.format('[post-id="$postId"]'));
+        var posts = new JQuery('[post-id="${postId}"]');
         posts.each(
             function(i: Int, e: Dynamic) {
                 var post = new JQuery(e);
@@ -991,7 +991,7 @@ class MyPage {
             var userId = v.userId;
             var label = v.label;
             var icon = Misc.tooltip(Misc.gravatar(v.gravatar, 16), label);
-            observersView.append(Std.format('<span class="observer" user-id="$userId">$icon</span>'));
+            observersView.append('<span class="observer" user-id="${userId}">${icon}</span>');
         }
     }
 
@@ -1087,31 +1087,31 @@ class MyPage {
         if (elapsedInSeconds <=  10) {
             return "今";
         } else if(elapsedInSeconds <  60) {
-            return Std.format("${elapsedInSeconds}秒前");
+            return '${elapsedInSeconds}秒前';
         }
 
         var elapsedInMinutes = Math.round(elapsedInSeconds / 60);
         if (elapsedInMinutes < 60) {
-            return Std.format("${elapsedInMinutes}分前");
+            return '${elapsedInMinutes}分前';
         }
 
         var elapsedInHours = Math.round(elapsedInMinutes / 60);
         if (elapsedInHours < 24) {
-            return Std.format("${elapsedInHours}時間前");
+            return '${elapsedInHours}時間前';
         }
 
         var elapsedInDays = Math.round(elapsedInHours / 24);
         if (elapsedInDays < 30) {
-            return Std.format("${elapsedInDays}日前");
+            return '${elapsedInDays}日前';
         }
 
         var elapsedInMonths = Math.round(elapsedInDays / 30);
         if (elapsedInMonths < 12) {
-            return Std.format("${elapsedInMonths}ヶ月前");
+            return '${elapsedInMonths}ヶ月前';
         }
 
         var elapsedInYears = Math.round(elapsedInMonths / 12);
-        return Std.format("${elapsedInYears}年前");
+        return '${elapsedInYears}年前';
     }
 
 }
