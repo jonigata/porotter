@@ -834,7 +834,7 @@ MyPage.fetchTimeline = function(oldTimeline,newestScore,oldestScore,version) {
 		}
 		data.intervals = "[[" + Std.string(data.newestScore) + ", " + Std.string(data.oldestScore) + "]]";
 		MyPage.finishLoad(oldTimeline,function() {
-			var output = MyPage.applyTemplate("Timeline",data);
+			var output = MyPage.makeTimeline(data);
 			var entry = MyPage.getEntry(oldTimeline);
 			var newTimeline = new $(output);
 			MyPage.mergeTimeline(oldTimeline,newTimeline);
@@ -1091,6 +1091,25 @@ MyPage.applyTemplate = function(codename,data) {
 	var templateCode = haxe.Resource.getString(codename);
 	var template = new haxe.Template(templateCode);
 	return template.execute(data);
+};
+MyPage.makeTimeline = function(data) {
+	var s = "<section\n   class=\"timeline\"\n   level=\"" + Std.string(data.level) + "\"\n   ribbon-id=\"" + Std.string(data.ribbonId) + "\"\n   timeline-id=\"" + Std.string(data.timelineId) + "\"\n   version=\"" + Std.string(data.timelineVersion) + "\"\n   intervals=\"" + Std.string(data.intervals) + "\"\n   editable=\"" + Std.string(data.editable) + "\"\n   >\n";
+	var posts = data.posts;
+	var _g = 0;
+	while(_g < posts.length) {
+		var post = posts[_g];
+		++_g;
+		s += "\n  <article\n     class=\"post\"\n     score=\"" + Std.string(post.score) + "\"\n     post-id=\"" + Std.string(post.postId) + "\"\n     post-type=\"" + Std.string(post.postType) + "\"\n     version=\"" + Std.string(post.postVersion) + "\"\n     removed=\"" + Std.string(post.removed) + "\"\n     >\n    <div class=\"avatar\">\n      <div class=\"icon\">\n        <img src=\"http://www.gravatar.com/avatar/" + Std.string(post.icon) + "?s=40&d=mm\" alt=\"gravator\"/>\n      </div>\n    </div>\n    <div class=\"entry\">\n      " + Std.string(post.detail) + "\n";
+		if(post.commendId != 0) {
+			s += "\n      <div class=\"operation\">\n        <a class=\"show-comment\" href=\"#\" onclick=\"MyPage.toggleComments(this);return false;\">\n          <img src=\"" + Std.string(post.chatIconUrl) + "\">\n          <span class=\"show-comment-label\">×" + Std.string(data.commentsLength) + "</span>\n        </a>\n";
+			if(data.editable) s += "\n        <span class=\"ui-delimiter-8\"></span>\n        <a class=\"post-comment\" href=\"#\" onclick=\"MyPage.toggleCommentForm(this);return false;\">コメントする</a>\n";
+			s += "\n                </div>\n";
+		}
+		if(data.editable) s += "\n      <div class=\"comment-form\">\n        <form>\n          <input type=\"hidden\" name=\"parent\" value=\"" + Std.string(post.postId) + "\"/>\n          <textarea name=\"content\"></textarea><br/>\n          <input class=\"btn btn-primary\" type=\"button\" value=\"投稿\" onclick=\"MyPage.postComment(" + Std.string(data.ribbonId) + ", " + Std.string(post.commentsId) + ", $(this).parent());return false;\"/>\n          <a class=\"btn btn-info\" href=\"#\" onclick=\"MyPage.chooseStamp(this, " + Std.string(data.ribbonId) + ", " + Std.string(post.commentsId) + ");return false;\">スタンプ</a>\n        </form>\n      </div>\n";
+		s += "\n      <div class=\"comments\" count=\"" + Std.string(post.commentsLength) + "\">\n        <section class=\"timeline\" level=\"" + Std.string(data.level + 1) + "\" ribbon-id=\"" + Std.string(data.ribbonId) + "\" timeline-id=\"" + Std.string(post.commentsId) + "\" version=\"0\">\n        </section>        \n      </div>\n    </div>\n  </article>\n";
+	}
+	s += "</section>";
+	return s;
 };
 MyPage.updateObserversWatcher = function(boardId,observers) {
 	var observersView = new $("#observers");

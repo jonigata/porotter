@@ -583,7 +583,7 @@ class MyPage {
             data.intervals =
                 '[[${data.newestScore}, ${data.oldestScore}]]';
             finishLoad(oldTimeline, function() {
-                var output = applyTemplate("Timeline", data);
+                var output = makeTimeline(data);
                 var entry = getEntry(oldTimeline);
                 var newTimeline = new JQuery(output);
                 mergeTimeline(oldTimeline, newTimeline);
@@ -981,6 +981,82 @@ class MyPage {
         var templateCode = haxe.Resource.getString(codename);
         var template = new haxe.Template(templateCode);
         return template.execute(data);
+    }
+
+    static private function makeTimeline(data: Dynamic) {
+        // 先頭で改行するとjQueryがエラーを出す
+        var s = '<section
+   class="timeline"
+   level="${data.level}"
+   ribbon-id="${data.ribbonId}"
+   timeline-id="${data.timelineId}"
+   version="${data.timelineVersion}"
+   intervals="${data.intervals}"
+   editable="${data.editable}"
+   >
+';
+        var posts: Array<Dynamic> = data.posts;
+        for(post in posts) {
+            s += '
+  <article
+     class="post"
+     score="${post.score}"
+     post-id="${post.postId}"
+     post-type="${post.postType}"
+     version="${post.postVersion}"
+     removed="${post.removed}"
+     >
+    <div class="avatar">
+      <div class="icon">
+        <img src="http://www.gravatar.com/avatar/${post.icon}?s=40&d=mm" alt="gravator"/>
+      </div>
+    </div>
+    <div class="entry">
+      ${post.detail}
+';
+            if (post.commendId != 0) {
+                s+= '
+      <div class="operation">
+        <a class="show-comment" href="#" onclick="MyPage.toggleComments(this);return false;">
+          <img src="${post.chatIconUrl}">
+          <span class="show-comment-label">×${data.commentsLength}</span>
+        </a>
+';
+                if (data.editable) {
+                    s += '
+        <span class="ui-delimiter-8"></span>
+        <a class="post-comment" href="#" onclick="MyPage.toggleCommentForm(this);return false;">コメントする</a>
+';
+                }
+                s += '
+                </div>
+';
+            }
+
+            if (data.editable) {
+                s += '
+      <div class="comment-form">
+        <form>
+          <input type="hidden" name="parent" value="${post.postId}"/>
+          <textarea name="content"></textarea><br/>
+          <input class="btn btn-primary" type="button" value="投稿" onclick="MyPage.postComment(${data.ribbonId}, ${post.commentsId}, $(this).parent());return false;"/>
+          <a class="btn btn-info" href="#" onclick="MyPage.chooseStamp(this, ${data.ribbonId}, ${post.commentsId});return false;">スタンプ</a>
+        </form>
+      </div>
+';
+            }
+
+            s += '
+      <div class="comments" count="${post.commentsLength}">
+        <section class="timeline" level="${data.level + 1}" ribbon-id="${data.ribbonId}" timeline-id="${post.commentsId}" version="0">
+        </section>        
+      </div>
+    </div>
+  </article>
+';
+        }
+        s += "</section>";
+        return s;
     }
 
     static private function updateObserversWatcher(
