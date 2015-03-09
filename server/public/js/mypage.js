@@ -1135,18 +1135,23 @@ MyPage.startWatch = function() {
 	MyPage.io = new RocketIO().connect();
 	MyPage.io.on("connect",function(session) {
 		MyPage.connected = true;
+		console.log("connect");
 		MyPage.startSubscribe();
 	});
 	MyPage.io.on("watch-observers",function(data) {
+		console.log("watch-oberservers");
 		MyPage.updateObserversWatcher(data.board,data.observers);
 	});
 	MyPage.io.on("watch-board",function(data1) {
+		console.log("watch-board");
 		MyPage.loadBoard(data1.board,data1.version);
 	});
 	MyPage.io.on("watch-timeline",function(data2) {
+		console.log("watch-timeline");
 		MyPage.loadTimeline(data2.timeline,data2.version);
 	});
 	MyPage.io.on("watch-post",function(data3) {
+		console.log("watch-post");
 		MyPage.loadDetail(data3.post,data3.version);
 	});
 };

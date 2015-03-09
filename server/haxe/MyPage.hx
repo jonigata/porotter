@@ -1083,18 +1083,23 @@ class MyPage {
         io = new RocketIO().connect();
         io.on("connect", function(session) {
             connected = true;
+            trace("connect");
             startSubscribe();
         });
         io.on("watch-observers", function(data: Dynamic) {
+            trace("watch-oberservers");
             updateObserversWatcher(data.board, data.observers);
         });
         io.on("watch-board", function(data: Dynamic) {
+            trace("watch-board");
             loadBoard(data.board, data.version);
         });
         io.on("watch-timeline", function(data: Dynamic<Int>) {
+            trace("watch-timeline");
             loadTimeline(data.timeline, data.version);
         });
         io.on("watch-post", function(data: Dynamic<Int>) {
+            trace("watch-post");
             loadDetail(data.post, data.version);
         });
     }

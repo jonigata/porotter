@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+require 'ruby-debug'
+
 class Notifiee
   def initialize
     # @watchers[object_id] = [session_id, ...]
@@ -140,11 +142,11 @@ def start_watch
     end
   end
 
-  io.on :describe do |data, session, type|
+  io.on :describe do |data, client|
     user_id = data["user"].to_i
     board_id = data["board"].to_i
 
-    users[session] = user_info = { :user => user_id, :board => board_id }
+    users[client.session] = { :user => user_id, :board => board_id }
 
     Board.attach_if_exist(board_id).tap do |board|
       board.add_observer(User.attach_if_exist(user_id)) if board
@@ -152,9 +154,9 @@ def start_watch
   end
 
   notifiees.each do |key, notifiee|
-    io.on key do |data, session, type|
+    io.on key do |data, client|
       # puts "#{notifiee.key} params: #{data}, <#{session}> type: #{type}"
-      notifiee.set_targets(session, data["targets"].map { |e| e.to_i })
+      notifiee.set_targets(client.session, data["targets"].map { |e| e.to_i })
     end
   end
 
@@ -165,7 +167,7 @@ def start_watch
     # publishと同じRedisインスタンスを使うとブロックする
     Redis.new.subscribe(*keys) do |on|
       on.message do |channel, message|
-        puts "get #{channel} singal(#{message})"
+        puts "get #{channel} signal(#{message})"
         notifiees[channel].handle_message(io, message)
       end
     end
