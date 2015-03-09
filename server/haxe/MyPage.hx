@@ -1019,7 +1019,7 @@ class MyPage {
       <div class="operation">
         <a class="show-comment" href="#" onclick="MyPage.toggleComments(this);return false;">
           <img src="${post.chatIconUrl}">
-          <span class="show-comment-label">×${data.commentsLength}</span>
+          <span class="show-comment-label">×${post.commentsLength}</span>
         </a>
 ';
                 if (data.editable) {

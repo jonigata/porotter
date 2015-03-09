@@ -1100,8 +1100,9 @@ MyPage.makeTimeline = function(data) {
 		var post = posts[_g];
 		++_g;
 		s += "\n  <article\n     class=\"post\"\n     score=\"" + Std.string(post.score) + "\"\n     post-id=\"" + Std.string(post.postId) + "\"\n     post-type=\"" + Std.string(post.postType) + "\"\n     version=\"" + Std.string(post.postVersion) + "\"\n     removed=\"" + Std.string(post.removed) + "\"\n     >\n    <div class=\"avatar\">\n      <div class=\"icon\">\n        <img src=\"http://www.gravatar.com/avatar/" + Std.string(post.icon) + "?s=40&d=mm\" alt=\"gravator\"/>\n      </div>\n    </div>\n    <div class=\"entry\">\n      " + Std.string(post.detail) + "\n";
+		console.log(post);
 		if(post.commendId != 0) {
-			s += "\n      <div class=\"operation\">\n        <a class=\"show-comment\" href=\"#\" onclick=\"MyPage.toggleComments(this);return false;\">\n          <img src=\"" + Std.string(post.chatIconUrl) + "\">\n          <span class=\"show-comment-label\">×" + Std.string(data.commentsLength) + "</span>\n        </a>\n";
+			s += "\n      <div class=\"operation\">\n        <a class=\"show-comment\" href=\"#\" onclick=\"MyPage.toggleComments(this);return false;\">\n          <img src=\"" + Std.string(post.chatIconUrl) + "\">\n          <span class=\"show-comment-label\">×" + Std.string(post.commentsLength) + "</span>\n        </a>\n";
 			if(data.editable) s += "\n        <span class=\"ui-delimiter-8\"></span>\n        <a class=\"post-comment\" href=\"#\" onclick=\"MyPage.toggleCommentForm(this);return false;\">コメントする</a>\n";
 			s += "\n                </div>\n";
 		}
